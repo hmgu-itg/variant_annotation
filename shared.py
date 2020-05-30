@@ -69,9 +69,20 @@ def ReadParameters(parameterFile):
 
     return ParameterDict
 
-def getQuery(URL,timeout=None):
+def restQuery(URL,qtype="get",timeout=None):
+    func=None
+
+    if qtype=="get":
+        func=requests.get
+    elif qtype=="post":
+        func=requests.post
+    else:
+        print(str(datetime.datetime.now())+" : getQuery: query type ("+qtype+") has to be either \"get\" or \"post\"",file=sys.stderr)
+        sys.stderr.flush()
+        return None
+
     try:
-        r = requests.get(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},timeout=timeout)
+        r = func(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},timeout=timeout)
         if not r.ok:
             print(str(datetime.datetime.now())+" : getQuery: Error "+str(r.status_code)+" occured",file=sys.stderr)
             sys.stderr.flush()
