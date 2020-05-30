@@ -6,14 +6,14 @@ Version: 0.1 Last modified: 2016.02.24
 Input and output of functions are explained at each function
 '''
 
-import requests # For the REST queries
-import datetime # For generating the footer
+import requests
+import datetime
 import sys
 import os
 import re
 import jinja2
-import json # To encode JSON strings
-import pandas as pd # For returning table.
+import json 
+import pandas as pd
 
 
 # Footer generator:
@@ -68,6 +68,36 @@ def ReadParameters(parameterFile):
             ParameterDict[key.strip()] = value.strip()
 
     return ParameterDict
+
+def getQuery(URL,timeout=None):
+    try:
+        r = requests.get(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},timeout=timeout)
+        if not r.ok:
+            print(str(datetime.datetime.now())+" : getQuery: Error "+str(r.status_code)+" occured",file=sys.stderr)
+            sys.stderr.flush()
+            return None
+
+        try:
+            ret=r.json()
+            return ret
+        except ValueError:
+            print(str(datetime.datetime.now())+" : getQuery: JSON decoding error", file=sys.stderr)
+            sys.stderr.flush()
+            return None
+
+    except Timeout as ex:
+        print(str(datetime.datetime.now())+" : getQuery: Timeout exception occured", file=sys.stderr)
+        sys.stderr.flush()
+        return None
+    except TooManyRedirects as ex:
+        print(str(datetime.datetime.now())+" : getQuery: TooManyRedirects exception occured", file=sys.stderr)
+        sys.stderr.flush()
+        return None
+    except RequestException as ex:
+        print(str(datetime.datetime.now())+" : getQuery: RequestException occured", file=sys.stderr)
+        sys.stderr.flush()
+        return None
+
 
 # REST submission:
 def submit_REST (URL):

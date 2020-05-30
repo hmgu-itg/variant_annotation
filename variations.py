@@ -3,8 +3,6 @@ These functions were collected to annotate individual variations.
 
 version: v.2.1.0 Last modified: 2015.11.23
 
-Package includes:
-
 '''
 
 # Libraries for configuration:
@@ -16,7 +14,7 @@ from shared import *
 # library for simple web queries:
 import requests, sys, os
 
-# libray for parsing htlm files:
+# libray for parsing html files:
 from lxml import html
 
 # library for generate python data structure from string:
@@ -352,7 +350,7 @@ def get_principal_transcript(gene_ID):
 # This function downloads variation data from ensembl:
 def get_variant_info(rsID, ref):
     '''
-    This function returns the most important details of a variation given it's rsID.
+    This function returns the most important details of a variation given its rsID.
 
     It also returns the 1000 Genome Phase 3 allele frequencies as well.
 
@@ -363,7 +361,7 @@ def get_variant_info(rsID, ref):
 
     variationData = submit_REST(URL)
 
-    # If the user only provides rsID, we don't know which is hte reference allele:
+    # If the user only provides rsID, we don't know which is the reference allele:
     if ref == "NA":
         ref = variationData["ancestral_allele"]
 
@@ -526,13 +524,13 @@ def get_ExAC_frequencies(variant_data):
     else:
         return "Variation could not be found in the ExAC dataset."
 
-# This function checks if rsID is exists for a given snp id
+# This function checks if rsID exists for a given snp id
 def get_rsID(SNP_ID):
     '''
     This is the first step of the variation annotation, when we test if the provided SNP ID is
     proper, and if it overlaps with an already known rsID.
 
-    If everything is OK, we return with the population and the variation data
+    If everything is OK, we return population and variation data
     '''
 
     # If rsID is provided than we don't do all the crap:
