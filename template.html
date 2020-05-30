@@ -1,0 +1,286 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+<!-- Styles are defined for each object of the page-->
+<style>
+
+div.general {
+    /* Setting fonts */
+    color: navy;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 20px;
+
+    /* Setting margins and padding */
+    margin:  10px 10px 5px 10px
+
+}
+/* Every table should have some footer explaining the data or the source */
+div.table_comment {
+    font-size: 12px;
+    margin: 0px 10px 10px 30px;
+}
+
+div.missing_data {
+    color : #833F4E;
+    font-size: 20px;
+    margin-left: 25px;
+    margin-bottom: 15px;
+}
+
+div.Footer {
+    color: navy;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12px;
+    width: 700px;
+    margin: 0 auto 1em;
+    padding-right: 20;
+    text-align: right;
+    display: block;
+}
+
+h1 {
+    background-color: #8b9bc1;
+    margin: 0;
+    padding: 4px 8px 2px 24px;
+
+    -webkit-border-radius: 8px 0 8px 0;
+    line-height: 1em;
+
+    display: block;
+    -webkit-margin-before: 0px;
+    -webkit-margin-after: 0px;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+
+    /* Setting fonts */
+    color: navy;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+table.variation {
+    border-collapse: collapse;
+
+    /* Setting fonts */
+    color: black;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 15px;
+
+    /* Setting up margins */
+    margin-top: 5px;
+    margin-left: 30px;
+    margin-bottom: 10px;
+}
+
+table.gwas_table, table.regulatory, table.ExAC_pop, table.phenotypes, table.GTEX_eQTL, table.UK10k_table, table.gene_list, table.consequence_table, table.populations {
+    border-collapse: collapse;
+    width: 600px;
+
+    /* Setting fonts */
+    color: black;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 15px;
+
+    /* Setting up margins */
+    margin-top: 10px;
+    margin-left: 30px;
+    margin-bottom: 10px;
+}
+table.consequence_table, table.GTEX_eQTL {
+    margin-top: 10px;
+    margin-left: 20px;
+
+    width: 620px;
+    font-size: 12px;
+
+}
+
+table.regulation {margin: 10px 10px 10px 20px ;}
+table.gene_list {width:650px; margin-left:10px}
+
+div.big_box {
+    background-color: white;
+    width: 700px;
+    border: 1px solid navy;
+    display: block;
+
+    background-color: #fff;
+    padding: 0;
+    margin: 0;
+
+    /* Margins */
+    margin: 0 auto 1em;
+
+    /* Rounded edges */
+    border-bottom-right-radius: 8px;
+    border-top-left-radius: 8px;
+
+    /* Shadows around boxes*/
+    box-shadow: 4px 4px 10px #BCBCCC;
+
+    /* Setting fonts */
+    color: navy;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 20px;
+}
+td.var_cat {
+    /* Setting fonts */
+    font-weight: bold;
+    vertical-align: top;
+
+
+    /* Setting up margins */
+    padding-top: 5px;
+
+    /* Setting up column with: */
+    width: 30%;
+}
+
+td.table_header {
+    /* Setting fonts */
+    font-weight: bold;
+}
+tr.pop_header {
+    font-weight: bold;
+    background-color: #B4D4F5
+}
+table.populations { background-color: #F7FBFF}
+tr.pop_ALL, .pop_SAS, .pop_EAS, .pop_AMR, .pop_EUR, .pop_AFR { background-color: #B4D4F5 }
+
+td.pubmed {
+    margin: 5px;
+}
+
+ul{
+    /*display: none*/;
+    margin: 8px 8px 0 0;
+    list-style-type: none;
+    -webkit-margin-end: 0px;
+    -webkit-padding-start: 0px;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 15px;
+    padding: 3;
+}
+tr.overlap{ background-color: #fc8d59; padding: 5px 0 5px 0}
+tr.other_gene { background-color: #ffffbf; padding: 5px 0 5px 0}
+tr.protein_coding { background-color: #91bfdb; padding: 5px 0 5px 0}
+
+/* Styles for phenotpyes */
+table.phenotypes {
+    font-size: 11px;
+}
+tr.table_header {
+    /* Setting fonts */
+    font-weight: bold;
+}
+
+</style>
+
+<script  language="javascript" type="text/javascript">
+// This function shows and hides certain elements on the page:
+function toggle() {
+  var target = event.target || event.srcElement;
+	if (target.lastElementChild.style.display == 'block'){
+		target.lastElementChild.style.display = 'none'
+	}
+	else {
+    target.lastElementChild.style.display = 'block'
+	}
+}
+</script>
+
+</head>
+    <body bgcolor="#E6E6FA" class=body>
+
+<!-- Variation data. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Variant details</h1>
+<div id="variation" class="general" >General information:<br>
+
+{{ variation_table }}
+
+
+</div>
+</div>
+
+<!-- All variants that has phenotype annotations around the variant, default window is used -->
+<div id="General" class="big_box"><h1>Variants with phenotypes</h1>
+<div id="variation" class="general" >The following variants has phenotype annotations within 500kbp:<br>
+
+{{ phenotypes }}
+
+</div>
+</div>
+
+<!-- GWAS hits around our variation. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>GWAS signals</h1>
+<div id="variation" class="general" >GWAS signals within 500kbp of the variant:<br>
+
+{{ gwas_table }}
+
+</div>
+</div>
+
+<!-- Various consequences dependeing on the overlapping feature. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Predicted consequences</h1>
+<div id="variation" class="general" >
+
+{{ consequence_table }}
+
+</div>
+</div>
+
+<!-- Allele frequencies. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Allele frequencies</h1>
+
+{{ Genomes_freq }}
+
+{{ ExAC_freq }}
+
+{{ UK10K_freq }}
+
+</div>
+</div>
+
+<!-- List of overlapping regulatory features. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Regulation</h1>
+<div id="variation" class="general" >Within the 2kbp distance of the variation, the following regualtory elements were found:<br>
+
+{{ regulation }}
+
+</div>
+</div>
+
+<!-- List of overlapping regulatory features. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Expressed Quantitative Trait Locus</h1>
+<div id="variation" class="general" >GTEx:<br>
+
+{{ GTExGenes }}
+
+</div>
+</div>
+
+<!-- List of gnes within 1Mbp. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Nearby genes</h1>
+<div id="variation" class="general" >List of genes within 500kbp aroud the variation:<br>
+
+{{ genes }}
+
+</div>
+</div>
+
+<!-- List of pubmed entries, with links. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Pubmed entries</h1>
+<div id="1000_genomes" class="general" >List of publications where the variation was mentioned:<br>
+
+{{ pubmed }}
+
+</div>
+</div>
+
+<!--The footer will also be generated based on the script version and date-->
+<div class="Footer" > {{ footer }} </div>
+
+</body>
+</html>

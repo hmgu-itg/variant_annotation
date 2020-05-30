@@ -1,0 +1,273 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+<!-- Styles are defined for each object of the page-->
+<style>
+
+div.general {
+    /* Setting fonts */
+    color: navy;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 20px;
+
+    /* Setting margins and padding */
+    margin: 10px 10px 30px 10px
+
+}
+div.Footer {
+    color: navy;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12px;
+    width: 700px;
+    margin: 0 auto 1em;
+    padding-right: 20;
+    text-align: right;
+    display: block;
+}
+div.missing_data {
+    color : #833F4E;
+    font-size: 20px;
+    margin-left: 25px;
+    margin-bottom: 15px;
+}
+
+h1 {
+    background-color: #8b9bc1;
+    margin: 0;
+    padding: 4px 8px 2px 24px;
+
+    -webkit-border-radius: 8px 0 8px 0;
+    line-height: 1em;
+
+    display: block;
+    -webkit-margin-before: 0px;
+    -webkit-margin-after: 0px;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+
+    /* Setting fonts */
+    color: navy;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+table.gene_general, table.gene_GXA_table {
+    border-collapse: collapse;
+    width: 600px;
+
+    /* Setting fonts */
+    color: black;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 15px;
+
+    /* Setting up margins */
+    margin-top: 10px;
+    margin-left: 30px;
+    margin-bottom: 20px;
+}
+
+div.big_box {
+    background-color: white;
+    width: 700px;
+    border: 1px solid navy;
+    display: block;
+
+    background-color: #fff;
+    padding: 0;
+    margin: 0;
+
+    /* Margins */
+    margin: 0 auto 1em;
+
+    /* Rounded edges */
+    border-bottom-right-radius: 8px;
+    border-top-left-radius: 8px;
+
+    /* Shadows around boxes*/
+    box-shadow: 4px 4px 10px #BCBCCC;
+
+    /* Setting fonts */
+    color: navy;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 20px;
+}
+td.gene_cat {
+    /* Setting fonts */
+    font-weight: bold;
+    vertical-align: top;
+
+
+    /* Setting up margins */
+    padding-top: 5px;
+
+    /* Setting up column with: */
+    width: 30%;
+}
+
+div.full_GO {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 15px;
+    margin: 10px 10px 10px 10px;
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+div.UnipCategory, div.OMIM_cat {
+    margin: 10px 2px 0 20px;
+    font-weight: bold;
+    font-size: 20px;
+}
+div.UnipDescription, div.OMIM_desc {
+    width: 600px;
+    margin: 2px 5px 0 30px;
+    font-size: 18px;
+    color: black;
+    text-align: justify;
+}
+div.Uniprot_entry, div.OMIM {
+    margin: 10px 10px 0px 10px;
+}
+table.gene_GWAS_table{
+    border-collapse: collapse;
+    width: 680px;
+
+    /* Setting fonts */
+    color: black;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 13px;
+
+    /* Setting up margins */
+    margin-top: 10px;
+    margin-left: 10px;
+    margin-bottom: 20px;
+}
+table.gene_GXA_table {
+    width: 350px;
+    margin-left: 80px;
+    font-size: 18px;
+}
+tr.table_header {
+    /* Setting fonts */
+    font-weight: bold;
+}
+
+
+/* Styles for the mouse phenotype section */
+table.mouse_phenotype {
+    margin-top: 10px;
+    margin-left: 30px;
+    margin-bottom: 20px;
+
+    width: 650px;
+    font-size: 12px;
+}
+div.mouse_gene {
+    padding-top: 20px;
+    padding-left: 20px;
+}
+tr.mouse_pheno_header {
+    font-weight: bold;
+    background-color: #B4D4F5
+}
+</style>
+
+<script  language="javascript" type="text/javascript">
+// This function shows and hides certain elements on the page:
+function toggle() {
+  var target = event.target || event.srcElement;
+	if (target.lastElementChild.style.display == 'block'){
+		target.lastElementChild.style.display = 'none'
+	}
+	else {
+    target.lastElementChild.style.display = 'block'
+	}
+}
+</script>
+
+</head>
+    <body bgcolor="#E6E6FA" class=body>
+
+<!-- Gene data. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Gene details</h1>
+<div id="Gene" class="general" >General information of the gene:<br>
+
+{{ gene_table }}
+
+
+</div>
+</div>
+
+<!-- GO annotation and the word cloud. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Gene Onthology annotaion</h1>
+<div id="variation" class="general" >
+
+{{ go_data }}
+
+</div>
+</div>
+
+<!-- Annotation retrieved from Uniprot. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Uniprot annotation</h1>
+<div id="variation" class="general" >
+
+{{ Uniprot_data }}
+
+</div>
+</div>
+
+
+</div>
+</div>
+
+<!-- Annotation retrieved from OMIM. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>OMIM annotation</h1>
+<div id="variation" class="general" >
+
+{{ OMIM_annot }}
+
+</div>
+</div>
+
+<!-- Annotation retrieved from OMIM. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>GWAS associations</h1>
+<div id="GWAS" class="general" >
+
+{{ GWAS }}
+
+</div>
+</div>
+
+<!-- Collection of gene expression data from various sources -->
+<div id="General" class="big_box"><h1>Gene expression</h1>
+<div id="GWAS" class="general" >
+
+{{ GXA_table }}
+
+{{ GXA_heatmap }}
+
+</div>
+</div>
+
+<!-- Collection of gene expression data from various sources -->
+<div id="General" class="big_box"><h1>Expressed quantitative trait loci</h1>
+<div id="GWAS" class="general">GTEx:<br>
+
+{{ GTExVariants }}
+
+</div>
+</div>
+
+<!-- Mouse phenotypes available on MGI -->
+<div id="General" class="big_box"><h1>Mouse models</h1>
+
+{{ mouse_pheno }}
+
+</div>
+
+<!--The footer will also be generated based on the script version and date-->
+<div class="Footer" > {{ footer }} </div>
+
+</body>
+</html>
