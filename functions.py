@@ -197,3 +197,180 @@ def getVariantsWithPhenotypes(chrom,start,end,pos=0,build="38"):
     df.consequence = df.consequence.str.title().str.replace("_", " ")
 
     return df
+
+# This function downloads variation data from ensembl:
+def get_variant_info(rsID, ref):
+    '''
+    This function returns the most important details of a variation given its rsID.
+
+    It also returns the 1000 Genome Phase 3 allele frequencies as well.
+
+    Returned: pop_freq, variation_data
+    '''
+
+    URL = config.REST_URL + "/variation/human/%s?content-type=application/json;pops=1;phenotypes=1" %rsID
+
+    variationData = submit_REST(URL)
+
+    # If the user only provides rsID, we don't know which is the reference allele:
+    if ref == "NA":
+        ref = variationData["ancestral_allele"]
+
+    # Building our custom hash:
+    variation_data = {
+        "reference": ref,
+        "rsID" : variationData["name"],
+        "minorAllele" : variationData["minor_allele"],
+        "ancestralAllele" : variationData["ancestral_allele"],
+        "synonyms" : variationData["synonyms"],
+        "MAF" : variationData["MAF"],
+        "varClass" : variationData["var_class"],
+        "consequence" : variationData["most_severe_consequence"]
+    }
+
+    # Extracting frequencies:
+    pop_freq = {}
+    for pops in variationData["populations"]:
+        pop_name = pops["population"].split(":")
+        try:
+            if pop_name[0] == "1000GENOMES" and pop_name[1] == "phase_3":
+                try:
+                    pop_freq[pop_name[2]][pops["allele"]] = pops["frequency"]
+                except:
+                    pop_freq[pop_name[2]] = {pops["allele"] : pops["frequency"]}
+        except:
+            continue
+    # If not 1000 genome frequencies are available for the given variation:
+    if len(pop_freq) == 0:
+        pop_freq = "Variation was not found in the 1000 Genomes data."
+
+    # Extracting mapping:
+    for mapping in variationData["mappings"]:
+        if len(mapping["seq_region_name"]) > 2:
+            continue
+        else:
+            variation_data["chromosome"] = mapping["seq_region_name"]
+            variation_data["start"] = mapping["start"]
+            variation_data["end"] = mapping["end"]
+            variation_data["allele_string"] = mapping["allele_string"]
+            variation_data["location"] = mapping["location"]
+
+    # 'alternativeAllele': alt,
+    if variationData["minor_allele"] == ref:
+        all_alleles = variation_data["allele_string"].split("/")
+        variation_data["alternativeAllele"] = all_alleles[1]
+    else:
+        variation_data["alternativeAllele"] = variationData["minor_allele"]
+
+    # Extracting phenotype information:
+    if len(variationData["phenotypes"]) > 0: variation_data["phenotypes"] = []
+    for pt in variationData["phenotypes"]:
+        trait = pt["trait"] if "trait" in pt else "-"
+        source = pt["source"] if "source" in pt else "-"
+        allele = pt["risk_allele"] if "risk_allele" in pt else "-"
+
+        if "risk_allele" in pt:
+            trait += "("+pt["risk_allele"]+")"
+
+        variation_data["phenotypes"].append({
+            "trait": trait,
+            "source": source,
+            })
+
+
+
+    # Generating SNP ID:
+    variation_data["SNP_ID"] = "chr" + str(variation_data["chromosome"]) + ":" + str(variation_data["start"])
+
+    # Extracting clinical significance:
+    try:
+        for cs in variationData["clinical_significance"]:
+            if cs != "other" and cs != "not provided":
+                try:
+                    variation_data["clinical_significance"].append(cs)
+                except:
+                    variation_data["clinical_significance"] = [cs]
+    except:
+        pass
+
+
+    # Now we have to generate the gerp and gwava scores.
+    # variation_data = get_GWAVA_score(variation_data)
+
+    return (pop_freq, variation_data)
+
+
+# return rsID for a given variant ID
+def id2rs(id):
+    # If rsID is provided than we don't do all the crap:
+    if "rs" in SNP_ID:
+        return get_variant_info(SNP_ID, "NA")
+
+    # Step1: parse input data: assign chromosome and position and the allele string:
+    coordinate = SNP_ID.split("_")[0]
+    alleles = SNP_ID.split("_")[1]
+
+    chromosome = coordinate.split(":")[0]
+    if "chr" in chromosome: chromosome = chromosome[3:]
+    position = coordinate.split(":")[1]
+
+    allele1 = alleles.split("/")[0]
+    allele2 = alleles.split("/")[1]
+
+    # Step2: checking reference sequence:
+    URL = config.REST_URL + "/sequence/region/human/%s:%s..%s:1?content-type=text/plain" % (chromosome, position, position)
+
+    base = submit_REST(URL)["seq"]
+
+    if allele1 == base:
+        ref = allele1
+        alt = allele2
+    elif allele2 == base:
+        ref = allele2
+        alt = allele1
+    else:
+        print "[Error] There is a problem with the input: %s, none of the alleles are matching with the reference allele (%s).\n" %(SNP_ID, base)
+
+    # Checking for overlapping variations:
+    URL = config.REST_URL + "/overlap/region/human/%s:%s-%s?feature=variation" % (chromosome, position, position)
+    variations = submit_REST(URL)
+
+    rsID = ""
+    for variation in variations:
+        try:
+            if ref in variation["alt_alleles"] and alt in variation["alt_alleles"]:
+                rsID = variation["id"]
+        except:
+            if ref in variation["alleles"] and alt in variation["alleles"]:
+                rsID = variation["id"]
+
+    variant_data = []
+    if "rs" in rsID:
+        return get_variant_info(rsID, ref)
+    else:
+        # checking variation class:
+        if len(ref) == len(alt):
+            var_class = "SNP"
+        elif len(ref) > len(alt):
+            var_class = "DEL"
+        elif len(ref) < len(alt):
+            var_class = "INS"
+
+        return [{},{
+             'reference' : ref,
+             'MAF': '-',
+             'SNP_ID': coordinate,
+             'allele_string': alleles,
+             'ancestralAllele': ref,
+             'chromosome': chromosome,
+             'consequence': '',
+             'end': int(position),
+             'location': coordinate+'-'+position,
+             'minorAllele': alt,
+             'alternativeAllele': alt,
+             'rsID': "-",
+             'start': int(position),
+             'synonyms': [],
+             'varClass': var_class
+
+        }]
