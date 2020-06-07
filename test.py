@@ -5,13 +5,13 @@ import os
 import argparse
 import re
 import datetime
-import functions
+from functions import *
 #----------------------------------------------------------------------------------------------------------------------------------
 
-build="grch38"
+build="38"
 
 parser = argparse.ArgumentParser(description="Get chromosome, position and alleles for given rsID")
-parser.add_argument('--build','-b', action="store",help="Genome build: default: grch38", default="grch38")
+parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38")
 parser.add_argument('--verbose','-v',default=False,action="store_true",help="verbose output")
 requiredArgs=parser.add_argument_group('required arguments')
 requiredArgs.add_argument('--rs','-r', action="store",help="rsID",required=True)
@@ -33,21 +33,9 @@ if args.build!=None:
 
 rsID=args.rs
     
-ext = "/variant_recoder/homo_sapiens/"
-server = "http://"+build+".rest.ensembl.org"
-if build=="grch38":
-    server = "http://rest.ensembl.org"
-
-
-#print("Current build: "+build,file=sys.stderr)
-
 #---------------------------------------------------------------------------------------------------------------------------
+r=restQuery(makeRSQueryURL(rsID,build))
 
-timeout=60
-max_attempts=5
-
-URL=server+ext+rsID+"?"
-r=functions.restQuery(URL)
 H={}
 
 if r:
@@ -68,7 +56,7 @@ if r:
         for z in spdi:
             m=re.search("^NC_0+",z)
             if m:
-                p=functions.parseSPDI(z)
+                p=parseSPDI(z)
                 H[rsID].append(p)
 
     s=H[rsID]
@@ -81,6 +69,6 @@ if r:
         L=positions.pop().rsplit(":")
         print(rsID,L[0],L[1],sep='\t',file=sys.stdout,flush=True)
 else:
-    print("ERROR: getResponse2 returned None for "+rsID,file=sys.stderr,flush=True)    
+    print("ERROR: restQuery returned None for "+rsID,file=sys.stderr,flush=True)    
     print(rsID,"NA","NA",sep='\t')
 
