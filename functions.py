@@ -97,10 +97,18 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
         return None
 
 # check if provided input is a valid variant ID
+# valid ID: either rsID or chr_pos_ref_alt, where at least one of ref and alt has length 1
 def checkID(id):
     m=re.search("^rs\d+",id)
     if m:
         return True
     
     m=re.search("^\d+:\d+_([ATGC]+)_([ATGC]+)",id)
-    
+    if m:
+        if (len(m.group(1))==1 or len(m.group(2))==1):
+            return True
+        else:
+            return False
+    else:
+        return False
+
