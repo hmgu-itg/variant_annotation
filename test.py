@@ -72,3 +72,25 @@ else:
     print("ERROR: restQuery returned None for "+rsID,file=sys.stderr,flush=True)    
     print(rsID,"NA","NA",sep='\t')
 
+#--------------------------------------------------------------------------------------------------------------
+
+chrom="1"
+start=int(1000000)
+end=int(1015000)
+URL=makePhenoOverlapQueryURL(chrom,start,end,build=build)
+print(URL)
+variants=restQuery(URL,qtype="get")
+if variants:
+    #print(json.dumps(variants, indent=4, sort_keys=True))
+    if len(variants) == 0: 
+        print(str(datetime.datetime.now())+" : getVariantsWithPhenotypes: No variants with phenotypes were found in the region", file=sys.stderr)
+
+    rsIDs = []
+    for var in variants:
+        if "id" in var:
+            rsIDs.append(var["id"])
+        else:
+            print(var)
+
+    r = restQuery(makeRSPhenotypeQueryURL(build=build),data=list2string(rsIDs),qtype="post")
+    print(json.dumps(r, indent=4, sort_keys=True))

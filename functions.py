@@ -16,6 +16,22 @@ def makeRSQueryURL(rsID,build="38"):
 
     return server+ext+rsID+"?"
 
+def makeRSPhenotypeQueryURL(build="38"):
+    ext = "/variation/homo_sapiens/"
+    server = "http://grch"+build+".rest.ensembl.org"
+    if build=="38":
+        server = "http://rest.ensembl.org"
+
+    return server+ext+"?phenotypes=1"
+
+def makePhenoOverlapQueryURL(chrom,start,end,build="38"):
+    ext = "/overlap/region/human/"
+    server = "http://grch"+build+".rest.ensembl.org"
+    if build=="38":
+        server = "http://rest.ensembl.org"
+
+    return server+ext+"%s:%d-%d?feature=variation;variant_set=ph_variants;content-type=application/json" %(chrom,start,end)
+
 def makeRSListQueryURL(build="38"):
     ext = "/variant_recoder/homo_sapiens/"
     server = "http://grch"+build+".rest.ensembl.org"
@@ -112,3 +128,72 @@ def checkID(id):
     else:
         return False
 
+
+# for a given genomic region, return dataframe containing variants with phenotype annotations
+def getVariantsWithPhenotypes(chrom,start,end,pos=0,build="38"):
+# 5Mb max !
+
+    '''
+    output: pandas dataframe with the following columns:
+    'SNPID', 'consequence', 'distance', 'genes', 'phenotype', 'rsID', 'source'
+    '''
+    if start<0 : start=0
+    URL=makePhenoOverlapQueryURL(chrom,start,end,build=build)
+
+    variants=restQuery(URL,qtype="get")
+
+    if not variants:
+        return None
+
+    if len(variants) == 0: 
+        print(str(datetime.datetime.now())+" : getVariantsWithPhenotypes: No variants with phenotypes were found in the region", file=sys.stderr)
+        return None
+
+    rsIDs = []
+    for var in variants:
+        rsIDs.append(var["id"])
+
+    # Given rsIDs, get the phenotypes
+    URL=makeRSPhenotypeQueryURL(build=build)
+    r = restQuery(URL,data=list2string(rsIDs),qtype="post")
+
+    # Check output:
+    if not r:
+        return None
+
+    buildstr=""
+    if build != "38":
+        buildstr="grch"+build+"."
+
+    output=[]
+    for rsID in r:
+        for phenotype in r[rsID]["phenotypes"]:
+
+            # TODO: check all possible sources
+            # Generate phenotype link based on source:
+            if phenotype["source"] == "ClinVar":
+                link = "https://www.ncbi.nlm.nih.gov/clinvar/?term="+rsID
+            elif phenotype["source"] == "HGMD-PUBLIC":
+                link = "http://www.hgmd.cf.ac.uk/ac/gene.php?gene="+phenotype["genes"]
+            elif "NHGRI-EBI" in phenotype["source"]:
+                link = "https://www.ebi.ac.uk/gwas/search?query="+rsID
+            elif phenotype["source"] == "OMIM":
+                link = "https://www.omim.org/entry/"+phenotype["study"][4:]
+            else:
+                link = "http://"+buildstr+"ensembl.org/Homo_sapiens/Variation/Phenotype?db=core;v=CM106680;vdb=variation"
+
+            # TODO: check key availability
+            output.append({"rsID": rsID,
+                    "consequence" : r[rsID]["most_severe_consequence"],
+                    "SNPID" : "%s:%s" %(
+                        r[rsID]["mappings"][0]["seq_region_name"],
+                        r[rsID]["mappings"][0]["start"]),
+                    "phenotype" : phenotype["trait"],
+                    "URL" : link,
+                    "distance" : abs(pos - r[rsID]["mappings"][0]["start"])})
+
+    # Create a dataframe:
+    df = pd.DataFrame(output)
+    df.consequence = df.consequence.str.title().str.replace("_", " ")
+
+    return df
