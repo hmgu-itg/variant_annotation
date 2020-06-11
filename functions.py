@@ -322,6 +322,9 @@ def id2rs(varid,build="38"):
     if varid.startswith("rs"):
         return varid
 
+    # in case of indels, pull all variants from window around the given variant
+    window=5
+
     m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varid)
     chrom=m.group(1)
     pos=int(m.group(2))
@@ -334,5 +337,17 @@ def id2rs(varid,build="38"):
         for v in r:
             if a1 in v["alleles"] and a2 in v["alleles"]:
                 L.append(v)
-
+        # if len(L)==0:
+        #     base=getRefSeq(chrom,pos,pos,build)
+        #     ref=base
+        #     alt=None
+        #     if a1==base:
+        #         alt=a2
+        #     elif a2==base:
+        #         alt=a1
+        #     else:
+        #         print()
+        #         return None
+#    else:
+#        
     return L

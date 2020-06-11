@@ -9,9 +9,11 @@ from functions import *
 #----------------------------------------------------------------------------------------------------------------------------------
 
 build="38"
+window=0
 
 parser = argparse.ArgumentParser(description="Get rs ID for given variant ID")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38")
+parser.add_argument('--window','-w', action="store",help="bp window around variant: default: 0", default="0")
 requiredArgs=parser.add_argument_group('required arguments')
 requiredArgs.add_argument('--id','-i', action="store",help="varID",required=True)
 
@@ -28,6 +30,9 @@ except:
 if args.build!=None:
     build=args.build
 
+if args.window:
+    window=int(args.window)
+
 varID=args.id
 m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varID)
 chrom=m.group(1)
@@ -36,14 +41,14 @@ a1=m.group(3)
 a2=m.group(4)
 
 #---------------------------------------------------------------------------------------------------------------------------
-#r=restQuery(makeOverlapVarQueryURL(chrom,pos,pos,build))
-#print(json.dumps(r, indent=4, sort_keys=True))
+r=restQuery(makeOverlapVarQueryURL(chrom,pos-window,pos+window,build))
+print(json.dumps(r, indent=4, sort_keys=True))
 
-for x in id2rs(varID,build):
+#for x in id2rs(varID,build):
 #    print("")
 #    print("id",x["id"],sep="\t")
 #    print("chrom",x["seq_region_name"],sep="\t")
 #    print("start",x["start"],sep="\t")
 #    print("end",x["end"],sep="\t")
 #    print("alleles",x["alleles"],sep="\t")
-    print(x["id"],varID,sep="\t");
+    #print(x["id"],varID,sep="\t");
