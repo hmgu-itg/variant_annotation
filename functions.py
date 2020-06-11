@@ -56,7 +56,6 @@ def makeRSListQueryURL(build="38"):
 
     return server+ext
 
-# this function is primarily used to get variant's position
 # if alleles==True, also return alleles
 def parseSPDI(string,alleles=False,build="38"):
     L=string.rsplit(":")
