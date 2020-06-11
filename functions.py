@@ -8,6 +8,14 @@ from requests.exceptions import Timeout,TooManyRedirects,RequestException
 def list2string(snps):
     return "{\"ids\":["+",".join(list(map(lambda x:"\""+x+"\"",snps)))+"]}"
 
+def makeRefSeqQueryURL(chrom,start,end,build="38"):
+    ext = "/sequence/region/human/"
+    server = "http://grch"+build+".rest.ensembl.org"
+    if build=="38":
+        server = "http://rest.ensembl.org"
+
+    return server+ext+"%s:%s..%s:1?"  % (chrom,str(start),str(end))
+
 def makeRSQueryURL(rsID,build="38"):
     ext = "/variant_recoder/homo_sapiens/"
     server = "http://grch"+build+".rest.ensembl.org"
@@ -119,7 +127,7 @@ def checkID(id):
     if m:
         return True
     
-    m=re.search("^\d+:\d+_([ATGC]+)_([ATGC]+)",id)
+    m=re.search("^\d+:\d+_[ATGC]+_[ATGC]+",id)
     if m:
         return True
     else:
@@ -296,28 +304,23 @@ def get_variant_info(rsID, ref):
 
     return (pop_freq, variation_data)
 
+# return a oart of the reference genome
+def getRefSeq(chrom,start,end,build="38"):
+    response = restQuery(getRefSeqQueryURL(chrom,start,end,build))
+    return response["seq"]
 
 # return rsID for a given variant ID
-def id2rs(id):
-    # If rsID is provided than we don't do all the crap:
-    if "rs" in SNP_ID:
-        return get_variant_info(SNP_ID, "NA")
+def id2rs(varid,build="38"):
+    if SNP_ID.startswith("rs"):
+        return SNP_ID
 
-    # Step1: parse input data: assign chromosome and position and the allele string:
-    coordinate = SNP_ID.split("_")[0]
-    alleles = SNP_ID.split("_")[1]
+    m=re.search("^(\d+):(\d+)_([ATGC]+)_([ATGC]+)",id)
+    chrom=m.group(1)
+    pos=m.group(2)
+    a1=m.group(3)
+    a2=m.group(4)
 
-    chromosome = coordinate.split(":")[0]
-    if "chr" in chromosome: chromosome = chromosome[3:]
-    position = coordinate.split(":")[1]
-
-    allele1 = alleles.split("/")[0]
-    allele2 = alleles.split("/")[1]
-
-    # Step2: checking reference sequence:
-    URL = config.REST_URL + "/sequence/region/human/%s:%s..%s:1?content-type=text/plain" % (chromosome, position, position)
-
-    base = submit_REST(URL)["seq"]
+    base=getRefSeq(chrom,pos,pos,build)
 
     if allele1 == base:
         ref = allele1
