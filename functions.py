@@ -57,7 +57,8 @@ def makeRSListQueryURL(build="38"):
     return server+ext
 
 # this function is primarily used to get variant's position
-def parseSPDI(string):
+# if alleles==True, also return alleles
+def parseSPDI(string,alleles=False,build="38"):
     L=string.rsplit(":")
     c=L[0]
     m=re.search("NC_0+(\d+)\.\d+",L[0])
@@ -68,16 +69,33 @@ def parseSPDI(string):
     alt=L[3]
     lref=len(ref)
     lalt=len(alt)
+    isSNP=False
+    base=None
+    seq=None
 
-    # ref can be the length of the deleted sequence
+    # ref can be length of the deleted sequence
+    # or empty in case of simple insertions
     m=re.search("^(\d+)$",ref)
     if m:
-        if lalt==1: # SNP
-            pos=pos+1
+        if ref=="1": # one base deleted, i.e. variant is a SNP
+            isSNP=True
+        if alleles:
+            # deleted sequence
+            seq=getRefSeq(c,pos+1,int(ref),build)
+            base=getRefSeq(c,pos,pos,build)
+            if isSNP:
+                ref=base                
     elif lref==1 and lalt==1:# SNP
-        pos=pos+1
+        isSNP=True
 
-    return {"chr":c,"pos":pos,"ref":ref,"alt":alt}
+    if not isSNP:
+        ref=
+
+    if alleles:
+        if isSNP:
+            return {"chr":c,"pos":pos+1,"ref":ref,"alt":alt}
+        else:
+            
 
 def restQuery(URL,data=None,qtype="get",timeout=None):
     func=None
