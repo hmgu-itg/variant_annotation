@@ -319,8 +319,8 @@ def getRefSeq(chrom,start,end,build="38"):
 
 # return rsID for a given variant ID
 def id2rs(varid,build="38"):
-    if SNP_ID.startswith("rs"):
-        return SNP_ID
+    if varid.startswith("rs"):
+        return varid
 
     m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varid)
     chrom=m.group(1)
@@ -328,5 +328,11 @@ def id2rs(varid,build="38"):
     a1=m.group(3)
     a2=m.group(4)
 
-    r=restQuery(makeOverlapVarQueryURL(chrom,pos,pos,build))
-    return r
+    L=[]
+    if len(a1)==1 and len(a2)==1:
+        r=restQuery(makeOverlapVarQueryURL(chrom,pos,pos,build))
+        for v in r:
+            if a1 in v["alleles"] and a2 in v["alleles"]:
+                L.append(v)
+
+    return L
