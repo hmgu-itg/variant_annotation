@@ -135,9 +135,12 @@ def checkID(id):
     if m:
         return True
     
-    m=re.search("^\d+_\d+_[ATGC]+_[ATGC]+",id)
+    m=re.search("^\d+_\d+_([ATGC]+)_([ATGC]+)",id)
     if m:
-        return True
+        if m.group(1).startswith(m.group(2)) or m.group(2).startswith(m.group(1)):
+            return True
+        else:
+            return False
     else:
         return False
 
