@@ -10,11 +10,10 @@ from functions import *
 
 build="38"
 
-parser = argparse.ArgumentParser(description="Get chromosome, position and alleles for given rsID")
+parser = argparse.ArgumentParser(description="Get rs ID for given variant ID")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38")
-parser.add_argument('--verbose','-v',default=False,action="store_true",help="verbose output")
 requiredArgs=parser.add_argument_group('required arguments')
-requiredArgs.add_argument('--rs','-r', action="store",help="rsID",required=True)
+requiredArgs.add_argument('--id','-i', action="store",help="varID",required=True)
 
 if len(sys.argv[1:])==0:
     parser.print_help()
@@ -26,73 +25,16 @@ except:
     parser.print_help()
     sys.exit(0)
 
-verbose=args.verbose
-
 if args.build!=None:
     build=args.build
 
-rsID=args.rs
-    
+varID=args.id
+m=re.search("^(\d+):(\d+)_([ATGC]+)_([ATGC]+)",varID)
+chrom=m.group(1)
+pos=int(m.group(2))
+a1=m.group(3)
+a2=m.group(4)
+
 #---------------------------------------------------------------------------------------------------------------------------
-r=restQuery(makeRSQueryURL(rsID,build))
-
-H={}
-
-if r:
-    if verbose:
-        print("INFO: "+repr(r))
-
-    if len(r)>1:
-        print("WARNING: More than 1 hash for "+rsID,file=sys.stderr,flush=True)
-        
-    x=r[0]
-    r1=x["id"][0]
-    if r1!=rsID:
-        print("WARNING: INPUT ID="+rsID,"RETRIEVED ID="+r1,file=sys.stderr,flush=True)
-
-    H[rsID]=[]
-    if "spdi" in x:
-        spdi=x["spdi"]
-        for z in spdi:
-            m=re.search("^NC_0+",z)
-            if m:
-                p=parseSPDI(z)
-                H[rsID].append(p)
-
-    s=H[rsID]
-    positions=set(x["chr"]+":"+str(x["pos"]) for x in s)
-    if len(positions)>1:
-        print("ERROR: more than one position for "+rsID,file=sys.stderr,flush=True)
-    elif len(positions)<1:
-        print("ERROR: no position for "+rsID,file=sys.stderr,flush=True)
-    else:
-        L=positions.pop().rsplit(":")
-        print(rsID,L[0],L[1],sep='\t',file=sys.stdout,flush=True)
-else:
-    print("ERROR: restQuery returned None for "+rsID,file=sys.stderr,flush=True)    
-    print(rsID,"NA","NA",sep='\t')
-
-#--------------------------------------------------------------------------------------------------------------
-
-chrom="1"
-start=int(1000000)
-end=int(1015000)
-URL=makePhenoOverlapQueryURL(chrom,start,end,build=build)
-print(URL)
-variants=restQuery(URL,qtype="get")
-if variants:
-    #print(json.dumps(variants, indent=4, sort_keys=True))
-    if len(variants) == 0: 
-        print(str(datetime.datetime.now())+" : getVariantsWithPhenotypes: No variants with phenotypes were found in the region", file=sys.stderr)
-
-    rsIDs = []
-    for var in variants:
-        if "id" in var:
-            rsIDs.append(var["id"])
-        else:
-            print(var)
-
-    r = restQuery(makeRSPhenotypeQueryURL(build=build),data=list2string(rsIDs),qtype="post")
-    print(json.dumps(r, indent=4, sort_keys=True))
-
-print(getRefSeq(1,1000000,1000100))
+r=restQuery(makeOverlapVarQueryURL(rsID,build))
+print(json.dumps(r, indent=4, sort_keys=True))
