@@ -72,30 +72,35 @@ def parseSPDI(string,alleles=False,build="38"):
     isSNP=False
     base=None
     seq=None
+    isNum=False
 
     # ref can be length of the deleted sequence
     # or empty in case of simple insertions
     m=re.search("^(\d+)$",ref)
     if m:
-        if ref=="1": # one base deleted, i.e. variant is a SNP
+        isNum=True
+        if ref=="1" and lalt==1: # one base deleted, one inserted, i.e. variant is a SNP
             isSNP=True
-        if alleles:
-            # deleted sequence
-            seq=getRefSeq(c,pos+1,int(ref),build)
-            base=getRefSeq(c,pos,pos,build)
-            if isSNP:
-                ref=base                
     elif lref==1 and lalt==1:# SNP
         isSNP=True
 
-    if not isSNP:
-        ref=
-
     if alleles:
-        if isSNP:
-            return {"chr":c,"pos":pos+1,"ref":ref,"alt":alt}
+        base=getRefSeq(c,pos,pos,build)
+        # deleted sequence
+        if isNum:
+            seq=getRefSeq(c,pos+1,pos+int(ref),build)
         else:
-            
+            seq=ref
+
+        if isSNP:
+            return {"chr":c,"pos":pos+1,"ref":seq[0],"alt":alt}
+        else:
+            return {"chr":c,"pos":pos,"ref":base+seq,"alt":base+alt}
+    else:
+        if isSNP:
+            return {"chr":c,"pos":pos+1}
+        else:
+            return {"chr":c,"pos":pos}
 
 def restQuery(URL,data=None,qtype="get",timeout=None):
     func=None
