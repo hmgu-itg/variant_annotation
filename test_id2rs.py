@@ -29,12 +29,12 @@ if args.build!=None:
     build=args.build
 
 varID=args.id
-m=re.search("^(\d+):(\d+)_([ATGC]+)_([ATGC]+)",varID)
+m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varID)
 chrom=m.group(1)
 pos=int(m.group(2))
 a1=m.group(3)
 a2=m.group(4)
 
 #---------------------------------------------------------------------------------------------------------------------------
-r=restQuery(makeOverlapVarQueryURL(rsID,build))
+r=restQuery(makeOverlapVarQueryURL(chrom,pos,pos,build))
 print(json.dumps(r, indent=4, sort_keys=True))

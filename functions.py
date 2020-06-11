@@ -135,7 +135,7 @@ def checkID(id):
     if m:
         return True
     
-    m=re.search("^\d+:\d+_[ATGC]+_[ATGC]+",id)
+    m=re.search("^\d+_\d+_[ATGC]+_[ATGC]+",id)
     if m:
         return True
     else:
@@ -322,7 +322,7 @@ def id2rs(varid,build="38"):
     if SNP_ID.startswith("rs"):
         return SNP_ID
 
-    m=re.search("^(\d+):(\d+)_([ATGC]+)_([ATGC]+)",varid)
+    m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varid)
     chrom=m.group(1)
     pos=int(m.group(2))
     a1=m.group(3)
