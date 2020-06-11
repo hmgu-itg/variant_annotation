@@ -8,6 +8,14 @@ from requests.exceptions import Timeout,TooManyRedirects,RequestException
 def list2string(snps):
     return "{\"ids\":["+",".join(list(map(lambda x:"\""+x+"\"",snps)))+"]}"
 
+def makeOverlapVarQueryURL(chrom,start,end,build="38"):
+    ext = "/overlap/region/human/"
+    server = "http://grch"+build+".rest.ensembl.org"
+    if build=="38":
+        server = "http://rest.ensembl.org"
+
+    return server+ext+"%s:%s-%s?feature=variation"  % (chrom,str(start),str(end))
+
 def makeRefSeqQueryURL(chrom,start,end,build="38"):
     ext = "/sequence/region/human/"
     server = "http://grch"+build+".rest.ensembl.org"
@@ -304,9 +312,9 @@ def get_variant_info(rsID, ref):
 
     return (pop_freq, variation_data)
 
-# return a oart of the reference genome
+# return a part of the reference genome
 def getRefSeq(chrom,start,end,build="38"):
-    response = restQuery(getRefSeqQueryURL(chrom,start,end,build))
+    response = restQuery(makeRefSeqQueryURL(chrom,start,end,build))
     return response["seq"]
 
 # return rsID for a given variant ID
@@ -316,61 +324,9 @@ def id2rs(varid,build="38"):
 
     m=re.search("^(\d+):(\d+)_([ATGC]+)_([ATGC]+)",id)
     chrom=m.group(1)
-    pos=m.group(2)
+    pos=int(m.group(2))
     a1=m.group(3)
     a2=m.group(4)
 
-    base=getRefSeq(chrom,pos,pos,build)
-
-    if allele1 == base:
-        ref = allele1
-        alt = allele2
-    elif allele2 == base:
-        ref = allele2
-        alt = allele1
-    else:
-        print "[Error] There is a problem with the input: %s, none of the alleles are matching with the reference allele (%s).\n" %(SNP_ID, base)
-
-    # Checking for overlapping variations:
-    URL = config.REST_URL + "/overlap/region/human/%s:%s-%s?feature=variation" % (chromosome, position, position)
-    variations = submit_REST(URL)
-
-    rsID = ""
-    for variation in variations:
-        try:
-            if ref in variation["alt_alleles"] and alt in variation["alt_alleles"]:
-                rsID = variation["id"]
-        except:
-            if ref in variation["alleles"] and alt in variation["alleles"]:
-                rsID = variation["id"]
-
-    variant_data = []
-    if "rs" in rsID:
-        return get_variant_info(rsID, ref)
-    else:
-        # checking variation class:
-        if len(ref) == len(alt):
-            var_class = "SNP"
-        elif len(ref) > len(alt):
-            var_class = "DEL"
-        elif len(ref) < len(alt):
-            var_class = "INS"
-
-        return [{},{
-             'reference' : ref,
-             'MAF': '-',
-             'SNP_ID': coordinate,
-             'allele_string': alleles,
-             'ancestralAllele': ref,
-             'chromosome': chromosome,
-             'consequence': '',
-             'end': int(position),
-             'location': coordinate+'-'+position,
-             'minorAllele': alt,
-             'alternativeAllele': alt,
-             'rsID': "-",
-             'start': int(position),
-             'synonyms': [],
-             'varClass': var_class
-
-        }]
+    r=restQuery(makeOverlapVarQueryURL(chrom,pos,pos,build))
+    return r
