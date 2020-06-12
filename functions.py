@@ -56,6 +56,8 @@ def makeRSListQueryURL(build="38"):
 
     return server+ext
 
+#------------------------------------------------------------------------------------------------------------------------------------
+
 # if alleles==True, also return alleles
 def parseSPDI(string,alleles=False,build="38"):
     L=string.rsplit(":")
@@ -73,7 +75,7 @@ def parseSPDI(string,alleles=False,build="38"):
     seq=None
     isNum=False
 
-    # ref can be length of the deleted sequence
+    # ref can be the length of the deleted sequence
     # or empty in case of simple insertions
     m=re.search("^(\d+)$",ref)
     if m:
@@ -85,6 +87,7 @@ def parseSPDI(string,alleles=False,build="38"):
 
     if alleles:
         base=getRefSeq(c,pos,pos,build)
+
         # deleted sequence
         if isNum:
             seq=getRefSeq(c,pos+1,pos+int(ref),build)
@@ -109,7 +112,7 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
     elif qtype=="post":
         func=requests.post
     else:
-        print(str(datetime.datetime.now())+" : getQuery: query type ("+qtype+") has to be either \"get\" or \"post\"",file=sys.stderr)
+        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: query type ("+qtype+") has to be either \"get\" or \"post\"",file=sys.stderr)
         sys.stderr.flush()
         return None
 
@@ -119,13 +122,13 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
             r = func(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},timeout=timeout)
         else:
             if not data:
-                print(str(datetime.datetime.now())+" : getQuery: Error: postquery requires data",file=sys.stderr)
+                print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: Error: postquery requires data",file=sys.stderr)
                 sys.stderr.flush()
                 return None                
             r = func(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},data=data,timeout=timeout)
 
         if not r.ok:
-            print(str(datetime.datetime.now())+" : getQuery: Error "+str(r.status_code)+" occured",file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: Error "+str(r.status_code)+" occured",file=sys.stderr)
             sys.stderr.flush()
             return None
 
@@ -133,20 +136,20 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
             ret=r.json()
             return ret
         except ValueError:
-            print(str(datetime.datetime.now())+" : getQuery: JSON decoding error", file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: JSON decoding error", file=sys.stderr)
             sys.stderr.flush()
             return None
 
     except Timeout as ex:
-        print(str(datetime.datetime.now())+" : getQuery: Timeout exception occured", file=sys.stderr)
+        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: Timeout exception occured", file=sys.stderr)
         sys.stderr.flush()
         return None
     except TooManyRedirects as ex:
-        print(str(datetime.datetime.now())+" : getQuery: TooManyRedirects exception occured", file=sys.stderr)
+        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: TooManyRedirects exception occured", file=sys.stderr)
         sys.stderr.flush()
         return None
     except RequestException as ex:
-        print(str(datetime.datetime.now())+" : getQuery: RequestException occured", file=sys.stderr)
+        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: RequestException occured", file=sys.stderr)
         sys.stderr.flush()
         return None
 
@@ -159,6 +162,9 @@ def checkID(id):
     
     m=re.search("^\d+_\d+_([ATGC]+)_([ATGC]+)",id)
     if m:
+        if len(m.group(1))==1 and len(m.group(2))==1:
+            return True
+
         if m.group(1).startswith(m.group(2)) or m.group(2).startswith(m.group(1)):
             return True
         else:
@@ -184,7 +190,7 @@ def getVariantsWithPhenotypes(chrom,start,end,pos=0,build="38"):
         return None
 
     if len(variants) == 0: 
-        print(str(datetime.datetime.now())+" : getVariantsWithPhenotypes: No variants with phenotypes were found in the region", file=sys.stderr)
+        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantsWithPhenotypes: No variants with phenotypes were found in the region", file=sys.stderr)
         return None
 
     rsIDs = []
@@ -339,16 +345,60 @@ def get_variant_info(rsID, ref):
 
 # return a part of the reference genome
 def getRefSeq(chrom,start,end,build="38"):
-    response = restQuery(makeRefSeqQueryURL(chrom,start,end,build))
-    return response["seq"]
+    r=restQuery(makeRefSeqQueryURL(chrom,start,end,build))
+    if r:
+        return response["seq"]
+    else:
+        return None
 
-# return rsID for a given variant ID
+# given variant ID, try to get variant type
+# also check if reference sequence and alleles are not in contradiction
+def getVariantType(varid,build="38"):
+    m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varid)
+    chrom=m.group(1)
+    pos=int(m.group(2))
+    a1=m.group(3)
+    a2=m.group(4)
+
+    vartype=None
+    # check if reference sequence and alleles are not in contradiction
+    seq=getRefSeq(chrom,pos,pos+max([len(a1),len(a2)])-1,build=build)
+    if len(a1)==1 and len(a2)==1:
+        if seq==a1 or seq==a2:
+            vartype="SNP"
+        else:
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: SNP alleles don't match reference sequence", file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: Variant: %s" % varid, file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: Reference: %s\n" % seq, file=sys.stderr)
+            sys.stderr.flush()
+            return None
+    elif len(a1)<len(a2):
+        if not seq.startswith(a1):
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: variant alleles don't match reference sequence", file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: Allele 1  : %s" % a1, file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: Allele 2  : %s" % a2, file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: Reference : %s\n" % seq, file=sys.stderr)
+            sys.stderr.flush()
+            return None
+        if a2!=seq:
+            vartype="INS"
+    else:
+        if not seq.startswith(a2):
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: variant alleles don't match reference sequence", file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: Allele 1  : %s" % a1, file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: Allele 2  : %s" % a2, file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantType: Reference : %s\n" % seq, file=sys.stderr)
+            sys.stderr.flush()
+            return None
+        if a1!=seq:
+            vartype="INS"
+
+    return vartype
+
+# returns a list of matching rsIDs for a given variant ID
 def id2rs(varid,build="38"):
     if varid.startswith("rs"):
         return varid
-
-    # in case of indels, pull all variants from window around the given variant
-    window=5
 
     m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varid)
     chrom=m.group(1)
@@ -356,23 +406,37 @@ def id2rs(varid,build="38"):
     a1=m.group(3)
     a2=m.group(4)
 
+    vartype=getVariantType(varid,build=build)
+
+    # in case of indels, pull all variants around the given variant
+    window=5
+
     L=[]
-    if len(a1)==1 and len(a2)==1:
-        r=restQuery(makeOverlapVarQueryURL(chrom,pos,pos,build))
+    if len(a1)==1 and len(a2)==1: # SNPs
+        r=restQuery(makeOverlapVarQueryURL(chrom,pos,pos,build=build))
         for v in r:
             if a1 in v["alleles"] and a2 in v["alleles"]:
-                L.append(v)
-        # if len(L)==0:
-        #     base=getRefSeq(chrom,pos,pos,build)
-        #     ref=base
-        #     alt=None
-        #     if a1==base:
-        #         alt=a2
-        #     elif a2==base:
-        #         alt=a1
-        #     else:
-        #         print()
-        #         return None
-#    else:
-#        
+                L.append(v["id"])
+    else:
+        # difference between a1 and a2
+        seq0=""
+        if len(a1)>len(a2):
+            seq0=a1[len(a2),len(a1)]
+        elif len(a1)<len(a2):
+            seq0=a2[len(a1),len(a2)]
+
+        r=restQuery(makeOverlapVarQueryURL(chrom,pos-window,pos+window,build=build))
+        for v in r:
+            z=restQuery(makeRSQueryURL(v["id"],build=build))
+            for x in z:
+                spdi=x["spdi"]
+                var=x["id"]
+                h=parseSPDI(spdi,alleles=True)
+                ref=h["ref"]
+                alt=h["alt"]
+                pos=h["pos"]
+                if len(ref)>len(alt): # deletion
+                    seq=""
+                    if ref.startswith(alt):
+                        seq=ref[len(alt),len(ref)] # ref's prefix
     return L
