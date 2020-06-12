@@ -395,6 +395,24 @@ def getVariantType(varid,build="38"):
 
     return vartype
 
+def stringdiff(s1,s2):
+    L=[]
+
+    t1=s2
+    t2=s1
+
+    if len(s1)<len(s2):
+        t1=s1
+        t2=s2
+
+    for i in range(len(t1)+1):
+        x1=t1[i:len(t1)]
+        x2=t1[0:i]
+        if t2.startswith(x2) and t2.endswith(x1):
+            L.append(t2[i:len(t2)-(len(t1)-i)])
+
+    return L
+
 # returns a list of matching rsIDs for a given variant ID
 def id2rs(varid,build="38"):
     if varid.startswith("rs"):
@@ -416,7 +434,6 @@ def id2rs(varid,build="38"):
             if a1 in v["alleles"] and a2 in v["alleles"]:
                 L.append(v["id"])
     else:
-        vartype=getVariantType(varid,build=build)
         # difference between a1 and a2
         seq0=""
         if len(a1)>len(a2):
@@ -428,35 +445,31 @@ def id2rs(varid,build="38"):
         for v in r:
             z=restQuery(makeRSQueryURL(v["id"],build=build))
             for x in z:
-                spdi=x["spdi"][0]
+                spdis=x["spdi"]
                 var=x["id"][0]
-                h=parseSPDI(spdi,alleles=True)
-                ref=h["ref"]
-                alt=h["alt"]
-                pos=h["pos"]
-                c=h["chr"]
-                if len(ref)==1 and len(alt)==1:
-                    continue
-                if len(ref)>len(alt): # deletion
-                    if vartype=="INS":
+
+                print("")
+                print(varid)
+                print(json.dumps(x, indent=4, sort_keys=True))
+
+                for spdi in spdis:
+                    print("SPDI: "+spdi)
+
+                    h=parseSPDI(spdi,alleles=True)
+                    ref=h["ref"]
+                    alt=h["alt"]
+                    p=h["pos"]
+                    c=h["chr"]
+
+                    print("chr: %s, pos: %d, ref: %s, alt: %s" % (c,p,ref,alt))
+
+                    if p!=pos:
                         continue
-                    seq=""
-                    if ref.startswith(alt):
-                        seq=ref[len(alt):len(ref)] # ref's suffix
-                    else:
-                        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : id2rs: alleles in the SPDI record (chr=%s, pos=%d, ref=%s, alt=%s) indicate it's not a simple insertion/deletion" %(c,pos,ref,alt), file=sys.stderr)
-                        sys.stderr.flush()
+
+                    if len(ref)==1 and len(alt)==1:
                         continue
-                    if seq==seq0:
-                        L.append(var);
-                else: # insertion
-                    seq=""
-                    if alt.startswith(ref):
-                        seq=alt[len(ref):len(alt)] # alt's suffix
-                    else:
-                        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : id2rs: alleles in the SPDI record (chr=%s, pos=%d, ref=%s, alt=%s) indicate it's not a simple insertion/deletion" %(c,pos,ref,alt), file=sys.stderr)
-                        sys.stderr.flush()
-                        continue
-                    if seq==seq0:
+                        
+                    Z=stringdiff(alt[1:len(alt)],ref[1:len(ref)])
+                    if seq0 in Z:
                         L.append(var);
     return L

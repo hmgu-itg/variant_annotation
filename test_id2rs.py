@@ -41,8 +41,17 @@ a1=m.group(3)
 a2=m.group(4)
 
 #---------------------------------------------------------------------------------------------------------------------------
-r=restQuery(makeOverlapVarQueryURL(chrom,pos-window,pos+window,build))
-print(json.dumps(r, indent=4, sort_keys=True))
+#r=restQuery(makeOverlapVarQueryURL(chrom,pos-window,pos+window,build))
+#print(json.dumps(r, indent=4, sort_keys=True))
 
 for x in id2rs(varID,build):
-    print("id",x,sep="\t")
+    print(x,varID,sep="\t",file=sys.stdout)
+
+# for x in stringdiff("AAAGAAAAGAAA","AAA"):
+#     print(x)
+
+# print("")
+# for x in stringdiff("AGCCA","AGCCAGCCA"):
+#     print(x)
+
+
