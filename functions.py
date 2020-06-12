@@ -428,8 +428,8 @@ def id2rs(varid,build="38"):
         for v in r:
             z=restQuery(makeRSQueryURL(v["id"],build=build))
             for x in z:
-                spdi=x["spdi"]
-                var=x["id"]
+                spdi=x["spdi"][0]
+                var=x["id"][0]
                 h=parseSPDI(spdi,alleles=True)
                 ref=h["ref"]
                 alt=h["alt"]
