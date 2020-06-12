@@ -362,7 +362,7 @@ def getVariantType(varid,build="38"):
 
     vartype=None
     # check if reference sequence and alleles are not in contradiction
-    seq=getRefSeq(chrom,pos,pos+max([len(a1):len(a2)])-1,build=build)
+    seq=getRefSeq(chrom,pos,pos+max([len(a1),len(a2)])-1,build=build)
     if len(a1)==1 and len(a2)==1:
         if seq==a1 or seq==a2:
             vartype="SNP"
