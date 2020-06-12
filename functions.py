@@ -406,8 +406,6 @@ def id2rs(varid,build="38"):
     a1=m.group(3)
     a2=m.group(4)
 
-    vartype=getVariantType(varid,build=build)
-
     # in case of indels, pull all variants around the given variant
     window=5
 
@@ -418,6 +416,7 @@ def id2rs(varid,build="38"):
             if a1 in v["alleles"] and a2 in v["alleles"]:
                 L.append(v["id"])
     else:
+        vartype=getVariantType(varid,build=build)
         # difference between a1 and a2
         seq0=""
         if len(a1)>len(a2):
@@ -435,8 +434,27 @@ def id2rs(varid,build="38"):
                 ref=h["ref"]
                 alt=h["alt"]
                 pos=h["pos"]
+                c=h["chr"]
                 if len(ref)>len(alt): # deletion
+                    if vartype=="INS":
+                        continue
                     seq=""
                     if ref.startswith(alt):
-                        seq=ref[len(alt),len(ref)] # ref's prefix
+                        seq=ref[len(alt),len(ref)] # ref's suffix
+                    else:
+                        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : id2rs: alleles in the SPDI record (chr=%s, pos=%d, ref=%s, alt=%s) indicate it's not a simple insertion/deletion" %(c,pos,ref,alt), file=sys.stderr)
+                        sys.stderr.flush()
+                        continue
+                    if seq==seq0:
+                        L.append(var);
+                else: # insertion
+                    seq=""
+                    if alt.startswith(ref):
+                        seq=alt[len(ref),len(alt)] # alt's suffix
+                    else:
+                        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : id2rs: alleles in the SPDI record (chr=%s, pos=%d, ref=%s, alt=%s) indicate it's not a simple insertion/deletion" %(c,pos,ref,alt), file=sys.stderr)
+                        sys.stderr.flush()
+                        continue
+                    if seq==seq0:
+                        L.append(var);
     return L
