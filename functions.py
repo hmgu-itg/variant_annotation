@@ -435,6 +435,8 @@ def id2rs(varid,build="38"):
                 alt=h["alt"]
                 pos=h["pos"]
                 c=h["chr"]
+                if len(ref)==1 and len(alt)==1:
+                    continue
                 if len(ref)>len(alt): # deletion
                     if vartype=="INS":
                         continue
