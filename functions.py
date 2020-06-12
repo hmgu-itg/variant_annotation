@@ -362,7 +362,7 @@ def getVariantType(varid,build="38"):
 
     vartype=None
     # check if reference sequence and alleles are not in contradiction
-    seq=getRefSeq(chrom,pos,pos+max([len(a1),len(a2)])-1,build=build)
+    seq=getRefSeq(chrom,pos,pos+max([len(a1):len(a2)])-1,build=build)
     if len(a1)==1 and len(a2)==1:
         if seq==a1 or seq==a2:
             vartype="SNP"
@@ -420,9 +420,9 @@ def id2rs(varid,build="38"):
         # difference between a1 and a2
         seq0=""
         if len(a1)>len(a2):
-            seq0=a1[len(a2),len(a1)]
+            seq0=a1[len(a2):len(a1)]
         elif len(a1)<len(a2):
-            seq0=a2[len(a1),len(a2)]
+            seq0=a2[len(a1):len(a2)]
 
         r=restQuery(makeOverlapVarQueryURL(chrom,pos-window,pos+window,build=build))
         for v in r:
@@ -440,7 +440,7 @@ def id2rs(varid,build="38"):
                         continue
                     seq=""
                     if ref.startswith(alt):
-                        seq=ref[len(alt),len(ref)] # ref's suffix
+                        seq=ref[len(alt):len(ref)] # ref's suffix
                     else:
                         print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : id2rs: alleles in the SPDI record (chr=%s, pos=%d, ref=%s, alt=%s) indicate it's not a simple insertion/deletion" %(c,pos,ref,alt), file=sys.stderr)
                         sys.stderr.flush()
@@ -450,7 +450,7 @@ def id2rs(varid,build="38"):
                 else: # insertion
                     seq=""
                     if alt.startswith(ref):
-                        seq=alt[len(ref),len(alt)] # alt's suffix
+                        seq=alt[len(ref):len(alt)] # alt's suffix
                     else:
                         print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : id2rs: alleles in the SPDI record (chr=%s, pos=%d, ref=%s, alt=%s) indicate it's not a simple insertion/deletion" %(c,pos,ref,alt), file=sys.stderr)
                         sys.stderr.flush()
