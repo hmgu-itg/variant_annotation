@@ -44,11 +44,5 @@ a2=m.group(4)
 r=restQuery(makeOverlapVarQueryURL(chrom,pos-window,pos+window,build))
 print(json.dumps(r, indent=4, sort_keys=True))
 
-#for x in id2rs(varID,build):
-#    print("")
-#    print("id",x["id"],sep="\t")
-#    print("chrom",x["seq_region_name"],sep="\t")
-#    print("start",x["start"],sep="\t")
-#    print("end",x["end"],sep="\t")
-#    print("alleles",x["alleles"],sep="\t")
-    #print(x["id"],varID,sep="\t");
+for x in id2rs(varID,build):
+    print("id",x,sep="\t")

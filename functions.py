@@ -347,7 +347,7 @@ def get_variant_info(rsID, ref):
 def getRefSeq(chrom,start,end,build="38"):
     r=restQuery(makeRefSeqQueryURL(chrom,start,end,build))
     if r:
-        return response["seq"]
+        return r["seq"]
     else:
         return None
 
