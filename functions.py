@@ -250,6 +250,13 @@ def getVariantsWithPhenotypes(chrom,start,end,pos=0,build="38"):
 
     return df
 
+# get general information about a variant, given rsID:
+# 
+# MAF, minor allele, variant class, most severe consequence
+# 1KG phase 3 population allele frequencies
+# mappings: chr, pos, ref, alt
+# phenotype data: trait, source, risk allele
+# variant's clinical significance
 def getVariantInfo(rs,build="b38"):
     res=dict()
 
@@ -447,3 +454,56 @@ def id2rs(varid,build="38"):
                         S.add(var)
                         break
     return S
+
+#===================================================== GENE RELATED STUFF ============================================
+
+# checking which variants affect expression of a given gene:
+def get_GTEx_variations(general_info):
+    '''
+    This function returns a dictionary with variations that have an effect on the
+    expression of the gene. Each key of the dictionary is a variation, and the
+    values are dictionaries that includes the observed tissues, p-values.
+    '''
+
+    # In the upcoming version this has to be read from the configuration file:
+    GTEx_file = config.GTEX_FILE_GENES
+
+    # Check if datafile is exists, and return 0 if not:
+    if not os.path.isfile(GTEx_file):
+        return "GTEx datafile was not found in this location: %s" % GTEx_file
+
+    # Extract data for bedtools query:
+    chromosome = general_info["chromosome"]
+    start = general_info["start"]
+    end = general_info["end"]
+    ID = general_info["id"]
+
+    # submit bcftools query:
+    query = "bash -O extglob -c \'/software/hgi/pkglocal/tabix-git-1ae158a/bin/tabix %s chr%s:%s-%s | grep %s\'" %(GTEx_file, chromosome, start, end, ID)
+    output = subprocess.Popen(query.strip(), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    GTEx_data = dict()
+    for line in output.stdout.readlines():
+        fields = line.strip().split("\t")
+        rsID = fields[4]
+        tissue = fields[3]
+        pvalue = fields[11]
+        distance = fields[8]
+        gene_name = fields[5]
+
+        # Initialize hit:
+        if not rsID in GTEx_data:
+            GTEx_data[rsID] = []
+
+        # Add fields to data:
+        GTEx_data[rsID].append({
+                "rsID" : rsID,
+                "tissue" : tissue,
+                "distance" : distance,
+                "pvalue" : pvalue,
+                "gene_ID": general_info["id"],
+                "gene_name" : gene_name
+            })
+    if len (GTEx_data) == 0:
+        GTEx_data = "No eQTL signal was found for gene %s" %(general_info["name"])
+
+    return GTEx_data
