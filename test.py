@@ -95,4 +95,26 @@ if variants:
     r = restQuery(makeRSPhenotypeQueryURL(build=build),data=list2string(rsIDs),qtype="post")
     print(json.dumps(r, indent=4, sort_keys=True))
 
-print(getRefSeq(1,1000000,1000100))
+#print(getRefSeq(1,1000000,1000100))
+
+#--------------------------------------------------------------------------------------------------------------
+
+q=makeRsPhenotypeQuery2URL(rsID,build)
+print("Query:",q,sep="\t")
+r=restQuery(q)
+
+print(json.dumps(r,indent=4,sort_keys=True))
+
+#--------------------------------------------------------------------------------------------------------------
+
+z=restQuery(makeRSQueryURL(rsID,build=build))
+for x in z:
+    spdis=x["spdi"]
+    for spdi in spdis:
+        #print("SPDI: "+spdi)
+        h=parseSPDI(spdi,alleles=True)
+        ref=h["ref"]
+        alt=h["alt"]
+        p=h["pos"]
+        c=h["chr"]
+        print("chr: %s, pos: %d, ref: %s, alt: %s" % (c,p,ref,alt))
