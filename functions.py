@@ -75,13 +75,19 @@ def makeRSListQueryURL(build="38"):
 def rs2position(ID,build="38"):
     L=[]
     z=restQuery(makeRSQueryURL(ID,build=build))
-    for x in z:
-        spdis=x["spdi"]
-        for spdi in spdis:
-            h=parseSPDI(spdi)
-            p=h["pos"]
-            c=h["chr"]
-            L.append({"chr":c,"pos":p})
+    if z:
+        for x in z:
+            spdis=x["spdi"]
+            for spdi in spdis:
+                h=parseSPDI(spdi)
+                p=h["pos"]
+                c=h["chr"]
+                z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
+                if not z:
+                    L.append({"chr":c,"pos":p})
+    else:
+        return None
+
     return L
 
 #------------------------------------------------------------------------------------------------------------------------------------
@@ -156,7 +162,7 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
             r = func(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},data=data,timeout=timeout)
 
         if not r.ok:
-            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: Error "+str(r.status_code)+" occured",file=sys.stderr)
+            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: Error "+str(r.status_code)+" occured (input: "+URL+")",file=sys.stderr)
             sys.stderr.flush()
             return None
 

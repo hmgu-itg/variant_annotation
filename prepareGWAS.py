@@ -27,8 +27,21 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
     a=row["CHR_ID"].split(";")
     b=row["CHR_POS"].split(";")
     c=row["SNPS"].split(";")
-    if len(a)==1 and len(b)==1 and len(c)==1:
-        print("%s\t%s\t%s\t%s\t%s\t%s" %(row["CHR_ID"],row["CHR_POS"],row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
+    #print("%s\t%s\t%s\t%s\t%s\t%s" %(row["CHR_ID"],row["CHR_POS"],row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
+    #if len(a)==1 and len(b)==1 and len(c)==1:
+    #    pass
+        #print("%s\t%s\t%s\t%s\t%s\t%s" %(row["CHR_ID"],row["CHR_POS"],row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
+    if len(row["CHR_ID"])==0 or len(row["CHR_POS"])==0:
+        #print(row["SNPS"])
+        if len(c)==1:
+            m=re.search("^rs\d+$",row["SNPS"])
+            if m:
+                L=functions.rs2position(row["SNPS"])
+                if L:
+                    for z in L:
+                        if z:
+                            print("%s\t%s\t%s\t%s\t%s\t%s" %(z["chr"],z["pos"],row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
+        
     # for f in files:
     #     m=re.search("/([^.]+)\.v8\.egenes.txt.gz",f.name)
     #     if m:
