@@ -118,3 +118,12 @@ for x in z:
         p=h["pos"]
         c=h["chr"]
         print("chr: %s, pos: %d, ref: %s, alt: %s" % (c,p,ref,alt))
+
+#--------------------------------------------------------------------------------------------------------------
+
+D=parseGTEx("/home/andrei/variant_annotation/out.bed.gz","1",14409,29553,"ENSG00000227232")
+print(D)
+D=parseGTEx("/home/andrei/variant_annotation/out.bed.gz","1",108500,108600,"chr1_108506_C_T_b38")
+print(D)
+
+

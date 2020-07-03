@@ -3,6 +3,7 @@ import datetime
 import sys
 import json 
 import re
+import subprocess
 from requests.exceptions import Timeout,TooManyRedirects,RequestException
 
 def list2string(snps):
@@ -456,6 +457,28 @@ def id2rs(varid,build="38"):
     return S
 
 #===================================================== GENE RELATED STUFF ============================================
+
+def parseGTEx(filename,chrom,start,end,ID):
+    query = "bash -O extglob -c \'tabix %s %s:%d-%d | fgrep -w %s\'" %(filename,chrom,start,end,ID)
+    output = subprocess.Popen(query.strip(), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    D=dict()
+    for line in output.stdout.readlines():
+        fields=line.strip().split("\t")
+        data=fields[4].split(":")
+        ID2=data[0]
+        tissue=data[1]
+        pval=data[2]
+        # Initialize hit:
+        if not ID2 in D:
+            D[ID2]=[]
+
+        # Add fields to data:
+        D[ID2].append({"tissue" : tissue,"pvalue" : pvalue,})
+
+    if len(D)==0:
+        print("INFO: no eQTL signals were found for %s" %(ID),file=sys.stderr)
+    
+    return D
 
 # checking which variants affect expression of a given gene:
 def get_GTEx_variations(general_info):

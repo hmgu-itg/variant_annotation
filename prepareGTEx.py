@@ -138,4 +138,5 @@ if version=="8":
         for t in var_map[var]:
             L=var_map[var][t]
             for x in L:
-                print("%s\t%d\t%d\t%s:%s\t%s:%s:%s" %(c,start,end,var,id2,x["gene"],t,p),file=sys.stdout)
+#                print("%s\t%d\t%d\t%s:%s\t%s:%s:%s" %(c,start,end,var,id2,x["gene"],t,p),file=sys.stdout)
+                print("%s\t%d\t%d\t%s\t%s:%s:%s" %(c,start,end,var,x["gene"],t,p),file=sys.stdout)
