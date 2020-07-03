@@ -23,6 +23,7 @@ except:
 fname=args.input
 
 T=pd.read_table(fname,compression="gzip",header=0,sep="\t",keep_default_na=False,dtype=str)
+print("SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VALUE",sep="\t")
 for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VALUE"]].iterrows():
     a=row["CHR_ID"].split(";")
     b=row["CHR_POS"].split(";")
