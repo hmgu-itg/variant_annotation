@@ -566,9 +566,9 @@ def getGwasHits(chrom,pos,window=500000):
 
     L=[]
     df=pd.read_table(gwas_file,sep="\t",header=0,compression="gzip")
-    for index, row in df[(df["CHR_ID"]==chrom) & (df["CHR_POS"].astype(int)>start) & (df["CHR_POS"].astype(int)<end)]:
+    for index, row in df[(df["CHR_ID"]==chrom) & (df["CHR_POS"].astype(int)>start) & (df["CHR_POS"].astype(int)<end)].iterrows():
         rsID=row["SNPS"]
-        snpid=row["CHR_ID"]+"_"+row["CHR_POS"]
+        snpid=row["CHR_ID"]+"_"+str(row["CHR_POS"])
         trait=row["DISEASE/TRAIT"]
         pval=row["P-VALUE"]
         pmid=row["PUBMEDID"]

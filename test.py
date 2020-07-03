@@ -139,7 +139,7 @@ for x in L:
 
 #--------------------------------------------------------------------------------------------------------------
 
-L=rs2position(rsID)
-if L:
-    for x in L:
-        print("%s\t%s\t%d" %(rsID,x["chr"],x["pos"]))
+# L=rs2position(rsID)
+# if L:
+#     for x in L:
+#         print("%s\t%s\t%d" %(rsID,x["chr"],x["pos"]))
