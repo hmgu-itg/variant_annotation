@@ -71,6 +71,21 @@ def makeRSListQueryURL(build="38"):
 
 #------------------------------------------------------------------------------------------------------------------------------------
 
+# given rsID, return a list of chr:pos
+def rs2position(ID,build="38"):
+    L=[]
+    z=restQuery(makeRSQueryURL(ID,build=build))
+    for x in z:
+        spdis=x["spdi"]
+        for spdi in spdis:
+            h=parseSPDI(spdi)
+            p=h["pos"]
+            c=h["chr"]
+            L.append({"chr":c,"pos":p})
+    return L
+
+#------------------------------------------------------------------------------------------------------------------------------------
+
 # if alleles==True, also return alleles
 def parseSPDI(string,alleles=False,build="38"):
     L=string.rsplit(":")
