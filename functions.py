@@ -6,6 +6,9 @@ import re
 import subprocess
 from requests.exceptions import Timeout,TooManyRedirects,RequestException
 import config
+import pandas as pd
+from io import StringIO
+import os.path
 
 def list2string(snps):
     return "{\"ids\":["+",".join(list(map(lambda x:"\""+x+"\"",snps)))+"]}"
@@ -497,52 +500,143 @@ def getUniprotData(ID):
 
     URL += "entry%20name&format=tab" # tab delimited format returned
 
-    r = requests.get(URL)
-    print(r.text)
-    print(r.encoding)
+    r=requests.get(URL)
+    #print(r.text)
+    #print(r.encoding)
 
-    fields=r.content.decode("utf-8").split("\n")[1].split("\t")
+    data=pd.read_csv(StringIO(r.content.decode("utf-8")),sep="\t",header=0,keep_default_na=False)
 
     UniprotData = {
-        "Name" : fields[9],
-        "Disease" : fields[8],
-        "Function": fields[1],
-        "Entry" : fields[0],
-        "Subunit" : fields[2],
-        "Phenotype" : fields[6],
-        "localization" : fields[7],
-        "Tissue" : fields[4],
-        "Development" : fields[3]
+        "Name" : data["Entry name"][0],
+        "Disease" : data["Involvement in disease"][0],
+        "Function": data["Function [CC]"][0],
+        "Entry" : data["Entry"][0],
+        "Subunit" : data["Subunit structure [CC]"][0],
+        "Phenotype" : data["Disruption phenotype"][0],
+        "Location" : data["Subcellular location [CC]"][0],
+        "Tissue" : data["Tissue specificity"][0],
+        "Development" : data["Developmental stage"][0]
     }
 
     return UniprotData
 
+#==============================================================================================================================
 
-# Retrieve uniprot data:
-def get_UNIPROT_data(cross_refs):
+# This function retrieves a list of gwas signals around the variant
+def getGwasHits(chrom,pos,window=500000):
     '''
-    The cross references are taken as input. It might contain none, one or
-    multiple references to the uniprot database. The function loops through all
-    and returns a dictionary with all unique protein names as keys.
+    This function retrives a list of all gwas signals within 500kbp distance around a given position.
 
-    Retrieved fields:
-        Function, Subunit, Developmental stage,
-        Tissue specificity, Catalytic activity,
-        Disruption phenotype, Subcellular localiztion,
-        Disease
+    input: chromosome, position
 
-    The list can be extended if need....
+    output: [ {"rsID","SNPID","trait","p-value","PMID","distance"}]
     '''
 
-    # Looping through all cross references pointing to Uniprot:
-    Independent_IDs = {}
-    for uniprotID in cross_refs["UniProtKB/Swiss-Prot"]:
-        Independent_IDs[uniprotID[0]] = uniprotID[1]
+    gwas_file = config.GWAS_FILE_VAR
 
-    # Annotate all unique proteins:
-    annotated_protein  = {}
-    for ID in Independent_IDs.keys():
-        annotated_protein[ID] = __UNIPROT_DOWNLOAD__(Independent_IDs[ID])
+    if not os.path.isfile(gwas_file):
+        print("[ERROR] GWAS catalog file (%s) not found" % gwas_file,file=sys.stderr)
+        return None
 
-    # Returning annotation:
-    return (annotated_protein)
+    start=pos-window
+    if start<1:
+        start=1
+    end=pos+window
+
+    L=[]
+    df=pd.read_table(gwas_file,sep="\t",header=0,compression="gzip")
+    for index, row in df[(df["CHR_ID"]==chrom) & (df["CHR_POS"].astype(int)>start) & (df["CHR_POS"].astype(int)<end)]:
+        rsID=row["SNPS"]
+        snpid=row["CHR_ID"]+"_"+row["CHR_POS"]
+        trait=row["DISEASE/TRAIT"]
+        pval=row["P-VALUE"]
+        pmid=row["PUBMEDID"]
+        dist=int(row["CHR_POS"])-pos
+        if abs(dist)>1000:
+            dist=str(dist//1000)+"kbp"
+        else:
+            dist=str(dist)+"bp"
+        L.append({"rsID":rsID,"SNPID":snpid,"trait":trait,"p-value":pval,"PMID":pmid,"distance":dist})
+
+    return L
+
+#==============================================================================================================================
+
+# def get_GWAVA_score(variant_data):
+#     '''
+#     This function calculates the gerp and gwava scores for a given variation.
+#     Of course it calls the gwava on farm, and parses the result.
+#     '''
+
+#     # Using variant_data for input:
+#     bed_string = "chr%s\t%s\t%s\t%s\n" % (variant_data["chromosome"], int(variant_data["start"]) - 1, variant_data["start"],variant_data["rsID"])
+
+#     # temporary input filename:
+#     filename = "/tmp/chr%s.bed" % variant_data["location"].replace(":", "_")
+
+#     # temporary output filename with gwava annotation:
+#     annot_filename = filename+"_ann"
+
+#     # temporary output filename with gwava prediction:
+#     gwava_filename = filename+"_gwava"
+
+#     # Saving primary input file:
+#     f = open( filename, 'w')
+#     f.write(bed_string)
+#     f.close()
+
+#     # now we have to run gwava:
+#     GWAVA_dir = config.GWAVA_DIR
+
+#     #query = "bash -O extglob -c \'python %s/src/gwava_annotate.py %s %s\'" %(GWAVA_dir, filename, annot_filename)
+#     query = "python %s/src/gwava_annotate.py %s %s" %(GWAVA_dir, filename, annot_filename)
+
+#     PATH = "/software/hgi/pkglocal/samtools-1.2/bin:/software/hgi/pkglocal/vcftools-0.1.11/bin:/software/hgi/pkglocal/tabix-git-1ae158a/bin:/software/hgi/pkglocal/bcftools-1.2/bin:/nfs/team144/software/ensembl-releases/75/ensembl-tools/scripts/variant_effect_predictor:/nfs/team144/software/bedtools2/bin:/nfs/team144/software/scripts:/nfs/users/nfs_d/ds26/bin:/usr/local/lsf/9.1/linux2.6-glibc2.3-x86_64/etc:/usr/local/lsf/9.1/linux2.6-glibc2.3-x86_64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/software/bin"
+
+#     # Submit query:
+#     output = subprocess.Popen(query.strip(),
+#                               shell=True,
+#                               stdout=subprocess.PIPE,
+#                               stderr=subprocess.STDOUT,
+#                               env={'GWAVA_DIR': GWAVA_dir,
+#                                    "PYTHONPATH": "/nfs/team144/software/anaconda/lib/python2.7/site-packages",
+#                                    "PATH": PATH}).wait()
+
+#     # Once the annotation run is completed, let's run the prediction:
+#     query = "python %s/src/gwava.py tss %s %s" %(GWAVA_dir, annot_filename, gwava_filename)
+
+#     # Submit query:
+#     output = subprocess.Popen(query.strip(),
+#                               shell=True,
+#                               stdout=subprocess.PIPE,
+#                               stderr=subprocess.STDOUT,
+#                               env={'GWAVA_DIR': GWAVA_dir,
+#                                    'PYTHONPATH': '/nfs/team144/software/anaconda/lib/python2.7/site-packages',
+#                                    'PATH': PATH}).wait()
+
+#     # Once the queries are returned, we have to parse the output:
+#     # From the annotation file, we retrive 147 - avg_gerp, 148 - gerp
+
+#     # Reading annotation file:
+#     for line in open(annot_filename, 'r'):
+#         if "start" in line: continue
+
+#         avg_gerp = line.split(",")[147]
+#         gerp = line.split(",")[148]
+
+#     # Reading prediction file:
+#     for line in open(gwava_filename, 'r'):
+#         gwava = line.strip().split("\t")[4]
+
+#     # Updating variant
+#     variant_data["avg_gerp"] = round(float(avg_gerp), 4)
+#     variant_data["gerp"] = gerp
+#     variant_data["gwava"] = gwava
+
+#     # removing temporary files:
+#     os.remove(annot_filename)
+#     os.remove(filename)
+#     os.remove(gwava_filename)
+
+#     return variant_data
+

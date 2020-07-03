@@ -48,7 +48,7 @@ GTEX_BED        = '/home/andrei/container.home/out.bed.gz'
 ## Parameters for variations:
 ##
 GWAVA_DIR       = "/lustre/scratch113/teams/zeggini/users/ds26/GWAVA/gwava_release"
-GWAS_FILE_VAR   = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/GWAS_catalog/gwas_catalog_2016.02.10.bed.gz'
+GWAS_FILE_VAR   = '/home/andrei/gwas_catalog_v1.0.2-associations_e100_r2020-06-30.tsv.gz'
 EXAC_FILE       = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/ExAC_rel0.3/ExAC.r0.3.nonpsych.sites.vcf.gz'
 PUBMED_URL_VAR  = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%%22%s%%22%%5BAll%%20Fields%%5D&retmode=json&retmax=1000'
 PUBMED_URL_PMID = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&rettype=abstract&id=%s'
