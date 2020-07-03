@@ -5,6 +5,7 @@ import json
 import re
 import subprocess
 from requests.exceptions import Timeout,TooManyRedirects,RequestException
+import config
 
 def list2string(snps):
     return "{\"ids\":["+",".join(list(map(lambda x:"\""+x+"\"",snps)))+"]}"
@@ -456,11 +457,12 @@ def id2rs(varid,build="38"):
                         break
     return S
 
-#===================================================== GENE RELATED STUFF ============================================
+#===================================================== GTEx RELATED STUFF ============================================
 
+# given gene ID (variant ID), retreive all variant (gene) data associated with the gene (variant): tissue, p-value
 def parseGTEx(filename,chrom,start,end,ID):
     query = "bash -O extglob -c \'tabix %s %s:%d-%d | fgrep -w %s\'" %(filename,chrom,start,end,ID)
-    output = subprocess.Popen(query.strip(), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output = subprocess.Popen(query.strip(),universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     D=dict()
     for line in output.stdout.readlines():
         fields=line.strip().split("\t")
@@ -468,65 +470,79 @@ def parseGTEx(filename,chrom,start,end,ID):
         ID2=data[0]
         tissue=data[1]
         pval=data[2]
-        # Initialize hit:
         if not ID2 in D:
             D[ID2]=[]
-
-        # Add fields to data:
-        D[ID2].append({"tissue" : tissue,"pvalue" : pvalue,})
+        D[ID2].append({"tissue" : tissue,"pvalue" : pval})
 
     if len(D)==0:
         print("INFO: no eQTL signals were found for %s" %(ID),file=sys.stderr)
     
     return D
 
-# checking which variants affect expression of a given gene:
-def get_GTEx_variations(general_info):
+#===================================================== UNIPROT RELATED STUFF ============================================
+
+def getUniprotData(ID):
+
+    URL = config.UNIPROT_URL
+    URL += "?query=id:" + ID
+
+    URL += "&columns=id%2Ccomment%28FUNCTION%29%2C" # Function
+    URL += "comment%28SUBUNIT%29%2C" # Subunit
+    URL += "comment%28DEVELOPMENTAL%20STAGE%29%2C" # Developmental stage
+    URL += "comment%28TISSUE%20SPECIFICITY%29%2C" # Tissue specificity
+    URL += "comment%28CATALYTIC%20ACTIVITY%29%2C" # Catalytic activity
+    URL += "comment%28DISRUPTION%20PHENOTYPE%29%2C" # Disruption phenotype
+    URL += "comment%28SUBCELLULAR%20LOCATION%29%2C" # Subcellular localization
+    URL += "comment%28DISEASE%29%2C" # Disease
+
+    URL += "entry%20name&format=tab" # tab delimited format returned
+
+    r = requests.get(URL)
+    print(r.text)
+    print(r.encoding)
+
+    fields=r.content.decode("utf-8").split("\n")[1].split("\t")
+
+    UniprotData = {
+        "Name" : fields[9],
+        "Disease" : fields[8],
+        "Function": fields[1],
+        "Entry" : fields[0],
+        "Subunit" : fields[2],
+        "Phenotype" : fields[6],
+        "localization" : fields[7],
+        "Tissue" : fields[4],
+        "Development" : fields[3]
+    }
+
+    return UniprotData
+
+
+# Retrieve uniprot data:
+def get_UNIPROT_data(cross_refs):
     '''
-    This function returns a dictionary with variations that have an effect on the
-    expression of the gene. Each key of the dictionary is a variation, and the
-    values are dictionaries that includes the observed tissues, p-values.
+    The cross references are taken as input. It might contain none, one or
+    multiple references to the uniprot database. The function loops through all
+    and returns a dictionary with all unique protein names as keys.
+
+    Retrieved fields:
+        Function, Subunit, Developmental stage,
+        Tissue specificity, Catalytic activity,
+        Disruption phenotype, Subcellular localiztion,
+        Disease
+
+    The list can be extended if need....
     '''
 
-    # In the upcoming version this has to be read from the configuration file:
-    GTEx_file = config.GTEX_FILE_GENES
+    # Looping through all cross references pointing to Uniprot:
+    Independent_IDs = {}
+    for uniprotID in cross_refs["UniProtKB/Swiss-Prot"]:
+        Independent_IDs[uniprotID[0]] = uniprotID[1]
 
-    # Check if datafile is exists, and return 0 if not:
-    if not os.path.isfile(GTEx_file):
-        return "GTEx datafile was not found in this location: %s" % GTEx_file
+    # Annotate all unique proteins:
+    annotated_protein  = {}
+    for ID in Independent_IDs.keys():
+        annotated_protein[ID] = __UNIPROT_DOWNLOAD__(Independent_IDs[ID])
 
-    # Extract data for bedtools query:
-    chromosome = general_info["chromosome"]
-    start = general_info["start"]
-    end = general_info["end"]
-    ID = general_info["id"]
-
-    # submit bcftools query:
-    query = "bash -O extglob -c \'/software/hgi/pkglocal/tabix-git-1ae158a/bin/tabix %s chr%s:%s-%s | grep %s\'" %(GTEx_file, chromosome, start, end, ID)
-    output = subprocess.Popen(query.strip(), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    GTEx_data = dict()
-    for line in output.stdout.readlines():
-        fields = line.strip().split("\t")
-        rsID = fields[4]
-        tissue = fields[3]
-        pvalue = fields[11]
-        distance = fields[8]
-        gene_name = fields[5]
-
-        # Initialize hit:
-        if not rsID in GTEx_data:
-            GTEx_data[rsID] = []
-
-        # Add fields to data:
-        GTEx_data[rsID].append({
-                "rsID" : rsID,
-                "tissue" : tissue,
-                "distance" : distance,
-                "pvalue" : pvalue,
-                "gene_ID": general_info["id"],
-                "gene_name" : gene_name
-            })
-    if len (GTEx_data) == 0:
-        GTEx_data = "No eQTL signal was found for gene %s" %(general_info["name"])
-
-    return GTEx_data
+    # Returning annotation:
+    return (annotated_protein)

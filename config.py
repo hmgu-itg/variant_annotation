@@ -42,7 +42,7 @@ OMIM_APIKEY     = 'apiKey=MWkzg-DYShWyrfrbqUHL4g&format=python&' # will expire o
 GWAS_FILE       = '/nfs/team144/ds26/FunctionalAnnotation/GWAS_positive_controls/full'
 UNIPROT_URL     = 'http://www.uniprot.org/uniprot/'
 GXA_URL         = 'http://www.ebi.ac.uk/gxa/widgets/heatmap/multiExperiment.tsv?geneQuery=%s&propertyType=bioentity_identifier&species=homo%%20sapiens'
-GTEX_FILE_GENES = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/GTEx/GTEx_for_genes.bed.gz'
+GTEX_BED        = '/home/andrei/container.home/out.bed.gz'
 
 ##
 ## Parameters for variations:
@@ -56,7 +56,7 @@ REGULATORY_FILE = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/regulation
 REG_FEAT_FILE   = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/regulation/ALL_Ensembl_regulatory_features_resorted.bed.gz'
 UK10K_FILE      = '/nfs/vertres18/projects/uk10k/RELEASE/UK10K_COHORT/REL-2012-06-02/v3/%s.beagle.anno.csq.shapeit.20131101.vcf.gz'
 UK10K_VERSION   = 'UK10K data release 2013 Nov. 11, version: v3.'
-GTEX_FILE_VAR   = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/GTEx/GTEx_all_tissue.bed.gz'
+#GTEX_FILE_VAR   = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/GTEx/GTEx_all_tissue.bed.gz'
 
 ##
 ## Anchor tags for Ensembl and other sources:

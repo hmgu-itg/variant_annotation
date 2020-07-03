@@ -34,96 +34,99 @@ if args.build!=None:
 rsID=args.rs
     
 #---------------------------------------------------------------------------------------------------------------------------
-r=restQuery(makeRSQueryURL(rsID,build))
+# r=restQuery(makeRSQueryURL(rsID,build))
 
-H={}
+# H={}
 
-if r:
-    if verbose:
-        print("INFO: "+repr(r))
+# if r:
+#     if verbose:
+#         print("INFO: "+repr(r))
 
-    if len(r)>1:
-        print("WARNING: More than 1 hash for "+rsID,file=sys.stderr,flush=True)
+#     if len(r)>1:
+#         print("WARNING: More than 1 hash for "+rsID,file=sys.stderr,flush=True)
         
-    x=r[0]
-    r1=x["id"][0]
-    if r1!=rsID:
-        print("WARNING: INPUT ID="+rsID,"RETRIEVED ID="+r1,file=sys.stderr,flush=True)
+#     x=r[0]
+#     r1=x["id"][0]
+#     if r1!=rsID:
+#         print("WARNING: INPUT ID="+rsID,"RETRIEVED ID="+r1,file=sys.stderr,flush=True)
 
-    H[rsID]=[]
-    if "spdi" in x:
-        spdi=x["spdi"]
-        for z in spdi:
-            m=re.search("^NC_0+",z)
-            if m:
-                p=parseSPDI(z)
-                H[rsID].append(p)
+#     H[rsID]=[]
+#     if "spdi" in x:
+#         spdi=x["spdi"]
+#         for z in spdi:
+#             m=re.search("^NC_0+",z)
+#             if m:
+#                 p=parseSPDI(z)
+#                 H[rsID].append(p)
 
-    s=H[rsID]
-    positions=set(x["chr"]+":"+str(x["pos"]) for x in s)
-    if len(positions)>1:
-        print("ERROR: more than one position for "+rsID,file=sys.stderr,flush=True)
-    elif len(positions)<1:
-        print("ERROR: no position for "+rsID,file=sys.stderr,flush=True)
-    else:
-        L=positions.pop().rsplit(":")
-        print(rsID,L[0],L[1],sep='\t',file=sys.stdout,flush=True)
-else:
-    print("ERROR: restQuery returned None for "+rsID,file=sys.stderr,flush=True)    
-    print(rsID,"NA","NA",sep='\t')
+#     s=H[rsID]
+#     positions=set(x["chr"]+":"+str(x["pos"]) for x in s)
+#     if len(positions)>1:
+#         print("ERROR: more than one position for "+rsID,file=sys.stderr,flush=True)
+#     elif len(positions)<1:
+#         print("ERROR: no position for "+rsID,file=sys.stderr,flush=True)
+#     else:
+#         L=positions.pop().rsplit(":")
+#         print(rsID,L[0],L[1],sep='\t',file=sys.stdout,flush=True)
+# else:
+#     print("ERROR: restQuery returned None for "+rsID,file=sys.stderr,flush=True)    
+#     print(rsID,"NA","NA",sep='\t')
 
 #--------------------------------------------------------------------------------------------------------------
 
-chrom="1"
-start=int(1000000)
-end=int(1015000)
-URL=makePhenoOverlapQueryURL(chrom,start,end,build=build)
-print(URL)
-variants=restQuery(URL,qtype="get")
-if variants:
-    #print(json.dumps(variants, indent=4, sort_keys=True))
-    if len(variants) == 0: 
-        print(str(datetime.datetime.now())+" : getVariantsWithPhenotypes: No variants with phenotypes were found in the region", file=sys.stderr)
+# chrom="1"
+# start=int(1000000)
+# end=int(1015000)
+# URL=makePhenoOverlapQueryURL(chrom,start,end,build=build)
+# print(URL)
+# variants=restQuery(URL,qtype="get")
+# if variants:
+#     #print(json.dumps(variants, indent=4, sort_keys=True))
+#     if len(variants) == 0: 
+#         print(str(datetime.datetime.now())+" : getVariantsWithPhenotypes: No variants with phenotypes were found in the region", file=sys.stderr)
 
-    rsIDs = []
-    for var in variants:
-        if "id" in var:
-            rsIDs.append(var["id"])
-        else:
-            print(var)
+#     rsIDs = []
+#     for var in variants:
+#         if "id" in var:
+#             rsIDs.append(var["id"])
+#         else:
+#             print(var)
 
-    r = restQuery(makeRSPhenotypeQueryURL(build=build),data=list2string(rsIDs),qtype="post")
-    print(json.dumps(r, indent=4, sort_keys=True))
+#     r = restQuery(makeRSPhenotypeQueryURL(build=build),data=list2string(rsIDs),qtype="post")
+#     print(json.dumps(r, indent=4, sort_keys=True))
 
 #print(getRefSeq(1,1000000,1000100))
 
 #--------------------------------------------------------------------------------------------------------------
 
-q=makeRsPhenotypeQuery2URL(rsID,build)
-print("Query:",q,sep="\t")
-r=restQuery(q)
+# q=makeRsPhenotypeQuery2URL(rsID,build)
+# print("Query:",q,sep="\t")
+# r=restQuery(q)
 
-print(json.dumps(r,indent=4,sort_keys=True))
-
-#--------------------------------------------------------------------------------------------------------------
-
-z=restQuery(makeRSQueryURL(rsID,build=build))
-for x in z:
-    spdis=x["spdi"]
-    for spdi in spdis:
-        #print("SPDI: "+spdi)
-        h=parseSPDI(spdi,alleles=True)
-        ref=h["ref"]
-        alt=h["alt"]
-        p=h["pos"]
-        c=h["chr"]
-        print("chr: %s, pos: %d, ref: %s, alt: %s" % (c,p,ref,alt))
+# print(json.dumps(r,indent=4,sort_keys=True))
 
 #--------------------------------------------------------------------------------------------------------------
 
-D=parseGTEx("/home/andrei/variant_annotation/out.bed.gz","1",14409,29553,"ENSG00000227232")
-print(D)
-D=parseGTEx("/home/andrei/variant_annotation/out.bed.gz","1",108500,108600,"chr1_108506_C_T_b38")
-print(D)
+# z=restQuery(makeRSQueryURL(rsID,build=build))
+# for x in z:
+#     spdis=x["spdi"]
+#     for spdi in spdis:
+#         #print("SPDI: "+spdi)
+#         h=parseSPDI(spdi,alleles=True)
+#         ref=h["ref"]
+#         alt=h["alt"]
+#         p=h["pos"]
+#         c=h["chr"]
+#         print("chr: %s, pos: %d, ref: %s, alt: %s" % (c,p,ref,alt))
 
+#--------------------------------------------------------------------------------------------------------------
 
+# D=parseGTEx("/home/andrei/out.bed.gz","1",14409,29553,"ENSG00000227232")
+# print(D)
+# D=parseGTEx("/home/andrei/out.bed.gz","1",108500,108600,"chr1_108506_C_T_b38")
+# print(D)
+
+#--------------------------------------------------------------------------------------------------------------
+
+x=getUniprotData("O15169")
+print(x)
