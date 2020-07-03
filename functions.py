@@ -421,7 +421,7 @@ def stringdiff(s1,s2):
 
     return L
 
-# returns a list of matching rsIDs for a given variant ID
+# returns a set of matching rsIDs for a given variant ID
 def id2rs(varid,build="38"):
     if varid.startswith("rs"):
         return varid
@@ -481,7 +481,7 @@ def id2rs(varid,build="38"):
                         break
     return S
 
-#===================================================== GTEx RELATED STUFF ============================================
+# ===================================================== GTEx RELATED STUFF ============================================
 
 # given gene ID (variant ID), retreive all variant (gene) data associated with the gene (variant): tissue, p-value
 def parseGTEx(filename,chrom,start,end,ID):
@@ -503,7 +503,7 @@ def parseGTEx(filename,chrom,start,end,ID):
     
     return D
 
-#===================================================== UNIPROT RELATED STUFF ============================================
+# ===================================================== UNIPROT RELATED STUFF ============================================
 
 def getUniprotData(ID):
 
@@ -539,7 +539,7 @@ def getUniprotData(ID):
 
     return UniprotData
 
-#================================================ GWAS CATALOG ===========================================================
+# ================================================ GWAS CATALOG ===========================================================
 
 # retrieve a list of gwas signals around the variant
 def getGwasHits(chrom,pos,window=500000):
@@ -579,7 +579,7 @@ def getGwasHits(chrom,pos,window=500000):
 
     return L
 
-#==============================================================================================================================
+# ==============================================================================================================================
 
 # def get_GWAVA_score(variant_data):
 #     '''
@@ -658,4 +658,38 @@ def getGwasHits(chrom,pos,window=500000):
 #     os.remove(gwava_filename)
 
 #     return variant_data
+
+# ==============================================================================================================================
+
+# Download gene information from the Ensembl:
+def getGeneInfo (ID):
+    '''
+    This function retrieve every relevant information from Ensemble that we can
+    access through the REST API
+
+    INPUT: Ensembl stable ID
+    OUTPUT: dictionary with retrieved information
+    '''
+
+    URL = config.REST_URL + "/lookup/id/%s" % ID
+
+    response = submit_REST(URL)
+
+    # Selecting info:
+    gene_info = {}
+    gene_info["source"] = response["source"]
+    gene_info["id"] = response["id"]
+    gene_info["start"] = response["start"]
+    gene_info["end"] = response["end"]
+    gene_info["assembly_name"] = response["assembly_name"]
+    try:
+        gene_info["description"] = response["description"].split("[")[0]
+    except:
+        gene_info["description"] = "NA"
+    gene_info["name"] = response["display_name"]
+    gene_info["type"] = response["biotype"]
+    gene_info["strand"] = response["strand"]
+    gene_info["chromosome"] = response["seq_region_name"]
+
+    return gene_info
 
