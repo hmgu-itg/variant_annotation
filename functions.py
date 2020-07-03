@@ -522,8 +522,6 @@ def getUniprotData(ID):
     URL += "entry%20name&format=tab" # tab delimited format returned
 
     r=requests.get(URL)
-    #print(r.text)
-    #print(r.encoding)
 
     data=pd.read_csv(StringIO(r.content.decode("utf-8")),sep="\t",header=0,keep_default_na=False)
 
@@ -541,9 +539,9 @@ def getUniprotData(ID):
 
     return UniprotData
 
-#==============================================================================================================================
+#================================================ GWAS CATALOG ===========================================================
 
-# This function retrieves a list of gwas signals around the variant
+# retrieve a list of gwas signals around the variant
 def getGwasHits(chrom,pos,window=500000):
     '''
     This function retrives a list of all gwas signals within 500kbp distance around a given position.
