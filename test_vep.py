@@ -37,5 +37,9 @@ print(c)
 for m in info["mappings"]:
     print("%s/%s" %(m["ref"],m["alt"]))
     vep=getVepData(m)
-    print(vep[0]["most_severe_consequence"])
+    print(json.dumps(vep,indent=4,sort_keys=True))
+    if vep:
+        print(vep[0]["most_severe_consequence"])
+    else:
+        print("None")
 print("")
