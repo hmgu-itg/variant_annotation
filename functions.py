@@ -1155,3 +1155,34 @@ def getVepData(variant_data):
                     t["principal"]="NA"
 
     return VEP_data
+
+# ======================================================= PUBMED ===========================================================
+
+def getPubmed(rsID):
+    '''
+    This function returns the list of PMIDs of those publications where the given rsID was mentioned
+    Up to 1000 IDs are returned
+    '''
+    r=requests.get(config.PUBMED_URL_VAR % (rsID))
+    if not r.ok:
+        print("Failed")
+    decoded=r.json()
+    json.dumps(decoded,indent=4,sort_keys=True)
+    pubmed_IDs=decoded["esearchresult"]["idlist"]
+
+    # Before we return the list, let's return all the titles for all articles:
+    publication_data = {}
+    for ID in pubmed_IDs:
+        r=requests.get(config.PUBMED_URL_PMID % (ID))
+        decoded=r.json()
+
+        # Extracting data:
+        publication_data[ID] = {
+            "firstAuthor" : decoded["result"][ID]['sortfirstauthor'],
+            "title" : decoded["result"][ID]['title'],
+            "journal" : decoded["result"][ID]['fulljournalname'],
+            "year" : decoded["result"][ID]['epubdate'].split(" ")[0],
+            "URL" : "http://www.ncbi.nlm.nih.gov/pubmed/"+ID,
+        }
+
+    return publication_data
