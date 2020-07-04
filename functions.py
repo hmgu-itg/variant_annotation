@@ -887,7 +887,7 @@ def getGeneXrefs (ID,build="38"):
 
 # ========================================================== MOUSE STUFF ===========================================================
 
-def getMouseID (human_ID,build="38"):
+def getMouseID(human_ID,build="38"):
     '''Looking up mouse gene ID of a given human gene ID'''
 
     data=restQuery(makeHomologyURL(human_ID,build=build,species="mouse"))
@@ -914,7 +914,7 @@ def getMouseID (human_ID,build="38"):
 
     return mouse_IDs
 
-def getMgiID (mouse_ID,build="38"):
+def getMgiID(mouse_ID,build="38"):
     '''Looking up MGI cross reference for a given mouse gene ID'''
 
     data=restQuery(makeGeneXQueryURL2(mouse_ID,build=build))
@@ -929,24 +929,24 @@ def getMgiID (mouse_ID,build="38"):
     print("[INFO] MGI ID for %s was not found" % (mouse_ID),file=sys.stderr)
     return None
 
-# def _get_MGI_phenotypes (MGI_ID):
-#     '''returning phenotype information stored on http://www.informatics.jax.org/ '''
+def getMgiPhenotypes(MGI_ID):
+    '''Returns phenotype information stored on http://www.informatics.jax.org/ '''
 
-#     # Download whole site:
-#     URL = "http://www.informatics.jax.org/allele/report.txt?markerId=%s" % MGI_ID
+    URL = "http://www.informatics.jax.org/allele/report.txt?markerId=%s" % MGI_ID
 
-#     # Return all associated allele information:
-#     try:
-#         df = pd.read_csv(URL, sep="\t")
+    # Return all associated allele information:
+    try:
+        df=pd.read_csv(URL, sep="\t")
 
-#         # Drop unnecessary columns:
-#         df.drop([ u'Allele Symbol', u'Chromosome',  u'Synonyms',u'Allele Attributes', u'Transmission', u'Unnamed: 10'], axis=1, inplace=True)
-#         df.columns = [u'Allele_ID', u'Allele_name', u'Allele_type',
-#            u'Phenotypes',
-#            u'Human_disease']
-#         return df
-#     except:
-#         return "[Info] no phenotype was found!"
+        # Drop unnecessary columns:
+        df.drop([ u'Allele Symbol', u'Chromosome',  u'Synonyms',u'Allele Attributes', u'Transmission', u'Unnamed: 10'], axis=1, inplace=True)
+        df.columns = [u'Allele_ID', u'Allele_name', u'Allele_type',
+           u'Phenotypes',
+           u'Human_disease']
+        return df
+    except:
+        print("[Info] no phenotype was found!",file=sys.stderr)
+        return None
 
 # def get_mouse_phenotype (gene_id):
 #     '''returning mouse phenotype given human gene ID'''
