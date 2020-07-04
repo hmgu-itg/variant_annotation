@@ -107,17 +107,17 @@ rsID=args.rs
 
 #--------------------------------------------------------------------------------------------------------------
 
-# z=restQuery(makeRSQueryURL(rsID,build=build))
-# for x in z:
-#     spdis=x["spdi"]
-#     for spdi in spdis:
-#         #print("SPDI: "+spdi)
-#         h=parseSPDI(spdi,alleles=True)
-#         ref=h["ref"]
-#         alt=h["alt"]
-#         p=h["pos"]
-#         c=h["chr"]
-#         print("chr: %s, pos: %d, ref: %s, alt: %s" % (c,p,ref,alt))
+z=restQuery(makeRSQueryURL(rsID,build=build))
+for x in z:
+    spdis=x["spdi"]
+    for spdi in spdis:
+        #print("SPDI: "+spdi)
+        h=parseSPDI(spdi,alleles=True)
+        ref=h["ref"]
+        alt=h["alt"]
+        p=h["pos"]
+        c=h["chr"]
+        print("%s\t%d\t%s\t%s\t%s" %(c,p,rsID,ref,alt))
 
 #--------------------------------------------------------------------------------------------------------------
 
@@ -170,5 +170,5 @@ rsID=args.rs
 
 #--------------------------------------------------------------------------------------------------------------
 
-info=getVariantInfo(rsID)
-print(json.dumps(info,indent=4,sort_keys=True))
+#info=getVariantInfo(rsID)
+#print(json.dumps(info,indent=4,sort_keys=True))

@@ -101,11 +101,11 @@ def makeRSListQueryURL(build="38"):
 
     return server+ext
 
-def makeVepQueryURL(build="38"):
+def makeVepQueryURL(chrom,start,end,allele,strand="1",build="38"):
     server = "http://grch"+build+".rest.ensembl.org"
     if build=="38":
         server = "http://rest.ensembl.org"
-    ext = "/variant_recoder/homo_sapiens/"
+    ext="/vep/human/region/%s:%s-%s:1/%s?" % (chrom,str(start),str(end),allele)
 
     return server+ext
 
@@ -151,7 +151,7 @@ def parseSPDI(string,alleles=False,build="38"):
 
     # ref can be the length of the deleted sequence
     # or empty in case of simple insertions
-    m=re.search("^(\d+)$",ref)
+    m=re.match("^(\d+)$",ref)
     if m:
         isNum=True
         if ref=="1" and lalt==1: # one base deleted, one inserted, i.e. variant is a SNP
@@ -160,18 +160,38 @@ def parseSPDI(string,alleles=False,build="38"):
         isSNP=True
 
     if alleles:
-        base=getRefSeq(c,pos,pos,build)
-
         # deleted sequence
         if isNum:
-            seq=getRefSeq(c,pos+1,pos+int(ref),build)
+            delseq=getRefSeq(c,pos+1,pos+int(ref),build)
         else:
-            seq=ref
+            delseq=ref
 
         if isSNP:
-            return {"chr":c,"pos":pos+1,"ref":seq[0],"alt":alt}
+            return {"chr":c,"pos":pos+1,"ref":delseq[0],"alt":alt}
         else:
-            return {"chr":c,"pos":pos,"ref":base+seq,"alt":base+alt}
+            # base before the deleted sequence
+            base=getRefSeq(c,pos,pos,build)
+            # deletion
+            if len(delseq)>len(alt):
+                if delseq.endswith(alt):
+                    delseq2=delseq[0:len(delseq)-len(alt)]
+                    return {"chr":c,"pos":pos,"ref":base+delseq2,"alt":base}
+                else:
+                    print("[WARNING]: parseSPDI: deletion: (%s %d %s %s) INS is not suffix of DEL" %(c,pos,ref,alt),file=sys.stderr)
+                    return {"chr":c,"pos":pos,"ref":base+delseq,"alt":base+alt}
+            # insertion
+            elif len(delseq)<len(alt):
+                if lref==0:
+                    return {"chr":c,"pos":pos,"ref":base,"alt":base+alt}
+                elif alt.endswith(delseq):
+                    alt2=alt[0:len(alt)-len(ref)]
+                    return {"chr":c,"pos":pos,"ref":base,"alt":base+alt2}
+                else:
+                    print("[WARNING]: parseSPDI: insertion: (%s %d %s %s) DEL is not prefix of INS" %(c,pos,ref,alt),file=sys.stderr)
+                    return {"chr":c,"pos":pos,"ref":base+delseq,"alt":base+alt}
+            # indel
+            else:
+                return {"chr":c,"pos":pos,"ref":base+delseq,"alt":base+alt}
     else:
         if isSNP:
             return {"chr":c,"pos":pos+1}
@@ -316,6 +336,8 @@ def getVariantsWithPhenotypes(chrom,start,end,pos=0,build="38"):
 
     return df
 
+# ===========================================================================================================================
+
 # get general information about a variant, given rsID:
 # 
 # MAF, minor allele, variant class, most severe consequence
@@ -398,6 +420,8 @@ def getVariantInfo(rs,build="38"):
 
     return res
 
+# ===========================================================================================================================
+
 # return a part of the reference genome
 def getRefSeq(chrom,start,end,build="38"):
     r=restQuery(makeRefSeqQueryURL(chrom,start,end,build))
@@ -405,6 +429,8 @@ def getRefSeq(chrom,start,end,build="38"):
         return r["seq"]
     else:
         return None
+
+# ===========================================================================================================================
 
 # given variant ID, try to get variant type
 # also check if reference sequence and alleles are not in contradiction with each other
@@ -449,6 +475,8 @@ def getVariantType(varid,build="38"):
 
     return vartype
 
+# ===========================================================================================================================
+
 def stringdiff(s1,s2):
     L=[]
 
@@ -467,12 +495,14 @@ def stringdiff(s1,s2):
 
     return L
 
+# ===========================================================================================================================
+
 # returns a set of matching rsIDs for a given variant ID
 def id2rs(varid,build="38"):
     if varid.startswith("rs"):
         return varid
 
-    m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varid)
+    m=re.match("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varid)
     chrom=m.group(1)
     pos=int(m.group(2))
     a1=m.group(3)
@@ -484,18 +514,18 @@ def id2rs(varid,build="38"):
     batchsize=100
 
     S=set()
-    if len(a1)==1 and len(a2)==1: # SNPs
+    if len(a1)==1 and len(a2)==1: # SNP
         r=restQuery(makeOverlapVarQueryURL(chrom,pos,pos,build=build))
         for v in r:
             if a1 in v["alleles"] and a2 in v["alleles"]:
                 S.add(v["id"])
     else:
         # difference between a1 and a2
-        seq0=""
-        if len(a1)>len(a2):
-            seq0=a1[len(a2):len(a1)]
-        elif len(a1)<len(a2):
-            seq0=a2[len(a1):len(a2)]
+        # seq0=""
+        # if len(a1)>len(a2):
+        #     seq0=a1[len(a2):len(a1)]
+        # elif len(a1)<len(a2):
+        #     seq0=a2[len(a1):len(a2)]
 
         r=restQuery(makeOverlapVarQueryURL(chrom,pos-window,pos+window,build=build))
         for v in r:
@@ -503,26 +533,21 @@ def id2rs(varid,build="38"):
             for x in z:
                 spdis=x["spdi"]
                 var=x["id"][0]
-                #print("")
-                #print(varid)
-                #print(json.dumps(x, indent=4, sort_keys=True))
                 for spdi in spdis:
-                    #print("SPDI: "+spdi)
                     h=parseSPDI(spdi,alleles=True)
                     ref=h["ref"]
                     alt=h["alt"]
                     p=h["pos"]
                     c=h["chr"]
 
-                    #print("chr: %s, pos: %d, ref: %s, alt: %s" % (c,p,ref,alt))
-
                     if p!=pos:
                         continue
 
                     if len(ref)==1 and len(alt)==1:
                         continue
-                        
-                    if seq0 in stringdiff(alt[1:len(alt)],ref[1:len(ref)]):
+
+                    if (ref==a1 and alt==a2) or (ref==a2 and alt==a1)
+                    #if seq0 in stringdiff(alt[1:len(alt)],ref[1:len(ref)]):
                         S.add(var)
                         break
     return S
@@ -1030,7 +1055,7 @@ def getApprisInfo(gene_ID):
 # ======================================================= VEP ===========================================================
 
 # Retiveing data from the variant effect predictor server.
-def get_VEP_data(variant_data):
+def getVepData(variant_data):
     '''
     This function returns the predicted effect based on chromosome, position and the alternate allele.
 
@@ -1044,10 +1069,27 @@ def get_VEP_data(variant_data):
     ref = variant_data["ref"]
     alt = variant_data["alt"]
 
-    URL = config.REST_URL + "/vep/human/region/%s:%s-%s:1/%s?content-type=application/json" % \
-        (chromosome, start, end, allele)
+    start=-1
+    end=-1
+    allele=""
 
-    VEP = submit_REST(URL)
+    if len(ref)>1 and len(alt)==1:
+        start=pos+1
+        end=pos+len(ref)-1
+        allele=ref[1:]
+    elif len(alt)>1 and len(ref)==1:
+        start=pos+1
+        end=pos
+        allele=alt[1:]
+    elif len(ref)==1 and len(alt)==1:
+        start=pos
+        end=pos
+        allele=alt
+    else:
+        print("[ERROR]: wrong allele encoding ref=%s, alt=%s" %(ref,alt),file=sys.stderr)
+
+    data=restQuery(makeVepQueryURL(chrom,start,end,allele))
+    return data
 
     # The most severe Sift and Polyphen scores will be retrieved:
     sift = []
