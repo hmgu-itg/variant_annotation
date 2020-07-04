@@ -45,6 +45,14 @@ def makeGeneQueryURL(ID,build="38"):
 
     return server+ext+ID
 
+def makeGeneXQueryURL(ID,build="38"):
+    ext="/xrefs/id/"
+    server="http://grch"+build+".rest.ensembl.org"
+    if build=="38":
+        server = "http://rest.ensembl.org"
+
+    return server+ext+"%s?all_levels=1" % ID
+
 def makeRSPhenotypeQueryURL(build="38"):
     ext = "/variation/homo_sapiens/"
     server = "http://grch"+build+".rest.ensembl.org"
@@ -695,3 +703,30 @@ def getGeneInfo (ID,build="38"):
     gene_info["chromosome"] = response["seq_region_name"]
 
     return gene_info
+
+# ==============================================================================================================================
+
+# Download cross references to a gene based on Ensembl annotation:
+def getGeneXrefs (ID,build="38"):
+    '''
+    This function retrieves cross-references from Ensembl
+    '''
+    response=restQuery(makeGeneXQueryURL(ID,build=build))
+    xrefs = {
+        "MIM disease" : [],
+        "MIM gene" : [],
+        "GO" : [],
+        "GOSlim GOA" : [],
+        "UniProtKB/Swiss-Prot" : [],
+        "Human Protein Atlas" : [],
+        "ChEMBL" : [],
+    }
+
+    for xref in response:
+        db=xref['db_display_name']
+        try:
+            xrefs[db].append([xref["description"],xref["primary_id"]])
+        except:
+            continue
+
+    return xrefs
