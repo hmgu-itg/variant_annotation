@@ -37,6 +37,14 @@ def makeRSQueryURL(rsID,build="38"):
 
     return server+ext+rsID+"?"
 
+def makeHomologyURL(ID,species="mouse",build="38"):
+    ext="/homology/id/%s?&target_species=%s&aligned=0&sequence=none&type=orthologues" %(ID,species)
+    server = "http://grch"+build+".rest.ensembl.org"
+    if build=="38":
+        server = "http://rest.ensembl.org"
+
+    return server+ext
+
 def makeGeneQueryURL(ID,build="38"):
     ext="/lookup/id/"
     server="http://grch"+build+".rest.ensembl.org"
@@ -730,3 +738,234 @@ def getGeneXrefs (ID,build="38"):
             continue
 
     return xrefs
+
+# ==============================================================================================================================
+
+# Retrieve data from the OMIM database
+# def getOmimInfo (cross_refs):
+#     '''
+#     Required information:
+#         - list of OMIM ID-s
+
+#     Retrieved information:
+#         - OMIM entry name
+#         - text field name
+#         - text field (that includes references as well)
+
+#     Retrieved data structure (one dict for all queried entries):
+#     dict{
+#         OMIM_ID :{
+#             title : OMIM_preferredTitle
+#             text : {
+#                 OMIM_textSectionTitle : OMIM_textSectionContent
+#     }}}
+
+#     More information how the OMIM API works see: http://omim.org/help/api
+#     The API key will expire in 2016.11.11, at that time a new key have to be required.
+#     '''
+
+#     # Extracting OMIM ID from the cross refereces data:
+#     MIM_IDs = [x[1] for x in cross_refs["MIM disease"]]
+#     MIM_IDs.extend([x[1] for x in cross_refs["MIM gene"]])
+
+#     # The function returns at this point if there is not MIM IDs in the crossref
+#     if len(MIM_IDs) == 0:
+#         return "No OMIM entry for this gene."
+
+#     # Constructing query string:
+#     URL = config.OMIM_URL
+
+#     for ID in MIM_IDs:
+#         URL += 'mimNumber=%s&' % ID
+
+#     # Retrieving the following fields:
+#     URL += 'include=text&'
+#     URL += 'include=allelicVariantList&'
+#     URL += 'include=referenceList&'
+
+#     # Adding API key:
+#     URL += config.OMIM_APIKEY
+
+#     # Required format is pyton (although it is a string indeed)ormat=python
+#     URL += "format=python&"
+
+#     # Downloading page:
+#     page = requests.get(URL)
+
+#     # Reconstructingh dictionary from the returned string:
+#     OMIM_entry  = ast.literal_eval(page.content)
+
+#     # hash to fill in:
+#     OMIM_data = {}
+
+#     # Parsing hash:
+#     for entry in OMIM_entry['omim']['entryList']:
+#         # GEt OMIM ID:
+#         ID = entry["entry"]["mimNumber"]
+#         OMIM_data[ID] = {}
+
+#         # Get OMIM name:
+#         OMIM_data[ID]['title'] = entry["entry"]["titles"]['preferredTitle']
+
+#         # Get OMIM text:
+#         OMIM_data[ID]['text'] = {}
+#         for fields in entry['entry']["textSectionList"]:
+#             OMIM_data[ID]['text'][fields['textSection']['textSectionTitle']] = fields['textSection']['textSectionContent']
+
+#         # now we have to parse allelic variants:
+#         # print stuff['omim']['entryList'][0]['entry']['allelicVariantList'][0]['allelicVariant'].keys()
+#         # ['status', 'name', 'dbSnps', 'text', 'mutations', 'number', 'alternativeNames', 'clinvarAccessions']
+
+#         try:
+#             OMIM_data[ID]['variations'] = {}
+#             for variations in entry['entry']['allelicVariantList']:
+#                 OMIM_data[ID]['variations'][variations['allelicVariant']['dbSnps']] = variations['allelicVariant']['text']
+#         except:
+#             continue
+
+#     return OMIM_data
+
+# ==============================================================================================================================
+
+# Retrievig data from the EBI's gene expression atlas:
+# def getGxaData(ID):
+#     '''
+#     This function downloads information from the EBI's gene expression atlas.
+#     Input: Ensembl ID
+#     Output: pandas core series with the 10 most highly expressing tissues.
+#     '''
+#     # the URL pointing to the gene expression atlas:
+#     URL = config.GXA_URL % ID
+
+#     # The downloaded data will be read as a pandas dataframe:
+#     try:
+#         df = pd.read_csv(URL, sep='\t', comment="#")
+#     except:
+#         return ("No gene expression information!", "No gene information.")
+
+#     cleanExperiments = []
+#     for exp in df.Experiment.tolist():
+#         m = re.search('Tissues -\s+\d*(.+)', exp)
+#         cleanExperiments.append(m.groups()[0].strip())
+
+#     df.Experiment = cleanExperiments
+
+#     IndexNames = df.Experiment.tolist()
+
+#     # These are the main sources that we focus on:
+#     sources = ["GTEx", "FANTOM5 project - adult", "FANTOM5 project - fetal"]
+#     Levels = {}
+
+#     # Extracting top 10 tissues for each sources:
+#     for source in sources:
+#         try:
+#             fieldName = filter(lambda x : source in x, IndexNames)[0]
+#             Index = IndexNames.index(fieldName)
+
+#             # Excising the GTEx data from dataframe:
+#             GTEx = df.ix[Index]
+
+#             GTEx = GTEx.sort_values(ascending=False, na_position='last')[0:11]
+#             Levels[fieldName] = []
+#             for tissue, value in GTEx.iteritems():
+#                 try:
+#                     if float(value) > 0 : Levels[fieldName].append([tissue, value])
+#                 except:
+#                     pass
+#         except:
+#             pass
+
+#     return (Levels, df)
+
+# ========================================================== MOUSE STUFF ===========================================================
+
+def getMouseID (human_ID,build="38"):
+    '''Looking up mouse gene ID of a given human gene ID'''
+
+    data=restQuery(makeHomologyURL(human_ID,build=build,species="mouse"))
+    #return data
+    print(json.dumps(data,indent=4,sort_keys=True))
+
+    mouse_IDs = {}
+    if len(data["data"])==0 or len(data["data"][0]["homologies"])==0:
+        print("[INFO] No mouse cross-reference for %s" %(human_ID) )
+        return mouse_IDs
+
+    for homolog in data["data"][0]["homologies"]:
+        try:
+            z=restQuery(makeGeneQueryURL(homolog["target"]["id"],build=build))
+            print(json.dumps(z,indent=4,sort_keys=True))
+
+            d=""
+            m=re.match("(.*)\s+\[.*\]",z["description"])
+            if m:
+                d=m.group(1)
+            mouse_IDs[z["id"]] = [d,z["display_name"]]
+        except:
+            continue
+
+    return mouse_IDs
+
+# def _get_MGI_ID (mouse_ID):
+#     '''Looking up MGI cross reference for a given mouse gene ID.'''
+
+#     URL = "http://grch37.rest.ensembl.org/xrefs/id/%s?content-type=application/json&external_db=MGI" % mouse_ID
+#     data = submit_REST(URL)
+
+#     # Now from the returned data we have to pick all possible homolgue IDs:
+#     for d in data:
+#         try:
+#             return d["primary_id"]
+#         except:
+#             continue
+#     return "[Info] MGI ID was not found"
+
+# def _get_MGI_phenotypes (MGI_ID):
+#     '''returning phenotype information stored on http://www.informatics.jax.org/ '''
+
+#     # Download whole site:
+#     URL = "http://www.informatics.jax.org/allele/report.txt?markerId=%s" % MGI_ID
+
+#     # Return all associated allele information:
+#     try:
+#         df = pd.read_csv(URL, sep="\t")
+
+#         # Drop unnecessary columns:
+#         df.drop([ u'Allele Symbol', u'Chromosome',  u'Synonyms',u'Allele Attributes', u'Transmission', u'Unnamed: 10'], axis=1, inplace=True)
+#         df.columns = [u'Allele_ID', u'Allele_name', u'Allele_type',
+#            u'Phenotypes',
+#            u'Human_disease']
+#         return df
+#     except:
+#         return "[Info] no phenotype was found!"
+
+# def get_mouse_phenotype (gene_id):
+#     '''returning mouse phenotype given human gene ID'''
+#     # Returning all mouse homologue IDs:
+#     mouse_gene_IDs = _get_mouse_ID(gene_id)
+
+#     # Checking if the returned data is a string, don't bother with the rest:
+#     if isinstance(mouse_gene_IDs, basestring): return mouse_gene_IDs
+
+#     # Looping through all mouse gene IDs, and get the MGI ID:
+#     MGI_IDs = {}
+#     for mouse_gene_ID in mouse_gene_IDs:
+#         MGI_IDs[mouse_gene_ID] = _get_MGI_ID(mouse_gene_ID)
+
+#     # Once we have all the MGI identifiers, we retrieve all the phenotypes:
+#     full_dataframe = ""
+#     for mouse_id, mgi_id in MGI_IDs.iteritems():
+#         df = _get_MGI_phenotypes(mgi_id)
+
+#         # Adding extra columns for the record:
+#         df["mouse_gene_ID"] = mouse_id
+#         df["MGI_ID"] = mgi_id
+#         df["mouse_gene_name"] = mouse_gene_IDs[mouse_id][1]
+#         df["mouse_gene_description"] = mouse_gene_IDs[mouse_id][0]
+#         if isinstance(full_dataframe, basestring):
+#             full_dataframe = df
+#         else:
+#             full_dataframe = pd.merge(full_dataframe, df, how="outer")
+
+#     return full_dataframe
+
