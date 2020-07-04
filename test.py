@@ -143,3 +143,7 @@ for x in L:
 # if L:
 #     for x in L:
 #         print("%s\t%s\t%d" %(rsID,x["chr"],x["pos"]))
+
+#--------------------------------------------------------------------------------------------------------------
+
+print(json.dumps(getGeneInfo("ENSG00000225972"),indent=4,sort_keys=True))

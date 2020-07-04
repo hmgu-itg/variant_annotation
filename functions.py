@@ -37,6 +37,14 @@ def makeRSQueryURL(rsID,build="38"):
 
     return server+ext+rsID+"?"
 
+def makeGeneQueryURL(ID,build="38"):
+    ext="/lookup/id/"
+    server="http://grch"+build+".rest.ensembl.org"
+    if build=="38":
+        server = "http://rest.ensembl.org"
+
+    return server+ext+ID
+
 def makeRSPhenotypeQueryURL(build="38"):
     ext = "/variation/homo_sapiens/"
     server = "http://grch"+build+".rest.ensembl.org"
@@ -662,21 +670,16 @@ def getGwasHits(chrom,pos,window=500000):
 # ==============================================================================================================================
 
 # Download gene information from the Ensembl:
-def getGeneInfo (ID):
+def getGeneInfo (ID,build="38"):
     '''
-    This function retrieve every relevant information from Ensemble that we can
-    access through the REST API
+    This function retrieve gene related information
 
     INPUT: Ensembl stable ID
     OUTPUT: dictionary with retrieved information
     '''
+    response=restQuery(makeGeneQueryURL(ID,build=build))
 
-    URL = config.REST_URL + "/lookup/id/%s" % ID
-
-    response = submit_REST(URL)
-
-    # Selecting info:
-    gene_info = {}
+    gene_info=dict()
     gene_info["source"] = response["source"]
     gene_info["id"] = response["id"]
     gene_info["start"] = response["start"]
@@ -692,4 +695,3 @@ def getGeneInfo (ID):
     gene_info["chromosome"] = response["seq_region_name"]
 
     return gene_info
-
