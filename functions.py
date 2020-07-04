@@ -973,3 +973,175 @@ def getMousePhenotypes(geneID):
 
     return full_dataframe
 
+# ======================================================= APPRIS ===========================================================
+
+def getApprisInfo(gene_ID):
+    '''
+    This function returns transcript information from the {appris} webserver based on Ensembl gene ID
+    The output is a dictionary with detailed information of all annotated transcript.
+
+    Link: http://appris.bioinfo.cnio.es/
+
+    Known issue: appris gives error message if the queried gene was not found in the database. As
+    most non-protein coding genes are missing from the database I don't want to inform the user
+    about this error. Therefore, if there was some problem with the query, it will be lost.
+    '''
+
+    # hardcoded assembly
+    URL = "http://apprisws.bioinfo.cnio.es:80/rest/exporter/id/homo_sapiens/%s?format=json&db=b38" % gene_ID;
+
+    data=dict()
+    r = requests.get(URL)
+    if not r.ok:
+        print("[INFO] Query failed for gene: %s\nURL: %s" % (gene_ID,URL),file=sys.stderr)
+        return data
+
+    decoded = r.json()
+    #print(json.dumps(decoded,indent=4,sort_keys=True))
+    for transcript in decoded:
+        tid=transcript["transcript_id"]
+        if not tid in data:
+            data[tid] = {"reliability" : "NA","name" : "NA","length_aa" : "NA","length_na" : "NA","type" : []}
+        if "reliability" in transcript:
+            data[tid]["reliability"]=transcript["reliability"]
+        if "name" in transcript:
+            data[tid]["name"]=transcript["name"]
+        if "length_aa" in transcript:
+            data[tid]["length_aa"]=transcript["length_aa"]
+        if "length_na" in transcript:
+            data[tid]["length_na"]=transcript["length_na"]
+        if "type" in transcript:
+            t=transcript["type"]
+            if t not in data[tid]["type"]:
+                data[tid]["type"].append(t)
+
+    return data
+
+# ======================================================= VEP ===========================================================
+
+# Retiveing data from the variant effect predictor server.
+# def get_VEP_data(variant_data):
+#     '''
+#     This function returns the predicted effect based on chromosome, position and the alternate allele.
+
+#     Input: variant data given by the get_variant_info() function.
+
+#     Output: two dictionaries returned: list of variant effect, and an updated variant data
+#     '''
+
+#     # Parsing input data
+#     chromosome = variant_data["chromosome"]
+#     start = variant_data["start"]
+#     end = variant_data["end"]
+#     if end < start: start,end = end, start
+
+#     # OK, at first we check the reference allele, and we keep the allele which is not matches the reference.
+#     # There is no error checking here. If none of the alleles matches the reference allele, it won't show up.
+#     # Maybe it should be fixed later.
+#     refseq = get_refSeq(chromosome, start, end)
+#     allele = variant_data["allele_string"].split("/")[1]
+#     if allele == refseq: allele = variant_data["allele_string"].split("/")[0]
+
+#     URL = config.REST_URL + "/vep/human/region/%s:%s-%s:1/%s?content-type=application/json" % \
+#         (chromosome, start, end, allele)
+
+#     VEP = submit_REST(URL)
+
+#     # The most severe Sift and Polyphen scores will be retrieved:
+#     sift = []
+#     polyphen = []
+
+#     # Big dataset for all transcripts and regulatory features will be retrieved:
+#     VEP_data = {'transcript' : [],
+#                 'regulatory' : []}
+
+#     # We retrieve the amino acid changes as well:
+#     aminoacid = ""
+#     codon = ""
+
+#     # If there is no consequence in the variant data then, we add: <-It does not work....
+#     variant_data["consequence"] = VEP[0]['most_severe_consequence']
+
+#     # Gathering transcript consequences:
+#     if 'transcript_consequences' in VEP[0].keys():
+#         VEP_data['transcript']=[]
+#         for transcript in VEP[0]['transcript_consequences']:
+#             VEP_data['transcript'].append({
+#                 "impact" : transcript["impact"],
+#                 "gene_symbol" : transcript["gene_symbol"],
+#                 "gene_id": transcript["gene_id"],
+#                 "transcript_id": transcript["transcript_id"],
+#                 "consequence" : transcript["consequence_terms"]
+#             })
+
+#             # Testing polyphen score:
+#             if "polyphen_score" in transcript.keys():
+#                 try:
+#                     if transcript["polyphen_score"] > polyphen[0]:
+#                         polyphen[0] = transcript["polyphen_score"]
+#                         polyphen[1] = transcript["polyphen_prediction"]
+#                 except:
+#                         polyphen.append(transcript["polyphen_score"])
+#                         polyphen.append(transcript["polyphen_prediction"])
+
+#             # Testing sift score:
+#             if "sift_score" in transcript.keys():
+#                 try:
+#                     if transcript["sift_score"] < sift[0]:
+#                         sift[0] = transcript["sift_score"]
+#                         sift[1] = transcript["sift_prediction"]
+#                 except:
+#                         sift.append(transcript["sift_score"])
+#                         sift.append(transcript["sift_prediction"])
+
+#             # Testing amino acid substitution:
+#             if VEP[0]["most_severe_consequence"] in transcript["consequence_terms"] and "amino_acids" in transcript.keys():
+#                 aminoacid = transcript["amino_acids"].replace("/", str(transcript["protein_start"]))
+#                 codon = transcript["codons"]
+
+
+#     # Gathering regulatory consequences:
+#     if 'regulatory_feature_consequences' in VEP[0].keys():
+#         VEP_data['regulatory']=[]
+#         for regulatory in VEP[0]['regulatory_feature_consequences']:
+#             VEP_data['regulatory'].append({
+#                 "impact" : regulatory["impact"],
+#                 "biotype" : regulatory["biotype"],
+#                 "gene_id": "-",
+#                 "regulatory_ID": regulatory["regulatory_feature_id"],
+#                 "consequence" : regulatory["consequence_terms"]
+#             })
+
+#     # Updating variation data:
+#     variant_data["sift"] = sift
+#     variant_data["polyphen"] = polyphen
+#     variant_data["codon"] = codon
+#     variant_data["aminoacid"] = aminoacid
+
+#     # If there were overlapping transcripts, we have to check if the
+#     # get a list of all overlapping genes:
+#     gene_list = []
+#     for transcripts in VEP_data['transcript']:
+#         if not transcripts["gene_id"] in gene_list:
+#             gene_list.append(transcripts["gene_id"])
+
+#     # Now looping trugh all genes and get list of principal transcripts:
+#     for gene_id in gene_list:
+#         appris_data = get_principal_transcript(gene_id) # downloading appris data
+
+#         # Now looping trough all consequences to get the appris annotation:
+#         for transcripts in VEP_data['transcript']:
+#             if transcripts["gene_id"] in gene_id:
+#                 try:
+#                     transcripts["principal"] = appris_data[transcripts["transcript_id"]]["reliability"]
+#                 except:
+#                     transcripts["principal"] = "NA"
+
+#     # Checking if there is anything in the VEP data:
+#     if len(VEP_data['transcript']) == 0:
+#         VEP_data['transcript'] = "The queried variation does not overlap any transcripts."
+#     if len(VEP_data['regulatory']) == 0:
+#         VEP_data['regulatory'] = "The queried variation does not overlap any regulatory features."
+
+#     # Returning data
+#     return (VEP_data, variant_data)
