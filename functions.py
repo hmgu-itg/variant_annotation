@@ -61,6 +61,14 @@ def makeGeneXQueryURL(ID,build="38"):
 
     return server+ext+"%s?all_levels=1" % ID
 
+def makeGeneXQueryURL2(ID,build="38"):
+    ext="/xrefs/id/"
+    server="http://grch"+build+".rest.ensembl.org"
+    if build=="38":
+        server = "http://rest.ensembl.org"
+
+    return server+ext+"%s?external_db=MGI" % ID
+
 def makeRSPhenotypeQueryURL(build="38"):
     ext = "/variation/homo_sapiens/"
     server = "http://grch"+build+".rest.ensembl.org"
@@ -888,7 +896,7 @@ def getMouseID (human_ID,build="38"):
 
     mouse_IDs = {}
     if len(data["data"])==0 or len(data["data"][0]["homologies"])==0:
-        print("[INFO] No mouse cross-reference for %s" %(human_ID) )
+        print("[INFO] No mouse cross-reference for %s" %(human_ID),file=sys.stderr)
         return mouse_IDs
 
     for homolog in data["data"][0]["homologies"]:
@@ -906,19 +914,20 @@ def getMouseID (human_ID,build="38"):
 
     return mouse_IDs
 
-# def _get_MGI_ID (mouse_ID):
-#     '''Looking up MGI cross reference for a given mouse gene ID.'''
+def getMgiID (mouse_ID,build="38"):
+    '''Looking up MGI cross reference for a given mouse gene ID'''
 
-#     URL = "http://grch37.rest.ensembl.org/xrefs/id/%s?content-type=application/json&external_db=MGI" % mouse_ID
-#     data = submit_REST(URL)
+    data=restQuery(makeGeneXQueryURL2(mouse_ID,build=build))
 
-#     # Now from the returned data we have to pick all possible homolgue IDs:
-#     for d in data:
-#         try:
-#             return d["primary_id"]
-#         except:
-#             continue
-#     return "[Info] MGI ID was not found"
+    # Now from the returned data we have to pick all possible homolgue IDs:
+    for d in data:
+        try:
+            return d["primary_id"]
+        except:
+            continue
+
+    print("[INFO] MGI ID for %s was not found" % (mouse_ID),file=sys.stderr)
+    return None
 
 # def _get_MGI_phenotypes (MGI_ID):
 #     '''returning phenotype information stored on http://www.informatics.jax.org/ '''
