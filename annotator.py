@@ -32,6 +32,19 @@ from variations import *
 from variations_draw import *
 from genes import *
 from genes_draw import *
+import logging
+
+LOGGER=logging.getLogger("annotator")
+LOGGER.setLevel(logging.DEBUG)
+#fh=logging.FileHandler('test.log')
+#fh.setLevel(logging.DEBUG)
+ch=logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+#fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+#LOGGER.addHandler(fh)
+LOGGER.addHandler(ch)
 
 date_string = datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
 version = "3.0"
