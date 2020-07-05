@@ -39,3 +39,6 @@ for m in info["mappings"]:
     vep=getVepData(m)
     print(json.dumps(vep,indent=4,sort_keys=True))
 print("")
+print(json.dumps(info,indent=4,sort_keys=True))
+
+print(variant2df(info))

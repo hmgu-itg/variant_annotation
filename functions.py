@@ -88,23 +88,28 @@ def makeGeneOverlapQueryURL(chrom,start,end,build="38"):
 
 #------------------------------------------------------------------------------------------------------------------------------------
 
-# def getLocation(chrom,pos,ref,alt):
-#     if len(ref)>1 and len(alt)==1:
-#         start=pos+1
-#         end=pos+len(ref)-1
-#         allele="-"
-#     elif len(alt)>1 and len(ref)==1:
-#         start=pos+1
-#         end=pos
-#         allele=alt[1:]
-#     elif len(ref)==1 and len(alt)==1:
-#         start=pos
-#         end=pos
-#         allele=alt
-#     else:
-#         LOGGER.error("Wrong allele encoding ref=%s, alt=%s" %(ref,alt),file=sys.stderr)
-#         return None
+# VEP-style string
+def getLocationString(chrom,pos,ref,alt):
+    if len(ref)>1 and len(alt)==1:
+        start=pos+1
+        end=pos+len(ref)-1
+        allele1=""
+        allele2="-"
+    elif len(alt)>1 and len(ref)==1:
+        start=pos+1
+        end=pos
+        allele1=""
+        allele2=alt[1:]
+    elif len(ref)==1 and len(alt)==1:
+        start=pos
+        end=pos
+        allele1=ref
+        allele2=alt
+    else:
+        LOGGER.error("Wrong allele encoding ref=%s, alt=%s" %(ref,alt),file=sys.stderr)
+        return None
 
+    return chrom+":"+str(start)+"-"+str(end)+":"+allele1+"/"+allele2
 
 # given rsID, return a list of chr:pos
 def rs2position(ID,build="38"):
@@ -386,9 +391,9 @@ def getVariantInfo(rs,build="38"):
     phenotype_data=list()
 
     for p in data["phenotypes"]:
-        trait=p["trait"] if "trait" in p else None
-        source=p["source"] if "source" in p else None
-        risk=p["risk_allele"] if "risk_allele" in p else None
+        trait=p["trait"] if "trait" in p else "NA"
+        source=p["source"] if "source" in p else "NA"
+        risk=p["risk_allele"] if "risk_allele" in p else "NA"
         if trait:
             phenotype_data.append({"trait":trait,"source":source,"risk_allele":risk})
 
@@ -1050,7 +1055,8 @@ def getApprisInfo(gene_ID):
 
 # ======================================================= VEP ===========================================================
 
-# Retiveing data from the variant effect predictor server.
+# Retiveing data from the variant effect predictor server
+# modifies variant_data by adding SIFT/PolyPhen scores and predictions
 def getVepData(variant_data):
     '''
     This function returns the predicted effect based on chromosome, position and the alternate allele.
@@ -1123,18 +1129,18 @@ def getVepData(variant_data):
 # ------------------------------------------------------------------------------------------------------------------
 
     if sift_score:
-        VEP_data["sift_score"]=sift_score
-        VEP_data["sift_prediction"]=sift_prediction
+        variant_data["sift_score"]=sift_score
+        variant_data["sift_prediction"]=sift_prediction
     else:
-        VEP_data["sift_score"]="NA"
-        VEP_data["sift_prediction"]="NA"
+        variant_data["sift_score"]="NA"
+        variant_data["sift_prediction"]="NA"
         
     if polyphen_score:
-        VEP_data["polyphen_score"]=polyphen_score
-        VEP_data["polyphen_prediction"]=polyphen_prediction
+        variant_data["polyphen_score"]=polyphen_score
+        variant_data["polyphen_prediction"]=polyphen_prediction
     else:
-        VEP_data["polyphen_score"]="NA"
-        VEP_data["polyphen_prediction"]="NA"
+        variant_data["polyphen_score"]="NA"
+        variant_data["polyphen_prediction"]="NA"
         
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -1468,76 +1474,27 @@ def getRegulation(chrom,pos,window=2000):
 
 # ===================================== CONVERTING DIFFERENT DATA STRUCTURES TO DATAFRAMES=====================================
 
-def draw_variation_table(variation_detail):
+# TODO: add links like in the original version
+# TODO: gwava and gerp
+def variant2df(var_data):
+    df=pd.DataFrame(columns=["Data"])
+    df.loc["ID"]=[var_data["rsID"]]
+    for m in var_data["mappings"]:
+        df.loc["Location"]=[getLocationString(m["chr"],m["pos"],m["ref"],m["alt"])]
+        df.loc["Allele string"]=[m["ref"]+"/"+m["alt"]]
+        df.loc["SIFT score"]=[m["sift_score"]]
+        df.loc["SIFT prediction"]=[m["sift_prediction"]]
+        df.loc["PolyPhen score"]=[m["polyphen_score"]]
+        df.loc["PolyPhen prediction"]=[m["polyphen_prediction"]]
+    df.loc["MAF"]=[var_data["MAF"]]
+    df.loc["Consequence"]=[var_data["consequence"]]
+    df.loc["Type"]=[var_data["class"]]
+    df.loc["Synonyms"]=[",".join(var_data["synonyms"])]
+    for p in var_data["phenotype_data"]:
+        df.loc["Phenotype"]=[p["trait"]+" - "+p["source"]+" - "+p["risk_allele"]]
+    if len(var_data["clinical_significance"])!=0:
+        df.loc["Clinical significance"]=[",".join(var_data["clinical_significance"])]
 
-    # Adding rsID and position rows. They will contain links to Ensembl:
-    if "rs" in variation_detail["rsID"]:
-        rsID_row = config.ENSEMBL_VAR % (variation_detail["rsID"], variation_detail["rsID"])
-    else:
-        rsID_row = variation_detail["rsID"]
-
-    position_row = config.ENSEMBL_REGION % (variation_detail["location"], variation_detail["location"])
-
-    # Adding values to table:
-    table += add_row("rsID", rsID_row)
-    table += add_row("Chromosome:start-end", position_row)
-    table += add_row("Allele string", variation_detail["allele_string"])
-    table += add_row("MAF", variation_detail["MAF"])
-    table += add_row("Consequence", variation_detail["consequence"])
-    table += add_row("Variation type", variation_detail["varClass"])
-
-    # The following fields are optinal, might not be filled:
-    if "gerp" in variation_detail:
-        table += add_row("gerp (average gerp)", "%s (%s)" %(variation_detail["gerp"], variation_detail["avg_gerp"]))
-    if "gwava" in variation_detail:
-        table += add_row("GWAVA score", variation_detail["gwava"])
-    if "ancestralAllele" in variation_detail:
-        table += add_row("Ancestral allele", variation_detail["ancestralAllele"])
-    if "minorAllele" in variation_detail:
-        table += add_row("Minor allele", variation_detail["minorAllele"])
-    if "synonyms" in variation_detail and len(variation_detail["synonyms"]) > 0:
-        table += add_row("Synoyms", ", ".join(variation_detail["synonyms"]))
-
-    # Some cases, if the variation overlaps with protein coding regions, sift and polyphen scores are also available:
-    if len(variation_detail["sift"]) > 0:
-        try:
-            table += add_row( "SIFT (score)", "%s (%s)" % (variation_detail["sift"][1],variation_detail["sift"][0] ))
-        except:
-            table += add_row( "SIFT (score)", "%s" % (variation_detail["sift"][0] ))
-    if len (variation_detail["polyphen"]) > 0:
-        try:
-            table += add_row( "Polyphen (score)", "%s (%s)" % (variation_detail["polyphen"][1],variation_detail["polyphen"][0] ))
-        except:
-            table += add_row( "Polyphen (score)", "%s" % (variation_detail["polyphen"][0] ))
-
-    # Phenotypes and clinical data is raraly available:
-    if "phenotypes" in variation_detail.keys() and len(variation_detail["phenotypes"]) > 0:
-        # For generating links for phenotype entries:
-        line = []
-        for phenotypes in variation_detail["phenotypes"]:
-            if phenotypes["source"]  == "ClinVar":
-                line.append(config.CLINVAR_LINK % (variation_detail["rsID"], phenotypes["trait"]))
-            elif phenotypes["source"]  == "OMIM":
-                line.append(config.OMIM_LINK % (variation_detail["rsID"], phenotypes["trait"]))
-            elif phenotypes["source"]  == "NHGRI-EBI GWAS catalog":
-                line.append(config.GWAS_CAT_LINK % (variation_detail["rsID"], phenotypes["trait"]))
-            else:
-                line.append("%s" % (phenotypes["trait"]))
-
-        table += add_row("Phenotypes<br>(risk allele)", ",<br>".join(line))
-
-    # If clinical significance is given for the variation we are adding extra row in the table:
-    if "clinical_significance" in variation_detail.keys() and len(variation_detail["clinical_significance"]) > 0:
-        table += add_row("Clinical significance ", ", ".join(variation_detail["clinical_significance"]))
-
-    # If the variation is missense, and the codon change is given, we are adding extra row in the table:
-    if "codon" in variation_detail.keys() and len(variation_detail["codon"]) > 0:
-        table += add_row("Codon change", variation_detail["codon"])
-    if "aminoacid" in variation_detail.keys() and len(variation_detail["aminoacid"]) > 0:
-        table += add_row("Amino acid change", variation_detail["aminoacid"])
-
-
-    table += "</table>"
-    return table
-
+    return df
+    
 
