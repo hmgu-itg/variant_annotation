@@ -347,6 +347,10 @@ def getVariantInfo(rs,build="38"):
     res["rsID"]=rs
     res["class"]=data["var_class"]
     res["consequence"]=data["most_severe_consequence"]
+    if "synonyms" in data:
+        res["synonyms"]=data["synonyms"]
+    else:
+        res["synonyms"]=[]
 
 #------------------- mappings----------------------
 
@@ -570,10 +574,8 @@ def parseGTEx(filename,chrom,start,end,ID):
 # ===================================================== UNIPROT RELATED STUFF ============================================
 
 def getUniprotData(ID):
-
     URL = config.UNIPROT_URL
     URL += "?query=id:" + ID
-
     URL += "&columns=id%2Ccomment%28FUNCTION%29%2C" # Function
     URL += "comment%28SUBUNIT%29%2C" # Subunit
     URL += "comment%28DEVELOPMENTAL%20STAGE%29%2C" # Developmental stage
@@ -582,7 +584,6 @@ def getUniprotData(ID):
     URL += "comment%28DISRUPTION%20PHENOTYPE%29%2C" # Disruption phenotype
     URL += "comment%28SUBCELLULAR%20LOCATION%29%2C" # Subcellular localization
     URL += "comment%28DISEASE%29%2C" # Disease
-
     URL += "entry%20name&format=tab" # tab delimited format returned
 
     r=requests.get(URL)
