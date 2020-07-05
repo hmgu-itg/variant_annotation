@@ -31,8 +31,8 @@ fname=args.input
 
 # ======================================== BUILDING ID AND GENE MAPPING ======================================================
 
-id_mapping=dict()
-gene_map=dict()
+id_mapping=dict() # ID --> rsID
+gene_map=dict() # gene --> chr,start,end
 
 if version=="8":
     infile=tf.open(fname)
@@ -89,13 +89,15 @@ if version=="8":
                     var_map[var][tissue]=[]
                 gene=row["gene_id"]
                 pval=row["pval_nominal"]
+                beta=row["slope"]
+                SE=row["slope_se"]
                 m1=re.search("^(ENSG\d+)",gene)
                 if m1:
                     gene=m1.group(1)
                     if next((z for z in var_map[var][tissue] if z["gene"]==gene),None):
                         print("WARNING: in file",f.name,"variant",var,"has multiple  associations with",gene,sep=" ",file=sys.stderr)
                     else:
-                        var_map[var][tissue].append({"gene":gene,"p":pval})
+                        var_map[var][tissue].append({"gene":gene,"p":pval,"beta":beta,"SE":SE})
                         if gene in gene2var:
                             gene2var[gene].append(var)
                         else:
@@ -116,7 +118,9 @@ if version=="8":
                     x=next((z for z in a[t] if z["gene"]==gene),None)
                     if x:
                         p=x["p"]
-                        print("%s\t%d\t%d\t%s\t%s:%s:%s" % (gene_map[gene]["chr"],gene_map[gene]["start"]-1,gene_map[gene]["end"],gene,var,t,p),file=sys.stdout)
+                        beta=x["beta"]
+                        SE=x["SE"]
+                        print("%s\t%d\t%d\t%s\t%s:%s:%s:%s:%s" % (gene_map[gene]["chr"],gene_map[gene]["start"]-1,gene_map[gene]["end"],gene,var,t,p,beta,SE),file=sys.stdout)
         else:
             print("ERROR: gene coordinates for",gene,"were not found",sep=" ",file=sys.stderr)
 
@@ -138,5 +142,4 @@ if version=="8":
         for t in var_map[var]:
             L=var_map[var][t]
             for x in L:
-#                print("%s\t%d\t%d\t%s:%s\t%s:%s:%s" %(c,start,end,var,id2,x["gene"],t,p),file=sys.stdout)
-                print("%s\t%d\t%d\t%s\t%s:%s:%s" %(c,start,end,var,x["gene"],t,p),file=sys.stdout)
+                print("%s\t%d\t%d\t%s\t%s:%s:%s:%s:%s" %(c,start,end,var,x["gene"],t,x["p"],x["beta"],x["SE"]),file=sys.stdout)

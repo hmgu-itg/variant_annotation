@@ -207,9 +207,9 @@ rsID=args.rs
 
 #--------------------------------------------------------------------------------------------------------------
 
-data=getExacAF("1",13528,"C","T")
-print(json.dumps(data,indent=4,sort_keys=True))
-print(exac2df(data))
+# data=getExacAF("1",13528,"C","T")
+# print(json.dumps(data,indent=4,sort_keys=True))
+# print(exac2df(data))
 
 #--------------------------------------------------------------------------------------------------------------
 
