@@ -6,6 +6,20 @@ import argparse
 import re
 import datetime
 from functions import *
+import logging
+
+LOGGER=logging.getLogger("test")
+LOGGER.setLevel(logging.DEBUG)
+#fh=logging.FileHandler('test.log')
+#fh.setLevel(logging.DEBUG)
+ch=logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+#fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+#LOGGER.addHandler(fh)
+LOGGER.addHandler(ch)
+
 #----------------------------------------------------------------------------------------------------------------------------------
 
 build="38"
@@ -165,14 +179,16 @@ rsID=args.rs
 #print(getMgiPhenotypes("MGI:2180203"))
 
 #--------------------------------------------------------------------------------------------------------------
+LOGGER.info("Calling getApprisInfo")
 
-#print(getApprisInfo("ENSG00000185973"))
+print(getApprisInfo("ENSG00000185973"))
 
 #--------------------------------------------------------------------------------------------------------------
+LOGGER.info("Calling getVariantInfo")
 
-#info=getVariantInfo(rsID)
+info=getVariantInfo(rsID)
 #print(json.dumps(info,indent=4,sort_keys=True))
 
 #--------------------------------------------------------------------------------------------------------------
 
-print(json.dumps(getPubmed(rsID),indent=4,sort_keys=True))
+#print(json.dumps(getPubmed(rsID),indent=4,sort_keys=True))

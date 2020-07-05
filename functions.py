@@ -9,6 +9,21 @@ import config
 import pandas as pd
 from io import StringIO
 import os.path
+import logging
+
+LOGGER=logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+#fh=logging.FileHandler('test.log')
+#fh.setLevel(logging.DEBUG)
+ch=logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+#fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+#LOGGER.addHandler(fh)
+LOGGER.addHandler(ch)
+
+#LOGGER.info("HELLO")
 
 def list2string(snps):
     return "{\"ids\":["+",".join(list(map(lambda x:"\""+x+"\"",snps)))+"]}"
@@ -177,7 +192,7 @@ def parseSPDI(string,alleles=False,build="38"):
                     delseq2=delseq[0:len(delseq)-len(alt)]
                     return {"chr":c,"pos":pos,"ref":base+delseq2,"alt":base}
                 else:
-                    print("[WARNING]: parseSPDI: deletion: (%s %d %s %s) INS is not suffix of DEL" %(c,pos,ref,alt),file=sys.stderr)
+                    LOGGER.warning("parseSPDI: deletion: (%s %d %s %s) INS is not suffix of DEL" %(c,pos,ref,alt))
                     return {"chr":c,"pos":pos,"ref":base+delseq,"alt":base+alt}
             # insertion
             elif len(delseq)<len(alt):
@@ -187,7 +202,7 @@ def parseSPDI(string,alleles=False,build="38"):
                     alt2=alt[0:len(alt)-len(ref)]
                     return {"chr":c,"pos":pos,"ref":base,"alt":base+alt2}
                 else:
-                    print("[WARNING]: parseSPDI: insertion: (%s %d %s %s) DEL is not prefix of INS" %(c,pos,ref,alt),file=sys.stderr)
+                    LOGGER.warning("parseSPDI: insertion: (%s %d %s %s) DEL is not prefix of INS" %(c,pos,ref,alt))
                     return {"chr":c,"pos":pos,"ref":base+delseq,"alt":base+alt}
             # indel
             else:
@@ -206,8 +221,7 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
     elif qtype=="post":
         func=requests.post
     else:
-        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: query type ("+qtype+") has to be either \"get\" or \"post\"",file=sys.stderr)
-        sys.stderr.flush()
+        LOGGER.error("Query type %s has to be either \"get\" or \"post\"" %(qtype))
         return None
 
     r=None
@@ -216,35 +230,29 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
             r = func(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},timeout=timeout)
         else:
             if not data:
-                print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: Error: postquery requires data",file=sys.stderr)
-                sys.stderr.flush()
+                LOGGER.error("POST query requires data")
                 return None                
             r = func(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},data=data,timeout=timeout)
 
         if not r.ok:
-            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: Error "+str(r.status_code)+" occured (input: "+URL+")",file=sys.stderr)
-            sys.stderr.flush()
+            LOGGER.error("Error %s occured (input: %s)" %(str(r.status_code),URL))
             return None
 
         try:
             ret=r.json()
             return ret
         except ValueError:
-            print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: JSON decoding error", file=sys.stderr)
-            sys.stderr.flush()
+            LOGGER.error("JSON decoding error")
             return None
 
     except Timeout as ex:
-        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: Timeout exception occured", file=sys.stderr)
-        sys.stderr.flush()
+        LOGGER.error("Timeout exception occured")
         return None
     except TooManyRedirects as ex:
-        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: TooManyRedirects exception occured", file=sys.stderr)
-        sys.stderr.flush()
+        LOGGER.error("TooManyRedirects exception occured")
         return None
     except RequestException as ex:
-        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getQuery: RequestException occured", file=sys.stderr)
-        sys.stderr.flush()
+        LOGGER.error("RequestException occured")
         return None
 
 # check if provided input is a valid variant ID
@@ -276,14 +284,12 @@ def getVariantsWithPhenotypes(chrom,start,end,pos=0,build="38"):
     'SNPID', 'consequence', 'distance', 'genes', 'phenotype', 'rsID', 'source'
     '''
     if start<0 : start=0
-    URL=makePhenoOverlapQueryURL(chrom,start,end,build=build)
-
-    variants=restQuery(URL,qtype="get")
+    variants=restQuery(makePhenoOverlapQueryURL(chrom,start,end,build=build),qtype="get")
 
     if not variants:
         return None
 
-    if len(variants) == 0: 
+    if len(variants)==0: 
         print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantsWithPhenotypes: No variants with phenotypes were found in the region", file=sys.stderr)
         return None
 
@@ -292,8 +298,7 @@ def getVariantsWithPhenotypes(chrom,start,end,pos=0,build="38"):
         rsIDs.append(var["id"])
 
     # Given rsIDs, get the phenotypes
-    URL=makeRSPhenotypeQueryURL(build=build)
-    r = restQuery(URL,data=list2string(rsIDs),qtype="post")
+    r=restQuery(makeRSPhenotypeQueryURL(build=build),data=list2string(rsIDs),qtype="post")
 
     # Check output:
     if not r:
@@ -528,8 +533,14 @@ def id2rs(varid,build="38"):
         #     seq0=a2[len(a1):len(a2)]
 
         r=restQuery(makeOverlapVarQueryURL(chrom,pos-window,pos+window,build=build))
+        if not r:
+            return S
+
         for v in r:
             z=restQuery(makeRSQueryURL(v["id"],build=build))
+            if not z:
+                continue
+
             for x in z:
                 spdis=x["spdi"]
                 var=x["id"][0]
@@ -570,7 +581,7 @@ def parseGTEx(filename,chrom,start,end,ID):
         D[ID2].append({"tissue" : tissue,"pvalue" : pval})
 
     if len(D)==0:
-        print("INFO: no eQTL signals were found for %s" %(ID),file=sys.stderr)
+        LOGGER.info("No eQTL signals were found for %s" %(ID))
     
     return D
 
@@ -625,7 +636,7 @@ def getGwasHits(chrom,pos,window=500000):
     gwas_file = config.GWAS_FILE_VAR
 
     if not os.path.isfile(gwas_file):
-        print("[ERROR] GWAS catalog file (%s) not found" % gwas_file,file=sys.stderr)
+        LOGGER.error("GWAS catalog file (%s) not found" % gwas_file)
         return None
 
     start=pos-window
@@ -735,7 +746,7 @@ def getGwasHits(chrom,pos,window=500000):
 # Download gene information from the Ensembl:
 def getGeneInfo (ID,build="38"):
     '''
-    This function retrieve gene related information
+    This function retrieves gene related information
 
     INPUT: Ensembl stable ID
     OUTPUT: dictionary with retrieved information
@@ -934,7 +945,7 @@ def getMouseID(human_ID,build="38"):
 
     mouse_IDs = {}
     if len(data["data"])==0 or len(data["data"][0]["homologies"])==0:
-        print("[INFO] No mouse cross-reference for %s" %(human_ID),file=sys.stderr)
+        LOGGER.info("No mouse cross-reference for %s" %(human_ID))
         return mouse_IDs
 
     for homolog in data["data"][0]["homologies"]:
@@ -965,7 +976,7 @@ def getMgiID(mouse_ID,build="38"):
         except:
             continue
 
-    print("[INFO] MGI ID for %s was not found" % (mouse_ID),file=sys.stderr)
+    LOGGER.info("MGI ID for %s not found" % (mouse_ID))
     return ""
 
 def getMgiPhenotypes(MGI_ID):
@@ -982,7 +993,7 @@ def getMgiPhenotypes(MGI_ID):
         df.columns = ["Allele_ID", "Allele_name", "Allele_type","Phenotypes","Human_disease"]
         return df
     except:
-        print("[INFO] no phenotype was found for %s" %(MGI_ID),file=sys.stderr)
+        LOGGER.info("No phenotype was found for %s" %(MGI_ID))
         return pd.DataFrame(columns=["Allele_ID", "Allele_name", "Allele_type","Phenotypes","Human_disease"])
 
 def getMousePhenotypes(geneID):
@@ -1021,6 +1032,8 @@ def getApprisInfo(gene_ID):
 
     Link: http://appris.bioinfo.cnio.es/
     '''
+
+    LOGGER.info("Calling getApprisInfo")
 
     # hardcoded assembly
     URL = "http://apprisws.bioinfo.cnio.es:80/rest/exporter/id/homo_sapiens/%s?format=json&db=b38" % gene_ID;
@@ -1086,7 +1099,8 @@ def getVepData(variant_data):
         end=pos
         allele=alt
     else:
-        print("[ERROR]: wrong allele encoding ref=%s, alt=%s" %(ref,alt),file=sys.stderr)
+        LOGGER.error("Wrong allele encoding ref=%s, alt=%s" %(ref,alt),file=sys.stderr)
+        return None
 
     VEP=restQuery(makeVepQueryURL(chrom,start,end,allele))
     #return data
@@ -1103,7 +1117,7 @@ def getVepData(variant_data):
     if "transcript_consequences" in VEP[0]:
         VEP_data["transcript"]=[]
         for t in VEP[0]["transcript_consequences"]:
-            VEP_data["transcript"].append({"ID":t["transcript_id"],"impact":t["impact"],"gene_symbol":t["gene_symbol"],"gene_id":t["gene_id"],"consequence":t["consequence_terms"][0]})
+            VEP_data["transcript"].append({"ID":t["transcript_id"],"impact":t["impact"],"gene_symbol":t["gene_symbol"],"gene_id":t["gene_id"],"consequence":t["consequence_terms"][0],"principal":"NA"})
 
             if "polyphen_score" in t:
                 if polyphen_score:
@@ -1149,10 +1163,6 @@ def getVepData(variant_data):
                 if t["ID"] in appris_data:
                     if "reliability" in appris_data[t["ID"]]:
                         t["principal"]=appris_data[t["ID"]]["reliability"]
-                    else:
-                        t["principal"]="NA"
-                else:
-                    t["principal"]="NA"
 
     return VEP_data
 
@@ -1164,8 +1174,6 @@ def getPubmed(rsID):
     Up to 1000 IDs are returned
     '''
     r=requests.get(config.PUBMED_URL_VAR % (rsID))
-    if not r.ok:
-        print("Failed")
     decoded=r.json()
     json.dumps(decoded,indent=4,sort_keys=True)
     pubmed_IDs=decoded["esearchresult"]["idlist"]
