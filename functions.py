@@ -344,6 +344,7 @@ def getVariantInfo(rs,build="38"):
 
     res["minor_allele"]=data["minor_allele"]
     res["MAF"]=data["MAF"]
+    res["rsID"]=rs
     res["class"]=data["var_class"]
     res["consequence"]=data["most_severe_consequence"]
 
@@ -1273,3 +1274,209 @@ def getExacAF(chrom,pos,ref,alt):
                 parsed["populations"][p]={"count":count,"frequency":freq}
 
     return parsed
+
+# ======================================================================================================================
+
+# Retrieve UK10K allele frequency:
+# def get_UK10K_frequencies(variant_data):
+#     '''
+#     This function queries the uk10k public data for allele frequency and allele counts
+#     It need the previously generate variant_data dictionary with all details:
+#         - chromosome, variant location, start, end alternative, reference, allele string, rsID
+
+#     Returned data: dictionary with the following structure:
+#     {'Allele_counts': {
+#         'A': 7446,
+#         'G': 116},
+#      'Allele_frequencies': {
+#         'A': 0.98466014281936,
+#         'G': 0.015339857180640043},
+#      'Genotype_counts': {
+#         'AA': '3665 (3665.89)',
+#         'GA': '116 (114.22)',
+#         'GG': '0 (0.89)'}}
+#     In the genotype counts, the number in parentheses indicates the expected counts assuming HWE
+
+#     '''
+
+#     chromosome = variant_data["chromosome"]
+#     queried_var = variant_data["location"]
+#     start = variant_data["start"]
+#     end = variant_data["end"]
+#     alternative = variant_data['alternativeAllele']
+#     reference  = variant_data["reference"]
+#     allele_string = variant_data["allele_string"]
+#     rsID = variant_data["end"]
+
+#     # Check if datafile is exists, and return 0 if not:
+#     return "UK10K datafiles were not found."
+
+#     # tabix indexed vcf file, in which we are looking for the variation:
+#     UK10K_vcf = config.UK10K_FILE % (chromosome)
+
+#     # Check if datafile is exists, and return 0 if not:
+#     if not os.path.isfile(UK10K_vcf):
+#         return "UK10K datafiles were not found."
+
+#     # submit bcftools query:
+#     query = "bash -O extglob -c \'/software/hgi/pkglocal/bcftools-1.2/bin/bcftools query -f \"%%CHROM\\t%%POS\\t%%ID\\t%%REF\\t%%ALT[\\t%%SAMPLE=%%GT]\\n\" -r %s %s\'" %(queried_var, UK10K_vcf)
+#     output = subprocess.Popen(query.strip(), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+#     # Initializing returned variable:
+#     genotype_count = {}
+#     for line in output.stdout.readlines():
+
+#         # from each lines, the info fields are extracted for checking:
+#         fields = line.strip().split("\t")
+#         out_chromosome = fields.pop(0)
+#         out_position = fields.pop(0)
+#         out_ID = fields.pop(0)
+#         out_reference = fields.pop(0)
+#         out_alternative = fields.pop(0)
+
+#         # Now we test if the variation was found in the UK10K database:
+#         if rsID == out_ID or (chromosome == out_chromosome and
+#             (int(out_position) == start or int(out_position) == end) and
+#             out_alternative in allele_string and out_reference in allele_string):
+
+#             # Now we parse the genotypes:
+#             genotype_count = {
+#                 "Allele_counts": {
+#                     out_reference : 0,
+#                     out_alternative : 0
+#                 },
+#                 "Genotype_counts" : {
+#                     out_reference+out_reference : 0,
+#                     out_alternative+out_reference : 0,
+#                     out_alternative+out_alternative : 0,
+#                 },
+#                 "Allele_frequencies": {
+#                     out_reference : 0,
+#                     out_alternative : 0
+#                 }
+#             }
+
+#             n = 0 # Counting samples in row
+#             for sample in fields:
+#                 try:
+#                     gt = sample.split("=")[1]
+#                     (a1, a2) = gt.split("|")
+
+#                     n += 1
+
+#                     # Parsing genotypes:
+#                     if a1 == "1" and a2 == "1":
+#                         genotype_count["Allele_counts"][out_alternative] += 2
+#                         genotype_count["Genotype_counts"][out_alternative+out_alternative] += 1
+#                     if a1 == "0" and a2 == "0":
+#                         genotype_count["Allele_counts"][out_reference] += 2
+#                         genotype_count["Genotype_counts"][out_reference+out_reference] += 1
+#                     else:
+#                         genotype_count["Allele_counts"][out_reference] += 1
+#                         genotype_count["Allele_counts"][out_alternative] += 1
+#                         genotype_count["Genotype_counts"][out_alternative+out_reference] += 1
+
+#                 except:
+#                     pass # Unexpected field. Skip
+
+#             # Calculating the allele frequencies:
+#             genotype_count["Allele_frequencies"][out_reference] = round(float(genotype_count["Allele_counts"][out_reference]) /(
+#                                     genotype_count["Allele_counts"][out_alternative] + genotype_count["Allele_counts"][out_reference]), 3)
+#             genotype_count["Allele_frequencies"][out_alternative] = round(float(genotype_count["Allele_counts"][out_alternative]) / (
+#                                     genotype_count["Allele_counts"][out_alternative] + genotype_count["Allele_counts"][out_reference]), 3)
+
+#             # Calculating expected number of genotypes (based on pop size and HW):
+#             exp_AA = (genotype_count["Allele_frequencies"][out_reference] ** 2) * n
+#             exp_aa = (genotype_count["Allele_frequencies"][out_alternative] ** 2) * n
+#             exp_Aa = 2 * (genotype_count["Allele_frequencies"][out_alternative] * genotype_count["Allele_frequencies"][out_reference]) * n
+
+#             # Updating genotype counts with the expected values:
+#             genotype_count["Genotype_counts"][out_alternative+out_alternative] = '%s (%s)'  %(genotype_count["Genotype_counts"][out_alternative+out_alternative],
+#                                                                                            round(exp_aa, 2))
+#             genotype_count["Genotype_counts"][out_reference+out_reference] = '%s (%s)'  %(genotype_count["Genotype_counts"][out_reference+out_reference],
+#                                                                                           round(exp_AA, 2))
+#             genotype_count["Genotype_counts"][out_alternative+out_reference]= '%s (%s)'  %( genotype_count["Genotype_counts"][out_alternative+out_reference],
+#                                                                                           round(exp_Aa, 2))
+
+#             # If we found only one matching line, we return data:
+#             return genotype_count
+
+#         else:
+#             pass # Going to the next line.
+
+
+#     # Once we reached the end of the lines without finding the correct line, then we
+#     return "Variation was not found in the UK10K databaset."
+
+# ======================================================================================================================
+
+def getRegulation(chrom,pos,window=2000):
+    '''
+    This function returns all overlapping regulatory features within 2kb of the variation.
+    The function is based on a local bedtool query on a datafile downloaded from Ensembl
+    (data mainly sourced from Encode/Epigenomics Roadmap data)
+
+    Input: chromosome/position data is read from the variant_data variable previously created.
+
+    Putput: dictionary with all regulatory feature classes as keys, and types, and cell types as
+    values.
+
+    '''
+
+    # Cell type abbreviations are retrieved from Ensembl, which are replaced
+    # by conventional names for better readibility.
+    # Not all cell types are included from tier-3 cell types. <- should be updated
+    # if needed. Cell types are moved to config.py
+    CellTypeFinder = config.CellTypeFinder
+
+    chromosome = variant_data["chromosome"]
+    start = variant_data["start"] - 500
+    end = variant_data["end"] + 500
+
+    # folders of regulatory files:
+    regulatoryFile = config.REGULATORY_FILE
+
+    # Seraching for modification:
+    query = "bash -O extglob -c \'/nfs/team144/software/bedtools2/bin/intersectBed -wb -a <(echo -e \"%s\\t%s\\t%s\\n\") -b %s -sorted\'" %  (
+        chromosome, start, end, regulatoryFile)
+
+    # Submit query:
+    output = subprocess.Popen(query.strip(),
+                              shell=True,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT)
+
+    # Once the queries are returned, we have to parse the output:
+    annotations = []
+    for line in output.stdout.readlines():
+        x = {}
+        for field in line.strip().split("\t")[6].split(";"):
+            x[field.split("=")[0]] = field.split("=")[1]
+        annotations.append(x)
+
+    # Parsing returned information:
+    parsed_annotations = {}
+    for annotation in annotations:
+
+        # Parsing modification type:
+        if not annotation["Class"] in parsed_annotations.keys():
+            parsed_annotations[annotation["Class"]] = {}
+        if not annotation["Name"] in parsed_annotations[annotation["Class"]].keys():
+            parsed_annotations[annotation["Class"]][annotation["Name"]] = []
+
+        # Parsing cell type:
+        try:
+            cell = annotation["Cell_type"]
+        except:
+            cell = annotation["Alias"].split("_")[0]
+        try:
+            cell = CellTypeFinder[cell]
+        except:
+            pass
+
+        # We just adding the cell type:
+        if not cell in parsed_annotations[annotation["Class"]][annotation["Name"]]:
+            parsed_annotations[annotation["Class"]][annotation["Name"]].append(cell)
+
+    return (parsed_annotations)
+

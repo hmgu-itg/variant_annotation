@@ -53,8 +53,9 @@ GWAS_FILE_VAR   = '/home/andrei/out.tsv.gz'
 EXAC_FILE       = '/home/andrei/legacy_exacv1_downloads_liftover_grch38_release1_ExAC.r1.sites.liftover.b38.vcf.gz'
 PUBMED_URL_VAR  = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%%22%s%%22%%5BAll%%20Fields%%5D&retmode=json&retmax=1000'
 PUBMED_URL_PMID = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&rettype=abstract&id=%s'
-REGULATORY_FILE = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/regulation/Ensembl_regulation_2015.11.13_AnnotatedFeatures.bed.gz'
-REG_FEAT_FILE   = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/regulation/ALL_Ensembl_regulatory_features_resorted.bed.gz'
+REGULATORY_DIR  = "/home/andrei/reg.99/"
+#REGULATORY_FILE = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/regulation/Ensembl_regulation_2015.11.13_AnnotatedFeatures.bed.gz'
+#REG_FEAT_FILE   = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/regulation/ALL_Ensembl_regulatory_features_resorted.bed.gz'
 UK10K_FILE      = '/nfs/vertres18/projects/uk10k/RELEASE/UK10K_COHORT/REL-2012-06-02/v3/%s.beagle.anno.csq.shapeit.20131101.vcf.gz'
 UK10K_VERSION   = 'UK10K data release 2013 Nov. 11, version: v3.'
 #GTEX_FILE_VAR   = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/GTEx/GTEx_all_tissue.bed.gz'
@@ -136,6 +137,6 @@ population_names = {
     "MXL" : "Mexican Ancestry",
     "PEL" : "Peruvian",
     "PUR" : "Puerto Rican",
-    "AMR" : "Total Americas Ancestry",
+    "AMR" : "Total American Ancestry",
     "ALL" : "Total 1000 Genomes dataset"
 }
