@@ -69,6 +69,7 @@ if version=="8":
 
             print(tissue,file=sys.stderr)
             print(f.name,file=sys.stderr)
+            sys.stderr.flush()
 
 # ======================================== BUILDING VAR MAPPING ======================================================
 
@@ -105,6 +106,7 @@ if version=="8":
 
             print(tissue,file=sys.stderr)
             print(f.name,file=sys.stderr)
+            sys.stderr.flush()
 
     infile.close()
 
