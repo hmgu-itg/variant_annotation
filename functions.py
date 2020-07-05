@@ -1458,7 +1458,7 @@ def getRegulation(chrom,pos,window=2000):
     # Once the queries are returned, we have to parse the output:
     parsed=dict()
     for line in output.stdout.readlines():
-        print(line)
+        #print(line)
         c0,s0,e0,c1,st,en,cl,cell,act,regid=line.strip().split("\t")
         if act=="ACTIVE":
             if regid not in parsed:
@@ -1472,7 +1472,7 @@ def getRegulation(chrom,pos,window=2000):
 
     return parsed
 
-# ===================================== CONVERTING DIFFERENT DATA STRUCTURES TO DATAFRAMES=====================================
+# ===================================== CONVERTING DIFFERENT DATA STRUCTURES TO DATAFRAMES =====================================
 
 # TODO: add links like in the original version
 # TODO: gwava and gerp
@@ -1497,4 +1497,16 @@ def variant2df(var_data):
 
     return df
     
+# ----------------------------------------------------------------------------------------------------------------------
+
+def regulation2df(reg_data):
+    df=pd.DataFrame(columns=["ID","Class","Cell type"])
+    i=0
+    for r in reg_data:
+        for cell in reg_data[r]["cells"]:
+            df.loc[i]=[r,reg_data[r]["class"],cell]
+            i+=1
+    
+    return df
+
 

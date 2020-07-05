@@ -6,6 +6,8 @@ import argparse
 import re
 import datetime
 from functions import *
+import pandas as pd
+
 #----------------------------------------------------------------------------------------------------------------------------------
 
 build="38"
@@ -41,4 +43,5 @@ for m in info["mappings"]:
 print("")
 print(json.dumps(info,indent=4,sort_keys=True))
 
-print(variant2df(info))
+df=variant2df(info)
+print(df.to_html())

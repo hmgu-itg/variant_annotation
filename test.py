@@ -186,8 +186,8 @@ rsID=args.rs
 #--------------------------------------------------------------------------------------------------------------
 #LOGGER.info("Calling getVariantInfo")
 
-info=getVariantInfo(rsID)
-print(json.dumps(info,indent=4,sort_keys=True))
+#info=getVariantInfo(rsID)
+#print(json.dumps(info,indent=4,sort_keys=True))
 
 #--------------------------------------------------------------------------------------------------------------
 
@@ -211,6 +211,7 @@ print(json.dumps(info,indent=4,sort_keys=True))
 
 #--------------------------------------------------------------------------------------------------------------
 
-#data=getRegulation("1",13528)
-#print(json.dumps(data,indent=4,sort_keys=True))
+data=getRegulation("1",13528)
+print(json.dumps(data,indent=4,sort_keys=True))
 
+print(regulation2df(data))

@@ -140,3 +140,12 @@ population_names = {
     "AMR" : "Total American Ancestry",
     "ALL" : "Total 1000 Genomes dataset"
 }
+
+# regulatory_classes={
+#     "CTCF_binding_site":"",
+#     "enhancer":"",
+#     "open_chromatin_region":"",
+#     "promoter":"",
+#     "promoter_flanking_region":"",
+#     "TF_binding_site":""
+# }
