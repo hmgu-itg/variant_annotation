@@ -1571,4 +1571,15 @@ def pubmed2df(pubmed_data):
 
     return df
 
+# ----------------------------------------------------------------------------------------------------------------------
+
+def geneList2df(gene_data):
+    df=pd.DataFrame(columns=["Gene name","Gene ID","Biotype","Distance","Orientation"])
+    i=0
+    for x in gene_data:
+        df.loc[i]=[x["name"],x["ID"],x["biotype"],x["distance"],x["orientation"]]
+        i+=1
+
+    return df
+
 

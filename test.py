@@ -192,13 +192,13 @@ rsID=args.rs
 
 #--------------------------------------------------------------------------------------------------------------
 
-print(json.dumps(getPubmed(rsID),indent=4,sort_keys=True))
+# print(json.dumps(getPubmed(rsID),indent=4,sort_keys=True))
 
 #--------------------------------------------------------------------------------------------------------------
-# LOGGER.info("Calling getGeneList")
 
 # x=getGeneList("1",1230000,1250000)
 # print(json.dumps(x,indent=4,sort_keys=True))
+# print(geneList2df(x))
 
 #--------------------------------------------------------------------------------------------------------------
 
