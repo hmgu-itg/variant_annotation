@@ -179,16 +179,22 @@ rsID=args.rs
 #print(getMgiPhenotypes("MGI:2180203"))
 
 #--------------------------------------------------------------------------------------------------------------
-LOGGER.info("Calling getApprisInfo")
+#LOGGER.info("Calling getApprisInfo")
 
-print(getApprisInfo("ENSG00000185973"))
+#print(getApprisInfo("ENSG00000185973"))
 
 #--------------------------------------------------------------------------------------------------------------
-LOGGER.info("Calling getVariantInfo")
+#LOGGER.info("Calling getVariantInfo")
 
-info=getVariantInfo(rsID)
+#info=getVariantInfo(rsID)
 #print(json.dumps(info,indent=4,sort_keys=True))
 
 #--------------------------------------------------------------------------------------------------------------
 
 #print(json.dumps(getPubmed(rsID),indent=4,sort_keys=True))
+
+#--------------------------------------------------------------------------------------------------------------
+LOGGER.info("Calling getGeneList")
+
+x=getGeneList("1",1230000,1250000)
+print(json.dumps(x,indent=4,sort_keys=True))

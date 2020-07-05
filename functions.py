@@ -25,104 +25,66 @@ LOGGER.addHandler(ch)
 
 #LOGGER.info("HELLO")
 
+def getServerName(build="38"):
+    server="http://grch"+build+".rest.ensembl.org"
+    if build=="38":
+        server="http://rest.ensembl.org"
+    return server
+
 def list2string(snps):
     return "{\"ids\":["+",".join(list(map(lambda x:"\""+x+"\"",snps)))+"]}"
 
 def makeOverlapVarQueryURL(chrom,start,end,build="38"):
-    ext = "/overlap/region/human/"
-    server = "http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext+"%s:%s-%s?feature=variation"  % (chrom,str(start),str(end))
+    ext="/overlap/region/human/"
+    return getServerName(build)+ext+"%s:%s-%s?feature=variation"  % (chrom,str(start),str(end))
 
 def makeRefSeqQueryURL(chrom,start,end,build="38"):
-    ext = "/sequence/region/human/"
-    server = "http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext+"%s:%s..%s:1?"  % (chrom,str(start),str(end))
+    ext="/sequence/region/human/"
+    return getServerName(build)+ext+"%s:%s..%s:1?"  % (chrom,str(start),str(end))
 
 def makeRSQueryURL(rsID,build="38"):
-    ext = "/variant_recoder/homo_sapiens/"
-    server = "http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext+rsID+"?"
+    ext="/variant_recoder/homo_sapiens/"
+    return getServerName(build)+ext+rsID+"?"
 
 def makeHomologyURL(ID,species="mouse",build="38"):
     ext="/homology/id/%s?&target_species=%s&aligned=0&sequence=none&type=orthologues" %(ID,species)
-    server = "http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext
+    return getServerName(build)+ext
 
 def makeGeneQueryURL(ID,build="38"):
     ext="/lookup/id/"
-    server="http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext+ID
+    return getServerName(build)+ext+ID
 
 def makeGeneXQueryURL(ID,build="38"):
     ext="/xrefs/id/"
-    server="http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext+"%s?all_levels=1" % ID
+    return getServerName(build)+ext+"%s?all_levels=1" % ID
 
 def makeGeneXQueryURL2(ID,build="38"):
     ext="/xrefs/id/"
-    server="http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext+"%s?external_db=MGI" % ID
+    return getServerName(build)+ext+"%s?external_db=MGI" % ID
 
 def makeRSPhenotypeQueryURL(build="38"):
-    ext = "/variation/homo_sapiens/"
-    server = "http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext+"?phenotypes=1"
+    ext="/variation/homo_sapiens/"
+    return getServerName(build)+ext+"?phenotypes=1"
 
 def makePhenoOverlapQueryURL(chrom,start,end,build="38"):
-    ext = "/overlap/region/human/"
-    server = "http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext+"%s:%d-%d?feature=variation;variant_set=ph_variants;content-type=application/json" %(chrom,start,end)
+    ext="/overlap/region/human/"
+    return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_variants;content-type=application/json" %(chrom,start,end)
 
 def makeRsPhenotypeQuery2URL(rs,build="38"):
-    ext = "/variation/human/"
-    server = "http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext+"%s?pops=1;phenotypes=1" %rs
+    ext="/variation/human/"
+    return getServerName(build)+ext+"%s?pops=1;phenotypes=1" %rs
 
 def makeRSListQueryURL(build="38"):
-    ext = "/variant_recoder/homo_sapiens/"
-    server = "http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
-
-    return server+ext
+    ext="/variant_recoder/homo_sapiens/"
+    return getServerName(build)+ext
 
 def makeVepQueryURL(chrom,start,end,allele,strand="1",build="38"):
-    server = "http://grch"+build+".rest.ensembl.org"
-    if build=="38":
-        server = "http://rest.ensembl.org"
     ext="/vep/homo_sapiens/region/%s:%s-%s:1/%s?" % (chrom,str(start),str(end),allele)
+    return getServerName(build)+ext
 
-    return server+ext
+def makeGeneOverlapQueryURL(chrom,start,end,build="38"):
+    ext="/overlap/region/human/%s:%d-%d?feature=gene" %(chrom,start,end)
+    return getServerName(build)+ext
 
 #------------------------------------------------------------------------------------------------------------------------------------
 
@@ -290,7 +252,7 @@ def getVariantsWithPhenotypes(chrom,start,end,pos=0,build="38"):
         return None
 
     if len(variants)==0: 
-        print(str(datetime.datetime.now().strftime("%H:%M:%S"))+" : getVariantsWithPhenotypes: No variants with phenotypes were found in the region", file=sys.stderr)
+        LOGGER.error("No variants with phenotypes were found in the region")
         return None
 
     rsIDs = []
@@ -355,6 +317,7 @@ def getVariantInfo(rs,build="38"):
     res=dict()
 
 #------------------- general information ---------------
+
     data=restQuery(makeRsPhenotypeQuery2URL(rs,build))
     #print(json.dumps(data,indent=4,sort_keys=True))
 
@@ -1194,3 +1157,51 @@ def getPubmed(rsID):
         }
 
     return publication_data
+
+# ======================================================================================================================
+
+# Based on a genomic location, this function retrieves a list of genes within a 1Mbp window.
+def getGeneList(chrom,pos,window=1000000,build="38"):
+    '''
+    Based on the submitted chromosome and position, this function returns
+    all genes within a window
+    '''
+
+    end=pos+window
+    start=pos-window
+    if start<1: 
+        start=1
+
+    overlapping_genes=restQuery(makeGeneOverlapQueryURL(chrom,start,end,build=build))
+    gene_list=list()
+
+    for gene in overlapping_genes:
+        d_from_start=abs(pos-int(gene["start"]))
+        d_from_end=abs(pos-int(gene["end"]))
+        distance=min(d_from_start,d_from_end)
+        if pos>=int(gene["start"]) and pos<=int(gene["end"]):
+            distance=0
+
+        gene_details = {
+            "start" : int(gene["start"]),
+            "end" : int(gene["end"]),
+            "strand" : gene["strand"],
+            "name" : gene["external_name"],
+            "description" : gene["description"],
+            "biotype" : gene["biotype"],
+            "ID" : gene["id"],
+            "distance":distance
+        }
+
+        # orientation:
+        gene_details["orientation"] = "upsteram"
+        if distance==0:
+            gene_details["orientation"] = "overlapping"
+        elif gene["strand"] == 1 and d_from_end < d_from_start:
+            gene_details["orientation"] = "downstream"
+        elif gene["strand"] == -1 and d_from_end > d_from_start:
+            gene_details["orientation"] = "downstream"
+
+        gene_list.append(gene_details)
+
+    return gene_list
