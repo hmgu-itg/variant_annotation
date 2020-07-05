@@ -1425,58 +1425,31 @@ def getRegulation(chrom,pos,window=2000):
 
     # Cell type abbreviations are retrieved from Ensembl, which are replaced
     # by conventional names for better readibility.
-    # Not all cell types are included from tier-3 cell types. <- should be updated
-    # if needed. Cell types are moved to config.py
     CellTypeFinder = config.CellTypeFinder
 
-    chromosome = variant_data["chromosome"]
-    start = variant_data["start"] - 500
-    end = variant_data["end"] + 500
+    start=pos-window
+    if start<1:
+        start=1
+    end=pos+window
 
-    # folders of regulatory files:
     regulatoryFile = config.REGULATORY_FILE
-
-    # Seraching for modification:
-    query = "bash -O extglob -c \'/nfs/team144/software/bedtools2/bin/intersectBed -wb -a <(echo -e \"%s\\t%s\\t%s\\n\") -b %s -sorted\'" %  (
-        chromosome, start, end, regulatoryFile)
-
-    # Submit query:
-    output = subprocess.Popen(query.strip(),
-                              shell=True,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT)
+    query="bash -O extglob -c \'intersectBed -wb -a <(echo -e \"%s\\t%s\\t%s\\n\") -b %s -sorted\'" % (chrom,start,end,regulatoryFile)
+    output=subprocess.Popen(query.strip(),shell=True,universal_newlines=True,stdout=subprocess.PIPE)
 
     # Once the queries are returned, we have to parse the output:
-    annotations = []
+    parsed=dict()
     for line in output.stdout.readlines():
-        x = {}
-        for field in line.strip().split("\t")[6].split(";"):
-            x[field.split("=")[0]] = field.split("=")[1]
-        annotations.append(x)
+        print(line)
+        c0,s0,e0,c1,st,en,cl,cell,act,regid=line.strip().split("\t")
+        if act=="ACTIVE":
+            if regid not in parsed:
+                parsed[regid]={"chrom":c1,"start":int(st),"end":int(en),"class":cl,"cells":[cell]}
+            else:
+                if parsed[regid]["chrom"]!=c1 or parsed[regid]["start"]!=int(st) or parsed[regid]["end"]!=int(en) or parsed[regid]["class"]!=cl:
+                    LOGGER.error("Regulatory ID %s has conflicting attributes: %s %d %d %s (%s %d %d %s)" % (regid,parsed[regid]["chrom"],parsed[regid]["start"],parsed[regid]["end"],parsed[regid]["class"],c1,int(st),int(en),cell))
+                else:
+                    if cell not in parsed[regid]["cells"]:
+                        parsed[regid]["cells"].append(cell)
 
-    # Parsing returned information:
-    parsed_annotations = {}
-    for annotation in annotations:
-
-        # Parsing modification type:
-        if not annotation["Class"] in parsed_annotations.keys():
-            parsed_annotations[annotation["Class"]] = {}
-        if not annotation["Name"] in parsed_annotations[annotation["Class"]].keys():
-            parsed_annotations[annotation["Class"]][annotation["Name"]] = []
-
-        # Parsing cell type:
-        try:
-            cell = annotation["Cell_type"]
-        except:
-            cell = annotation["Alias"].split("_")[0]
-        try:
-            cell = CellTypeFinder[cell]
-        except:
-            pass
-
-        # We just adding the cell type:
-        if not cell in parsed_annotations[annotation["Class"]][annotation["Name"]]:
-            parsed_annotations[annotation["Class"]][annotation["Name"]].append(cell)
-
-    return (parsed_annotations)
+    return parsed
 
