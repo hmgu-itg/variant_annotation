@@ -1057,7 +1057,7 @@ def getApprisInfo(gene_ID):
 
 # Retiveing data from the variant effect predictor server
 # modifies variant_data by adding SIFT/PolyPhen scores and predictions
-def getVepData(variant_data):
+def getVepData(mapping_data):
     '''
     This function returns the predicted effect based on chromosome, position and the alternate allele.
 
@@ -1066,10 +1066,10 @@ def getVepData(variant_data):
     Output: variant effects
     '''
 
-    chrom = variant_data["chr"]
-    pos = variant_data["pos"]
-    ref = variant_data["ref"]
-    alt = variant_data["alt"]
+    chrom = mapping_data["chr"]
+    pos = mapping_data["pos"]
+    ref = mapping_data["ref"]
+    alt = mapping_data["alt"]
 
     start=-1
     end=-1
@@ -1101,6 +1101,7 @@ def getVepData(variant_data):
 
     VEP_data=dict()
     VEP_data["transcript"]=[]
+    VEP_data["regulatory"]=[]
 
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -1129,23 +1130,22 @@ def getVepData(variant_data):
 # ------------------------------------------------------------------------------------------------------------------
 
     if sift_score:
-        variant_data["sift_score"]=sift_score
-        variant_data["sift_prediction"]=sift_prediction
+        mapping_data["sift_score"]=sift_score
+        mapping_data["sift_prediction"]=sift_prediction
     else:
-        variant_data["sift_score"]="NA"
-        variant_data["sift_prediction"]="NA"
+        mapping_data["sift_score"]="NA"
+        mapping_data["sift_prediction"]="NA"
         
     if polyphen_score:
-        variant_data["polyphen_score"]=polyphen_score
-        variant_data["polyphen_prediction"]=polyphen_prediction
+        mapping_data["polyphen_score"]=polyphen_score
+        mapping_data["polyphen_prediction"]=polyphen_prediction
     else:
-        variant_data["polyphen_score"]="NA"
-        variant_data["polyphen_prediction"]="NA"
+        mapping_data["polyphen_score"]="NA"
+        mapping_data["polyphen_prediction"]="NA"
         
 # ------------------------------------------------------------------------------------------------------------------
 
     if "regulatory_feature_consequences" in VEP[0]:
-        VEP_data["regulatory"]=[]
         for r in VEP[0]['regulatory_feature_consequences']:
             VEP_data["regulatory"].append({"impact":r["impact"],"biotype":r["biotype"],"ID":r["regulatory_feature_id"],"consequence":r["consequence_terms"]})
 
@@ -1521,4 +1521,92 @@ def gwas2df(gwas_data):
     return df
 
 # ----------------------------------------------------------------------------------------------------------------------
+
+def vepTranscript2df(vep_data):
+    df=pd.DataFrame(columns=["Gene ID","Transcript ID","Impact","Consequence","Principar Isoform"])
+    i=0
+    for x in vep_data["transcript"]:
+        df.loc[i]=[x["gene_id"],x["ID"],x["impact"],x["consequence"],x["principal"]]
+        i+=1
+
+    return df
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+def vepRegulatory2df(vep_data):
+    df=pd.DataFrame(columns=["Biotype","Regulatory feature ID","Impact","Consequence")
+    i=0
+    for x in vep_data["transcript"]:
+        df.loc[i]=[x["biotype"],x["ID"],x["impact"],",".join(x["consequence"])]
+        i+=1
+
+    return df
+
+
+# def draw_consequence_table(VEP_data):
+#     '''
+#     This function draws a html table with the consequences.
+#     It handles only consequences with overlapping transcripts.
+#     '''
+
+#     if type(VEP_data) == str:
+#         html = '<div class="missing_data">%s</div>' % GTEX_data
+#         return html
+
+#     # Creating table header:
+#     table_row = "\t<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n"
+#     Ensembl_link = '<a href="http://grch37.ensembl.org/Homo_sapiens/Regulation/Summary?fdb=funcgen;rf=%s">%s</a>'
+#     APPRIS_link = '<a href=\"http://appris.bioinfo.cnio.es/#/database/id/homo_sapiens/%s?db=hg19">%s</a>'
+
+#     table = ""
+
+#     if type(VEP_data['transcript']) == str:
+#         table += '<div class="missing_data">%s</div>' % VEP_data['transcript']
+#     else:
+#         table += "The following transcripts overlap with the queried variation:<br>\n"
+
+#         table += "<table class=\"consequence_table\">\n"
+#         table += "\t<tr><td class=\"table_header\">Gene</td><td class=\"table_header\">Transcript ID</td><td class=\"table_header\">Impact</td><td class=\"table_header\">Consequence</td><td class=\"table_header\">Principial Isoform</td></tr>\n"
+
+#         # Filling data:
+#         for consequence in VEP_data["transcript"]:
+#             transcript_ID = Ensembl_link % (consequence['transcript_id'], consequence['transcript_id'])
+#             gene_ID = Ensembl_link % (consequence['gene_id'], consequence['gene_symbol'])
+#             APPRIS_field = APPRIS_link % (consequence['gene_id'], consequence['principal'])
+#             table +=  table_row % (gene_ID, transcript_ID , consequence['impact'], ",<br>".join(consequence['consequence']), APPRIS_field)
+#         table += "</table><br>\n"
+
+#     if type(VEP_data['regulatory']) == str:
+#         table += '<div class="missing_data">%s</div>' % VEP_data['regulatory']
+#     else:
+#         table += "The following regulatory features overlap with the queried variation:<br>\n"
+#         table += "<table class=\"consequence_table\">\n"
+#         table += "\t<tr><td class=\"table_header\">Biotype</td><td class=\"table_header\">Regulatory feature ID</td><td class=\"table_header\">Impact</td><td class=\"table_header\">Consequence</td></tr>\n"
+#         table_row = "\t<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n"
+#         # Filling data:
+#         for consequence in VEP_data["regulatory"]:
+
+#             # If any of the values are missing, we have to add fake elements:
+#             try:
+#                 biotype = consequence['biotype']
+#             except:
+#                 biotype = "NA"
+
+#             try:
+#                 impact = consequence['impact']
+#             except:
+#                 impact = "NA"
+
+#             try:
+#                 cons = ",<br>".join(consequence['consequence'])
+#             except:
+#                 cons = "NA"
+
+#             ID = Ensembl_link % (consequence['regulatory_ID'], consequence['regulatory_ID'])
+#             table +=  table_row % (biotype, ID, impact, cons)
+#         table += "</table><br>"
+
+#     return table
+
+
 

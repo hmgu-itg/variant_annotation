@@ -33,15 +33,15 @@ if args.build!=None:
 rsID=args.rs
 
 info=getVariantInfo(rsID)
-print(json.dumps(info,indent=4,sort_keys=True))
-c=info["consequence"]
-print(c)
+#print(json.dumps(info,indent=4,sort_keys=True))
+#c=info["consequence"]
+#print(c)
 for m in info["mappings"]:
-    print("%s/%s" %(m["ref"],m["alt"]))
+#    print("%s/%s" %(m["ref"],m["alt"]))
     vep=getVepData(m)
     print(json.dumps(vep,indent=4,sort_keys=True))
 print("")
-print(json.dumps(info,indent=4,sort_keys=True))
+#print(json.dumps(info,indent=4,sort_keys=True))
 
-df=variant2df(info)
-print(df.to_html())
+#df=variant2df(info)
+#print(df.to_html())
