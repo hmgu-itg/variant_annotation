@@ -186,12 +186,13 @@ rsID=args.rs
 
 #--------------------------------------------------------------------------------------------------------------
 
-info=getVariantInfo(rsID)
-print(json.dumps(info,indent=4,sort_keys=True))
-print(population2df(info["population_data"]))
+# info=getVariantInfo(rsID)
+# print(json.dumps(info,indent=4,sort_keys=True))
+# print(population2df(info["population_data"]))
+
 #--------------------------------------------------------------------------------------------------------------
 
-#print(json.dumps(getPubmed(rsID),indent=4,sort_keys=True))
+print(json.dumps(getPubmed(rsID),indent=4,sort_keys=True))
 
 #--------------------------------------------------------------------------------------------------------------
 # LOGGER.info("Calling getGeneList")

@@ -1560,66 +1560,15 @@ def population2df(pop_data):
 
     return df
 
+# ----------------------------------------------------------------------------------------------------------------------
 
+def pubmed2df(pubmed_data):
+    df=pd.DataFrame(columns=["First author","Journal","Year","URL","Title"])
+    i=0
+    for x in pubmed_data:
+        df.loc[i]=[x["firstAuthor"],x["journal"],x["year"],x["URL"],x["title"]]
+        i+=1
 
-
-
-# # Drawing function to generate a table with all 1000Genome frequencies:
-# def draw_freq_table(pops, allele_string):
-
-#     table ='<br>\n<div id="1000_genomes" class="general" > Phase 3 frequencies from the 1000 Genomes project:<br></div>\n'
-
-#     # If the returned value is a string we report the returned value:
-#     if CheckReturnedValue(pops): return CheckReturnedValue(pops)
-
-
-#     # Find alleles at first:
-#     alleles = allele_string.split("/")
-
-#     # Populations of the 1000 Genomes, grouped by continents:
-#     population_groups = {
-#             "AFR" : ["ACB", "ASW", "ESN", "LWK", "MAG", "MSL", "YRI"],
-#             "AMR" : ["CLM", "MXL", "PEL", "PUR"],
-#             "EAS" : ["CDX", "CHB", "CHS", "JPT", "KHV"],
-#             "EUR" : ["CEU", "FIN", "GBR", "IBS", "TSI"],
-#             "SAS" : ["BEB", "GIH", "ITU", "PJL", "STU"]
-#     }
-
-#     # small loop to generate each line:
-#     def get_allele_frequencies(pop, alleles, data, pop_class):
-#         population_names = config.population_names
-
-#         try:
-#             popname = population_names[pop]
-#         except:
-#             popname = "NA"
-#             print pop
-#         # returning all frequencies:
-#         string = "\t<tr class=\"%s\"><td class=\"label\">%s (%s)</td>" %  (pop_class, popname, pop)
-#         for allele in alleles:
-
-#             freq = float()
-#             try:
-#                 freq =  round(data[pop][allele], 4)
-
-#             except:
-#                 freq = 0.00
-#             string += "<td>%s:%s</td>" %(allele, str(freq))
-
-#         string += "</tr>\n"
-#         return string;
-
-#     # Defining the header of the table:
-#     table += "<table class=\"populations\">\n\t<tr class=\"pop_header\"><td>Population (code)</td><td >Allele 1</td><td>Allele 2</td></tr>\n"
-#     table += get_allele_frequencies("ALL", alleles, pops, "pop_ALL")
-#     for big in population_groups.keys():
-#         table += get_allele_frequencies(big, alleles, pops, "pop_"+big)
-
-#         for small in population_groups[big]:
-#             table += get_allele_frequencies(small, alleles, pops, "pop_"+small)
-
-#     table += "</table>\n"
-#     return table
-
+    return df
 
 
