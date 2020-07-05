@@ -151,6 +151,8 @@ rsID=args.rs
 # for x in L:
 #     print(x)
 
+# print(gwas2df(L))
+
 #--------------------------------------------------------------------------------------------------------------
 
 # L=rs2position(rsID)
@@ -211,7 +213,7 @@ rsID=args.rs
 
 #--------------------------------------------------------------------------------------------------------------
 
-data=getRegulation("1",13528)
-print(json.dumps(data,indent=4,sort_keys=True))
+# data=getRegulation("1",13528)
+# print(json.dumps(data,indent=4,sort_keys=True))
 
-print(regulation2df(data))
+# print(regulation2df(data))

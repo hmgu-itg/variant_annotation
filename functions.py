@@ -1509,4 +1509,16 @@ def regulation2df(reg_data):
     
     return df
 
+# ----------------------------------------------------------------------------------------------------------------------
+
+def gwas2df(gwas_data):
+    df=pd.DataFrame(columns=["rsID","ID","Distance","Trait","P-value","PMID"])
+    i=0
+    for x in gwas_data:
+        df.loc[i]=[x["rsID"],x["SNPID"],x["distance"],x["trait"],x["p-value"],x["PMID"]]
+        i+=1
+
+    return df
+
+# ----------------------------------------------------------------------------------------------------------------------
 
