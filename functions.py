@@ -381,10 +381,10 @@ def getVariantInfo(rs,build="38"):
         if pop_name[0] == "1000GENOMES" and pop_name[1] == "phase_3":
             name=pop_name[2]
             try:
-                z=next(x for x in population_data if name in x.values())
-                z[pop["allele"]]=pop["frequency"]
+                z=next(x for x in population_data if name==x["population"])
+                z["frequency"][pop["allele"]]=pop["frequency"]
             except:
-                population_data.append({"population":name,pop["allele"]:pop["frequency"]})
+                population_data.append({"population":name,"frequency":{pop["allele"]:pop["frequency"]}})
 
 #------------------ phenotype data -------------------
 
@@ -1534,7 +1534,7 @@ def vepTranscript2df(vep_data):
 # ----------------------------------------------------------------------------------------------------------------------
 
 def vepRegulatory2df(vep_data):
-    df=pd.DataFrame(columns=["Biotype","Regulatory feature ID","Impact","Consequence")
+    df=pd.DataFrame(columns=["Biotype","Regulatory feature ID","Impact","Consequence"])
     i=0
     for x in vep_data["transcript"]:
         df.loc[i]=[x["biotype"],x["ID"],x["impact"],",".join(x["consequence"])]
@@ -1542,70 +1542,83 @@ def vepRegulatory2df(vep_data):
 
     return df
 
+# ----------------------------------------------------------------------------------------------------------------------
 
-# def draw_consequence_table(VEP_data):
-#     '''
-#     This function draws a html table with the consequences.
-#     It handles only consequences with overlapping transcripts.
-#     '''
+def population2df(pop_data):
+    df=pd.DataFrame(columns=["Population","Allele 1","Allele 2"])
+    i=0
+    for p in config.PopulationNames:
+        x=next((z for z in pop_data if z["population"]==p),None)
+        if x:
+            L=list(x["frequency"])
+            L.sort()
+            df.loc[i]=[p,L[0]+" ("+str(round(x["frequency"][L[0]],4))+")",L[1]+" ("+str(round(x["frequency"][L[1]],4))+")"]
+            i+=1
+        else:
+            df.loc[i]=[p,"NA","NA"]
+            i+=1
 
-#     if type(VEP_data) == str:
-#         html = '<div class="missing_data">%s</div>' % GTEX_data
-#         return html
+    return df
 
-#     # Creating table header:
-#     table_row = "\t<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n"
-#     Ensembl_link = '<a href="http://grch37.ensembl.org/Homo_sapiens/Regulation/Summary?fdb=funcgen;rf=%s">%s</a>'
-#     APPRIS_link = '<a href=\"http://appris.bioinfo.cnio.es/#/database/id/homo_sapiens/%s?db=hg19">%s</a>'
 
-#     table = ""
 
-#     if type(VEP_data['transcript']) == str:
-#         table += '<div class="missing_data">%s</div>' % VEP_data['transcript']
-#     else:
-#         table += "The following transcripts overlap with the queried variation:<br>\n"
 
-#         table += "<table class=\"consequence_table\">\n"
-#         table += "\t<tr><td class=\"table_header\">Gene</td><td class=\"table_header\">Transcript ID</td><td class=\"table_header\">Impact</td><td class=\"table_header\">Consequence</td><td class=\"table_header\">Principial Isoform</td></tr>\n"
 
-#         # Filling data:
-#         for consequence in VEP_data["transcript"]:
-#             transcript_ID = Ensembl_link % (consequence['transcript_id'], consequence['transcript_id'])
-#             gene_ID = Ensembl_link % (consequence['gene_id'], consequence['gene_symbol'])
-#             APPRIS_field = APPRIS_link % (consequence['gene_id'], consequence['principal'])
-#             table +=  table_row % (gene_ID, transcript_ID , consequence['impact'], ",<br>".join(consequence['consequence']), APPRIS_field)
-#         table += "</table><br>\n"
+# # Drawing function to generate a table with all 1000Genome frequencies:
+# def draw_freq_table(pops, allele_string):
 
-#     if type(VEP_data['regulatory']) == str:
-#         table += '<div class="missing_data">%s</div>' % VEP_data['regulatory']
-#     else:
-#         table += "The following regulatory features overlap with the queried variation:<br>\n"
-#         table += "<table class=\"consequence_table\">\n"
-#         table += "\t<tr><td class=\"table_header\">Biotype</td><td class=\"table_header\">Regulatory feature ID</td><td class=\"table_header\">Impact</td><td class=\"table_header\">Consequence</td></tr>\n"
-#         table_row = "\t<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n"
-#         # Filling data:
-#         for consequence in VEP_data["regulatory"]:
+#     table ='<br>\n<div id="1000_genomes" class="general" > Phase 3 frequencies from the 1000 Genomes project:<br></div>\n'
 
-#             # If any of the values are missing, we have to add fake elements:
+#     # If the returned value is a string we report the returned value:
+#     if CheckReturnedValue(pops): return CheckReturnedValue(pops)
+
+
+#     # Find alleles at first:
+#     alleles = allele_string.split("/")
+
+#     # Populations of the 1000 Genomes, grouped by continents:
+#     population_groups = {
+#             "AFR" : ["ACB", "ASW", "ESN", "LWK", "MAG", "MSL", "YRI"],
+#             "AMR" : ["CLM", "MXL", "PEL", "PUR"],
+#             "EAS" : ["CDX", "CHB", "CHS", "JPT", "KHV"],
+#             "EUR" : ["CEU", "FIN", "GBR", "IBS", "TSI"],
+#             "SAS" : ["BEB", "GIH", "ITU", "PJL", "STU"]
+#     }
+
+#     # small loop to generate each line:
+#     def get_allele_frequencies(pop, alleles, data, pop_class):
+#         population_names = config.population_names
+
+#         try:
+#             popname = population_names[pop]
+#         except:
+#             popname = "NA"
+#             print pop
+#         # returning all frequencies:
+#         string = "\t<tr class=\"%s\"><td class=\"label\">%s (%s)</td>" %  (pop_class, popname, pop)
+#         for allele in alleles:
+
+#             freq = float()
 #             try:
-#                 biotype = consequence['biotype']
+#                 freq =  round(data[pop][allele], 4)
+
 #             except:
-#                 biotype = "NA"
+#                 freq = 0.00
+#             string += "<td>%s:%s</td>" %(allele, str(freq))
 
-#             try:
-#                 impact = consequence['impact']
-#             except:
-#                 impact = "NA"
+#         string += "</tr>\n"
+#         return string;
 
-#             try:
-#                 cons = ",<br>".join(consequence['consequence'])
-#             except:
-#                 cons = "NA"
+#     # Defining the header of the table:
+#     table += "<table class=\"populations\">\n\t<tr class=\"pop_header\"><td>Population (code)</td><td >Allele 1</td><td>Allele 2</td></tr>\n"
+#     table += get_allele_frequencies("ALL", alleles, pops, "pop_ALL")
+#     for big in population_groups.keys():
+#         table += get_allele_frequencies(big, alleles, pops, "pop_"+big)
 
-#             ID = Ensembl_link % (consequence['regulatory_ID'], consequence['regulatory_ID'])
-#             table +=  table_row % (biotype, ID, impact, cons)
-#         table += "</table><br>"
+#         for small in population_groups[big]:
+#             table += get_allele_frequencies(small, alleles, pops, "pop_"+small)
 
+#     table += "</table>\n"
 #     return table
 
 

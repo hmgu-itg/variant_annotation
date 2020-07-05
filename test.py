@@ -181,16 +181,14 @@ rsID=args.rs
 #print(getMgiPhenotypes("MGI:2180203"))
 
 #--------------------------------------------------------------------------------------------------------------
-#LOGGER.info("Calling getApprisInfo")
 
 #print(getApprisInfo("ENSG00000185973"))
 
 #--------------------------------------------------------------------------------------------------------------
-#LOGGER.info("Calling getVariantInfo")
 
-#info=getVariantInfo(rsID)
-#print(json.dumps(info,indent=4,sort_keys=True))
-
+info=getVariantInfo(rsID)
+print(json.dumps(info,indent=4,sort_keys=True))
+print(population2df(info["population_data"]))
 #--------------------------------------------------------------------------------------------------------------
 
 #print(json.dumps(getPubmed(rsID),indent=4,sort_keys=True))

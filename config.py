@@ -106,7 +106,7 @@ CellTypeFinder = {
     "NHLF" : "Lung fibroblasts",
 }
 
-population_names = {
+PopulationNames = {
     "CDX" : "Chinese Dai in Xishuangbanna",
     "CHB" : "Han Chinese in Bejing",
     "JPT" : "Japanese in Tokyo, Japan",
