@@ -194,7 +194,17 @@ rsID=args.rs
 #print(json.dumps(getPubmed(rsID),indent=4,sort_keys=True))
 
 #--------------------------------------------------------------------------------------------------------------
-LOGGER.info("Calling getGeneList")
+# LOGGER.info("Calling getGeneList")
 
-x=getGeneList("1",1230000,1250000)
-print(json.dumps(x,indent=4,sort_keys=True))
+# x=getGeneList("1",1230000,1250000)
+# print(json.dumps(x,indent=4,sort_keys=True))
+
+#--------------------------------------------------------------------------------------------------------------
+
+#data=restQuery(makeRsPhenotypeQuery2URL(rsID,build))
+#print(json.dumps(data,indent=4,sort_keys=True))
+
+#--------------------------------------------------------------------------------------------------------------
+
+data=getExacAF("1",13528,"C","T")
+print(json.dumps(data,indent=4,sort_keys=True))

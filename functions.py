@@ -88,6 +88,24 @@ def makeGeneOverlapQueryURL(chrom,start,end,build="38"):
 
 #------------------------------------------------------------------------------------------------------------------------------------
 
+# def getLocation(chrom,pos,ref,alt):
+#     if len(ref)>1 and len(alt)==1:
+#         start=pos+1
+#         end=pos+len(ref)-1
+#         allele="-"
+#     elif len(alt)>1 and len(ref)==1:
+#         start=pos+1
+#         end=pos
+#         allele=alt[1:]
+#     elif len(ref)==1 and len(alt)==1:
+#         start=pos
+#         end=pos
+#         allele=alt
+#     else:
+#         LOGGER.error("Wrong allele encoding ref=%s, alt=%s" %(ref,alt),file=sys.stderr)
+#         return None
+
+
 # given rsID, return a list of chr:pos
 def rs2position(ID,build="38"):
     L=[]
@@ -1205,3 +1223,53 @@ def getGeneList(chrom,pos,window=1000000,build="38"):
         gene_list.append(gene_details)
 
     return gene_list
+
+# ======================================================================================================================
+
+# Download Exome Aggregation Consortium (ExAC) allele frequencies
+def getExacAF(chrom,pos,ref,alt):
+    '''
+    This function runs a tabix query to retrieve allele frequency data published in the Exome Aggreagtion Consortium.
+    The returned dictionary contains allele frequencies and counts for all reported populations
+    '''
+
+    pops=["AFR", "ALL", "FIN", "AMR", "EAS", "SAS", "OTH", "NFE"]
+
+    ExAC_file=config.EXAC_FILE
+    if not os.path.isfile(ExAC_file):
+        LOGGER.error("ExAC file %s not found" %(ExAC_file))
+        return None
+
+    query="bash -O extglob -c \'tabix %s %s:%s-%s\'" %(ExAC_file,chrom,str(pos),str(pos))
+    output=subprocess.Popen(query.strip(),shell=True,universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+
+    parsed=dict()
+    for line in output.stdout.readlines():
+        fields=line.strip().split("\t")
+        alts = fields[4].split(",")
+        if (fields[0]==chrom and int(fields[1])==pos and fields[3]==ref and alt in alts):
+            parsed["allele"]=alt
+            parsed["populations"]=dict()
+            data=dict()
+            index=alts.index(alt)
+            for x in fields[7].split(";"):
+                try:
+                    (key, value)=x.split("=")
+                    data[key]=value.split(",")
+                except:
+                    pass
+
+            for p in pops:
+                label1="AC_"+p
+                label2="AN_"+p
+                if p=="ALL": 
+                    label1="AC"
+                    label2="AN"
+                count="NA"
+                freq="NA"
+                if label1 in data and label2 in data:
+                    count=int(data[label1][index])
+                    freq=float(count)/int(data[label2][0])
+                parsed["populations"][p]={"count":count,"frequency":freq}
+
+    return parsed
