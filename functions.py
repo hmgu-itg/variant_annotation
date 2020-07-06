@@ -629,6 +629,40 @@ def getUniprotData(ID):
 
 # ================================================ GWAS CATALOG ===========================================================
 
+def gene2gwas(gene_name):
+    '''
+    This function performs a query for gwas signals in a local gwas datafile.
+    All reported and mapped genes will give a hit.
+
+    Output: list of dictionaries
+    '''
+
+    gwas_file = config.GWAS_FILE
+    query = "fgrep -iw %s %s" % (gene_name, gwas_file)
+
+    gwas_data = []
+    output = subprocess.Popen(query, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    for line in output.stdout.readlines():
+        fields = line.split("\t")
+
+        gwas_data.append({
+            "rsID": fields[21],
+            "p-value": fields[27],
+            "Consequence": fields[24],
+            "Reported genes": fields[13],
+            "Mapped genes": fields[14],
+            "trait": fields[7],
+            "PMID": fields[1],
+            "URL": fields[5],
+            "Author": fields[2]
+        })
+
+    if len(gwas_data)==0:
+        LOGGER.info("No GWAS signas associated with %s have been found" %(gene_name))
+
+    return gwas_data
+
+
 def getGwasHits(chrom,pos,window=500000):
     '''
     Retrives a list of all gwas signals within a window around a given position
@@ -1462,14 +1496,11 @@ def getExacAF(chrom,pos,ref,alt):
 
 def getRegulation(chrom,pos,window=2000):
     '''
-    This function returns all overlapping regulatory features within 2kb of the variation.
-    The function is based on a local bedtool query on a datafile downloaded from Ensembl
-    (data mainly sourced from Encode/Epigenomics Roadmap data)
+    This function returns all overlapping active regulatory features within window of the variation.
 
-    Input: chromosome/position data is read from the variant_data variable previously created.
+    Input: chromosome, position, window (default: 2000)
 
-    Putput: dictionary with all regulatory feature classes as keys, and types, and cell types as
-    values.
+    Output: dictionary with all regulatory IDs as keys, dictionary("chrom","start","end","class","cells") as values
 
     '''
 
@@ -1483,10 +1514,10 @@ def getRegulation(chrom,pos,window=2000):
     end=pos+window
 
     regulatoryFile = config.REGULATORY_FILE
+    FNULL = open(os.devnull, 'w')
     query="bash -O extglob -c \'intersectBed -wb -a <(echo -e \"%s\\t%s\\t%s\\n\") -b %s -sorted\'" % (chrom,start,end,regulatoryFile)
-    output=subprocess.Popen(query.strip(),shell=True,universal_newlines=True,stdout=subprocess.PIPE)
+    output=subprocess.Popen(query.strip(),shell=True,universal_newlines=True,stdout=subprocess.PIPE,stderr=FNULL)
 
-    # Once the queries are returned, we have to parse the output:
     parsed=dict()
     for line in output.stdout.readlines():
         #print(line)
@@ -1497,10 +1528,13 @@ def getRegulation(chrom,pos,window=2000):
             else:
                 if parsed[regid]["chrom"]!=c1 or parsed[regid]["start"]!=int(st) or parsed[regid]["end"]!=int(en) or parsed[regid]["class"]!=cl:
                     LOGGER.error("Regulatory ID %s has conflicting attributes: %s %d %d %s (%s %d %d %s)" % (regid,parsed[regid]["chrom"],parsed[regid]["start"],parsed[regid]["end"],parsed[regid]["class"],c1,int(st),int(en),cell))
+                    FNULL.close()
+                    return None
                 else:
                     if cell not in parsed[regid]["cells"]:
                         parsed[regid]["cells"].append(cell)
 
+    FNULL.close()
     return parsed
 
 # ===================================== CONVERTING DIFFERENT DATA STRUCTURES TO DATAFRAMES =====================================

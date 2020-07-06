@@ -28,9 +28,10 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
     a=row["CHR_ID"].split(";")
     b=row["CHR_POS"].split(";")
     c=row["SNPS"].split(";")
+
     if len(row["CHR_ID"])==0 or len(row["CHR_POS"])==0:
         if len(c)==1 and len(row["SNPS"])!=0:
-            m=re.match("^(rs\d+)",row["SNPS"],re.I)
+            m=re.match("(rs\d+)",row["SNPS"],re.I)
             if m:
                 rs=m.group(1)
                 L=functions.rs2position(rs)
@@ -44,41 +45,35 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
                     p=m.group(2)
                     print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
                 else:
-                    m=re.match("^(chr)?(\d+):(\d+)",row["SNPS"],re.I)
+                    m=re.match("^(chr)?(\d+):\s*(\d+)",row["SNPS"],re.I)
                     if m:
                         c=m.group(2)
                         p=m.group(3)
                         print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
                     else:
-                        m=re.match("^chr:(\d+):(\d+)",row["SNPS"],re.I)
+                        m=re.match("^chr(\d+)[._](\d+)",row["SNPS"],re.I)
                         if m:
                             c=m.group(1)
                             p=m.group(2)
                             print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
                         else:
-                            m=re.match("^chr(\d+)[._](\d+)",row["SNPS"],re.I)
+                            m=re.match("^(\d{1,2})-(\d+)",row["SNPS"],re.I)
                             if m:
                                 c=m.group(1)
                                 p=m.group(2)
                                 print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
                             else:
-                                m=re.match("^(\d{1,2})-(\d+)",row["SNPS"],re.I)
+                                m=re.match("^([XY]):(\d+)",row["SNPS"],re.I)
                                 if m:
                                     c=m.group(1)
                                     p=m.group(2)
                                     print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
                                 else:
-                                    m=re.match("^([XY]):(\d+)",row["SNPS"],re.I)
+                                    m=re.match("^del-(\d+):(\d+)",row["SNPS"],re.I)
                                     if m:
                                         c=m.group(1)
                                         p=m.group(2)
                                         print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-                                    else:
-                                        m=re.match("^del-(\d+):(\d+)",row["SNPS"],re.I)
-                                        if m:
-                                            c=m.group(1)
-                                            p=m.group(2)
-                                            print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
     else:
         if len(a)==1 and len(b)==1 and len(c)==1:
             m1=re.match("^(\w+)\s+x\s+(\w+)",row["CHR_ID"],re.I)

@@ -49,7 +49,7 @@ GTEX_BED        = '/home/andrei/GTEx.bed.gz'
 ## Parameters for variations:
 ##
 GWAVA_DIR       = "/lustre/scratch113/teams/zeggini/users/ds26/GWAVA/gwava_release"
-GWAS_FILE_VAR   = '/home/andrei/out.tsv.gz'
+GWAS_FILE_VAR   = '/home/andrei/gwas.tsv.gz'
 EXAC_FILE       = '/home/andrei/legacy_exacv1_downloads_liftover_grch38_release1_ExAC.r1.sites.liftover.b38.vcf.gz'
 PUBMED_URL_VAR  = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%%22%s%%22%%5BAll%%20Fields%%5D&retmode=json&retmax=1000'
 PUBMED_URL_PMID = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&rettype=abstract&id=%s'
