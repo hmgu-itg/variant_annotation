@@ -1711,3 +1711,15 @@ def uniprot2df(data):
 
     return df
 
+# ----------------------------------------------------------------------------------------------------------------------
+
+def geneGwas2df(data):
+    df=pd.DataFrame(columns=["rsID","Consequence","Reported genes","Trait","Link","Author"])
+    i=0
+    for x in data:
+        df.loc[i]=[x["rsID"],x["Consequence"],x["Reported genes"],x["trait"],x["URL"],x["Author"]]
+        i+=1
+
+    return df
+
+
