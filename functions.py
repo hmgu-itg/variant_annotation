@@ -787,8 +787,8 @@ def getGeneInfo (ID,build="38"):
     '''
     This function retrieves gene related information
 
-    INPUT: Ensembl stable ID
-    OUTPUT: dictionary with retrieved information
+    Input: Ensembl stable ID
+    Output: dictionary with retrieved information
     '''
     response=restQuery(makeGeneQueryURL(ID,build=build))
 
@@ -1692,3 +1692,12 @@ def gtex2df(gtex_data):
 
     return df
 
+# =================================== CONVERTING GENE RELATED DATA STRUCTURES TO DATAFRAMES =============================
+
+def geneInfo2df(gene_info):
+    df=pd.DataFrame(columns=["Gene name","Description","ID","Coordinates","Strand","Type"])
+    df.loc[0]=[gene_info["name"],gene_info["description"],gene_info["id"],gene_info["chromosome"]+":"+gene_info["start"]+"-"+gene_info["end"],gene_info["strand"],gene_info["type"],]
+
+    return df
+
+    

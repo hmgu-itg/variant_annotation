@@ -192,7 +192,7 @@ rsID=args.rs
 
 # info=getVariantInfo(rsID)
 # print(json.dumps(info,indent=4,sort_keys=True))
-# print(population2df(info["population_data"]))
+# print(population2df(info["population_data"]).to_html())
 
 #--------------------------------------------------------------------------------------------------------------
 
