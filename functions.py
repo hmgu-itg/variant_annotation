@@ -1700,4 +1700,14 @@ def geneInfo2df(gene_info):
 
     return df
 
-    
+# ----------------------------------------------------------------------------------------------------------------------
+
+def uniprot2df(data):
+    df=pd.DataFrame(columns=["Field","Data"])
+    i=0
+    for (k,v) in data:
+        df.loc[i]=[k,v]
+        i+=1
+
+    return df
+
