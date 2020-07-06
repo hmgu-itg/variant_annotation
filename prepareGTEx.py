@@ -45,7 +45,12 @@ if version=="8":
             infile.extract(f,"/tmp")
             T=pd.read_table("/tmp/"+f.name,compression="gzip",header=0)
             for index, row in T.iterrows():
-                id_mapping[row["variant_id"]]=row["rs_id_dbSNP151_GRCh38p7"]
+                var=row["variant_id"]
+                if var.endswith("_b38"):
+                    var=var[:-4]
+                if var.startswith("chr"):
+                    var=var[3:]
+                id_mapping[var]=row["rs_id_dbSNP151_GRCh38p7"]
                 gene=row["gene_id"]
                 m1=re.search("^(ENSG\d+)",gene)
                 if m1:
@@ -84,10 +89,15 @@ if version=="8":
             T=pd.read_table("/tmp/"+f.name,compression="gzip",header=0)
             for index, row in T.iterrows():
                 var=row["variant_id"]
+                if var.endswith("_b38"):
+                    var=var[:-4]
+                if var.startswith("chr"):
+                    var=var[3:]
                 if var not in var_map:
                     var_map[var]={tissue:[]}
                 elif tissue not in var_map[var]:
                     var_map[var][tissue]=[]
+
                 gene=row["gene_id"]
                 pval=row["pval_nominal"]
                 beta=row["slope"]
@@ -96,14 +106,19 @@ if version=="8":
                 m1=re.search("^(ENSG\d+)",gene)
                 if m1:
                     gene=m1.group(1)
+                    if tissue not in gene2var:
+                        gene2var[tissue]={gene:[]}
+                    elif gene not in gene2var[tissue]:
+                        gene2var[tissue][gene]=[]
+
                     if next((z for z in var_map[var][tissue] if z["gene"]==gene),None):
                         print("WARNING: in file",f.name,"variant",var,"has multiple  associations with",gene,sep=" ",file=sys.stderr)
                     else:
                         var_map[var][tissue].append({"gene":gene,"p":pval,"beta":beta,"SE":SE,"dist":dist})
-                        if gene in gene2var:
-                            gene2var[gene].append(var)
+                        if var in gene2var[tissue][gene]:
+                            print("WARNING: in file %s variant %s has multiple associations with %s" %(f.name,var,gene))
                         else:
-                            gene2var[gene]=[var]
+                            gene2var[tissue][gene].append(var)
 
             print(tissue,file=sys.stderr)
             print(f.name,file=sys.stderr)
@@ -113,34 +128,36 @@ if version=="8":
 
 # =============================================== OUTPUT ===============================================================
     
-    for gene in gene2var:
-        if gene in gene_map:
-            for var in gene2var[gene]:
-                a=var_map[var]
-                for t in a:
-                    x=next((z for z in a[t] if z["gene"]==gene),None)
+    for tissue in gene2var:
+        for gene in gene2var[tissue]:
+            if gene in gene_map:
+                for var in gene2var[tissue][gene]:
+                    L=var_map[var][tissue]
+                    x=next((z for z in L if z["gene"]==gene),None)
                     if x:
                         p=x["p"]
                         beta=x["beta"]
                         SE=x["SE"]
                         dist=x["dist"]
-                        print("%s\t%d\t%d\t%s\t%s:%s:%s:%s:%s:%s" % (gene_map[gene]["chr"],gene_map[gene]["start"]-1,gene_map[gene]["end"],gene,var,t,p,beta,SE,dist),file=sys.stdout)
-        else:
-            print("ERROR: gene coordinates for",gene,"were not found",sep=" ",file=sys.stderr)
+                        print("%s\t%d\t%d\t%s\t%s:%s:%s:%s:%s:%s" % (gene_map[gene]["chr"],gene_map[gene]["start"]-1,gene_map[gene]["end"],gene,var,tissue,p,beta,SE,dist),file=sys.stdout)
+                    else:
+                        print("ERROR: could not find (%s %s %s) association" %(var, tissue, gene),file=sys.stderr)
+            else:
+                print("ERROR: gene coordinates for",gene,"were not found",sep=" ",file=sys.stderr)
 
     for var in var_map:
         if var in id_mapping:
             id2=id_mapping[var]
         else:
             id2="."
-        m=re.search("^(chr)?([^\W_]+)_(\d+)_([ACGT]+)_([ACGT]+)_b38$",var)
+        m=re.search("([^\W_]+)_(\d+)_([ACGT]+)_([ACGT]+)$",var)
         if not m:
             print("ERROR: malformed variant id %s" %(var),file=sys.stderr)
             continue
-        c=m.group(2)
-        pos=int(m.group(3))
-        ref=m.group(4)
-        alt=m.group(5)
+        c=m.group(1)
+        pos=int(m.group(2))
+        ref=m.group(3)
+        alt=m.group(4)
         start=pos-1
         end=pos+max(len(ref),len(alt))-1
         for t in var_map[var]:

@@ -261,21 +261,33 @@ def checkID(id):
 
 
 # for a given genomic region, return dataframe containing variants with phenotype annotations
-def getVariantsWithPhenotypes(chrom,start,end,pos=0,build="38"):
+def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
 # 5Mb max !
 
     '''
-    output: pandas dataframe with the following columns:
-    'SNPID', 'consequence', 'distance', 'genes', 'phenotype', 'rsID', 'source'
+    Input: chromosome, position, window (default: config.WINDOW), build (default: "38") 
+
+    Output: pandas dataframe with the following columns:
+    'SNPID', 'consequence', 'distance', 'phenotype', 'rsID', 'source'
     '''
-    if start<0 : start=0
+    
+    start=pos-window
+    end=pos+window
+
+    if start<1 : 
+        start=1
+
+    if end-start>5000000:
+        LOGGER.error("Maximal region size allowed: 5Mbp")
+        return None
+
     variants=restQuery(makePhenoOverlapQueryURL(chrom,start,end,build=build),qtype="get")
 
     if not variants:
         return None
 
     if len(variants)==0: 
-        LOGGER.error("No variants with phenotypes were found in the region")
+        LOGGER.info("No variants with phenotypes were found in the region %s:%d-%d" %(chrom,start,end))
         return None
 
     rsIDs = []
@@ -296,33 +308,31 @@ def getVariantsWithPhenotypes(chrom,start,end,pos=0,build="38"):
     output=[]
     for rsID in r:
         for phenotype in r[rsID]["phenotypes"]:
-
-            # TODO: check all possible sources
-            # Generate phenotype link based on source:
-            if phenotype["source"] == "ClinVar":
-                link = "https://www.ncbi.nlm.nih.gov/clinvar/?term="+rsID
-            elif phenotype["source"] == "HGMD-PUBLIC":
-                link = "http://www.hgmd.cf.ac.uk/ac/gene.php?gene="+phenotype["genes"]
-            elif "NHGRI-EBI" in phenotype["source"]:
-                link = "https://www.ebi.ac.uk/gwas/search?query="+rsID
-            elif phenotype["source"] == "OMIM":
-                link = "https://www.omim.org/entry/"+phenotype["study"][4:]
-            else:
-                link = "http://"+buildstr+"ensembl.org/Homo_sapiens/Variation/Phenotype?db=core;v=CM106680;vdb=variation"
-
-            # TODO: check key availability
             output.append({"rsID": rsID,
                     "consequence" : r[rsID]["most_severe_consequence"],
-                    "SNPID" : "%s:%s" %(
-                        r[rsID]["mappings"][0]["seq_region_name"],
-                        r[rsID]["mappings"][0]["start"]),
+                    "SNPID" : "%s:%s" %(r[rsID]["mappings"][0]["seq_region_name"],r[rsID]["mappings"][0]["start"]),
                     "phenotype" : phenotype["trait"],
-                    "URL" : link,
+                    "source" :phenotype["source"],
                     "distance" : abs(pos - r[rsID]["mappings"][0]["start"])})
+
+            # # TODO: check all possible sources
+            # # Generate phenotype link based on source:
+            # if phenotype["source"] == "ClinVar":
+            #     link = "https://www.ncbi.nlm.nih.gov/clinvar/?term="+rsID
+            # elif phenotype["source"] == "HGMD-PUBLIC":
+            #     link = "http://www.hgmd.cf.ac.uk/ac/gene.php?gene="+phenotype["genes"]
+            # elif "NHGRI-EBI" in phenotype["source"]:
+            #     link = "https://www.ebi.ac.uk/gwas/search?query="+rsID
+            # elif phenotype["source"] == "OMIM":
+            #     link = "https://www.omim.org/entry/"+phenotype["study"][4:]
+            # else:
+            #     link = "http://"+buildstr+"ensembl.org/Homo_sapiens/Variation/Phenotype?db=core;v=CM106680;vdb=variation"
+
+            # TODO: check key availability
 
     # Create a dataframe:
     df = pd.DataFrame(output)
-    df.consequence = df.consequence.str.title().str.replace("_", " ")
+    #df.consequence = df.consequence.str.title().str.replace("_", " ")
 
     return df
 
@@ -557,8 +567,12 @@ def id2rs(varid,build="38"):
 # ===================================================== GTEx RELATED STUFF ============================================
 
 # given gene ID (variant ID), retreive all variant (gene) data associated with the gene (variant): tissue, p-value
-def parseGTEx(filename,chrom,start,end,ID):
-    LOGGER.debug("%s" % (filename))
+def parseGTEx(chrom,start,end,ID):
+    '''
+    Input  : gene ID or variant ID (format: chr_pos_ref_alt)
+    Output : dictionary with variant IDs (gene IDs) as keys and dictionaries with "tissue", "p-value", "beta", "SE", "dist" as values
+    '''
+    filename=config.GTEX_BED
     query = "bash -O extglob -c \'tabix %s %s:%d-%d | fgrep -w %s\'" %(filename,chrom,start,end,ID)
     output = subprocess.Popen(query.strip(),universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     D=dict()
@@ -615,17 +629,16 @@ def getUniprotData(ID):
 
 # ================================================ GWAS CATALOG ===========================================================
 
-# retrieve a list of gwas signals around the variant
 def getGwasHits(chrom,pos,window=500000):
     '''
-    This function retrives a list of all gwas signals within 500kbp distance around a given position.
+    Retrives a list of all gwas signals within a window around a given position
 
-    input: chromosome, position
+    Input: chromosome, position, window size (default: 500000)
 
-    output: [ {"rsID","SNPID","trait","p-value","PMID","distance"}]
+    Output: [ {"rsID","SNPID","trait","p-value","PMID","distance"}]
     '''
 
-    gwas_file = config.GWAS_FILE_VAR
+    gwas_file=config.GWAS_FILE_VAR
 
     if not os.path.isfile(gwas_file):
         LOGGER.error("GWAS catalog file (%s) not found" % gwas_file)
@@ -1067,7 +1080,9 @@ def getVepData(mapping_data):
 
     Input: variant data, a dictionary with chr, pos, ref, alt
 
-    Output: variant effects
+    Output: dictionary with keys "transcript", "regulatory"
+    "transcript" : list of dictionaries with keys "ID", "impact", "gene_symbol", "gene_id", "consequence", "principal"
+    "regulatory" : list of dictionaries with keys "impact", "biotype", "ID", "consequence"    
     '''
 
     chrom = mapping_data["chr"]
@@ -1173,14 +1188,18 @@ def getVepData(mapping_data):
 
 # ======================================================= PUBMED ===========================================================
 
+# TODO: wrap request
 def getPubmed(rsID):
     '''
-    This function returns the list of PMIDs of those publications where the given rsID was mentioned
+    This function returns a list of PMIDs of those publications where the given rsID was mentioned
     Up to 1000 IDs are returned
+
+    Input  : rsID
+    Output : dictionary with PMID as keys and dictionaries {"firstAuthor", "title", "journal", "year", "URL"} as values
     '''
     r=requests.get(config.PUBMED_URL_VAR % (rsID))
     decoded=r.json()
-    json.dumps(decoded,indent=4,sort_keys=True)
+    #json.dumps(decoded,indent=4,sort_keys=True)
     pubmed_IDs=decoded["esearchresult"]["idlist"]
 
     # Before we return the list, let's return all the titles for all articles:
@@ -1207,6 +1226,10 @@ def getGeneList(chrom,pos,window=1000000,build="38"):
     '''
     Based on the submitted chromosome and position, this function returns
     all genes within a window
+
+    Input: chromosome, position, window (default: 1Mbp), build (default: "38")
+    Output: list of dictionaries with keys: 
+    "start", "end", "strand", "name", "description", "biotype", "ID", "distance", "orientation" 
     '''
 
     end=pos+window
@@ -1253,8 +1276,10 @@ def getGeneList(chrom,pos,window=1000000,build="38"):
 # Extract Exome Aggregation Consortium (ExAC) allele frequencies
 def getExacAF(chrom,pos,ref,alt):
     '''
-    This function runs a tabix query to retrieve allele frequency data published in the Exome Aggreagtion Consortium.
-    The returned dictionary contains allele frequencies and counts for all reported populations
+    For a given variant, retreive allele frequencies for all ALT alleles in all populations
+    Input  : chromosome, position, REF, ALT
+    Output : list of dictionaries with the following keys "allele", "populations"
+    "populations" value is a dictionary with "count" and "frequency" keys
     '''
 
     pops=["AFR", "ALL", "FIN", "AMR", "EAS", "SAS", "OTH", "NFE"]
@@ -1632,53 +1657,4 @@ def gtex2df(gtex_data):
             i+=1
 
     return df
-
-# Drawing tables of genes affected by the queried variation:
-# def draw_GTEx_eQTL_table(GTEX_data):
-#     '''
-#     This function creates an html formatted string based on the previously retrieved GTEx data.
-#     Input: output of the get_GTEx_genes function that can contain error messages as well.
-#     Output: html formatted string that can be used directly to generate the variation html file.
-#     '''
-
-#     # Check if the returned value is a dictionary or a string:
-#     if CheckReturnedValue(GTEX_data): return CheckReturnedValue(GTEX_data)
-
-#     # If a dictionary, initialize table:
-#     table = '<table class="GTEX_eQTL">\n'
-#     table += '\t<tr><td>Tissue</td><td>p-value</td><td>beta (sd)</td><td>Gene name</td><td>Distance from TSS</td></tr>\n'
-
-#     # Get basic information:
-#     Tissue_count = len(GTEX_data.keys())
-#     Tissues = GTEX_data.keys()
-#     Gene_count = 0
-#     Genes = []
-
-#     for tissue in GTEX_data.values():
-#         for association in tissue:
-#             #var = variation % (association["rsID"],association["rsID"])
-#             gen = config.ENSEMBL_GENE % (association["gene_ID"], association["gene_name"])
-#             table += "\t<tr><td>%s</td><td>%s</td><td>%s (%s)</td><td>%s</td><td>%s</td></tr>\n" % (
-#                 association["tissue"], association["pvalue"], association["beta"],association["sd"],  gen, association["distance"])
-
-#             # Adding gene to gene collection:
-#             if not association["gene_name"] in Genes:
-#                 Genes.append(association["gene_name"])
-#                 Gene_count += 1
-
-#     table += '</table>\n'
-
-#     # Generating a summary of the returned data:
-#     Report = "The expression of "
-#     if Gene_count > 1: Report += "%s genes (<b>%s</b>) were found to be affected by %s" %(Gene_count, ", ".join(Genes), association["rsID"])
-#     else : Report += "%s gene was found to be affected by %s" %(Genes[0], association["rsID"])
-#     if Tissue_count > 1: Report += " in %s tissues " %( Tissue_count)
-#     Report += '(' + config.GTEX_LINK % association["rsID"] + '):'
-
-#     # Adding report and table together in a html formatted string:
-#     html = '<div class="GTEx variation" onclick="toggle()" style="margin-left:10px; margin-bottom:2px">%s\n' % Report
-#     html += '<div class="GXA_hidden" style="display: none;">\n%s\n</div></div>\n' %table
-
-#     return html
-
 

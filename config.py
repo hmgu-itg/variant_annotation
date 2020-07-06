@@ -31,8 +31,8 @@ WINDOW      = 500000
 ##
 ## Templates:
 ##
-GENE_TEMPLATE   = '/nfs/team144/ds26/FunctionalAnnotation/v2.2/template_gene.html'
-VAR_TEMPLATE    = '/nfs/team144/ds26/FunctionalAnnotation/v2.2/template.html'
+GENE_TEMPLATE   = '/home/andrei/variant_annotation/template_gene.html'
+VAR_TEMPLATE    = '/home/andrei/variant_annotation/template.html'
 
 ##
 ## Parameters for genes:
