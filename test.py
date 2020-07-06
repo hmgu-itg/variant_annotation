@@ -7,6 +7,7 @@ import re
 import datetime
 from functions import *
 import logging
+import config
 
 LOGGER=logging.getLogger("test")
 LOGGER.setLevel(logging.DEBUG)
@@ -134,11 +135,14 @@ rsID=args.rs
 #         print("%s\t%d\t%s\t%s\t%s" %(c,p,rsID,ref,alt))
 
 #--------------------------------------------------------------------------------------------------------------
+# LOGGER.debug("%s" %(config.GTEX_BED))
 
-# D=parseGTEx("/home/andrei/out.bed.gz","1",14409,29553,"ENSG00000227232")
+# D=parseGTEx(config.GTEX_BED,"1",14409,29553,"ENSG00000227232")
 # print(D)
-# D=parseGTEx("/home/andrei/out.bed.gz","1",108500,108600,"chr1_108506_C_T_b38")
+# print(gtex2df(D))
+# D=parseGTEx(config.GTEX_BED,"1",108500,108600,"chr1_108506_C_T_b38")
 # print(D)
+# print(gtex2df(D))
 
 #--------------------------------------------------------------------------------------------------------------
 

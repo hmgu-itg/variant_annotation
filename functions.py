@@ -558,6 +558,7 @@ def id2rs(varid,build="38"):
 
 # given gene ID (variant ID), retreive all variant (gene) data associated with the gene (variant): tissue, p-value
 def parseGTEx(filename,chrom,start,end,ID):
+    LOGGER.debug("%s" % (filename))
     query = "bash -O extglob -c \'tabix %s %s:%d-%d | fgrep -w %s\'" %(filename,chrom,start,end,ID)
     output = subprocess.Popen(query.strip(),universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     D=dict()
@@ -567,9 +568,12 @@ def parseGTEx(filename,chrom,start,end,ID):
         ID2=data[0]
         tissue=data[1]
         pval=data[2]
+        beta=data[3]
+        SE=data[4]
+        dist=data[5]
         if not ID2 in D:
             D[ID2]=[]
-        D[ID2].append({"tissue" : tissue,"pvalue" : pval})
+        D[ID2].append({"tissue" : tissue,"p-value" : pval,"beta" : beta,"SE" : SE,"dist" : dist})
 
     if len(D)==0:
         LOGGER.info("No eQTL signals were found for %s" %(ID))
@@ -1620,11 +1624,12 @@ def exac2df(exac_data):
 # ----------------------------------------------------------------------------------------------------------------------
 
 def gtex2df(gtex_data):
-    df=pd.DataFrame(columns=["Tissue","P-value","Beta (SE)","Gene name","Distance from TSS"])
+    df=pd.DataFrame(columns=["Tissue","P-value","Beta (SE)","ID","Distance from TSS"])
     i=0
-    for x in gene_data:
-        df.loc[i]=[x["name"],x["ID"],x["biotype"],x["distance"],x["orientation"]]
-        i+=1
+    for x in gtex_data:
+        for z in gtex_data[x]:
+            df.loc[i]=[z["tissue"],z["p-value"],z["beta"]+" ("+z["SE"]+")",x,z["dist"]]
+            i+=1
 
     return df
 

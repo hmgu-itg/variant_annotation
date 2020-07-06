@@ -43,7 +43,7 @@ GWAS_FILE       = '/nfs/team144/ds26/FunctionalAnnotation/GWAS_positive_controls
 UNIPROT_URL     = 'http://www.uniprot.org/uniprot/'
 GXA_URL         = 'http://www.ebi.ac.uk/gxa/widgets/heatmap/multiExperiment.tsv?geneQuery=%s&propertyType=bioentity_identifier&species=homo%%20sapiens'
 #GXA_URL         ='https://www.ebi.ac.uk/gxa/genes/%s?bs=%7B%22homo%20sapiens%22%3A%5B%22ORGANISM_PART%22%5D%7D&ds=%7B%22kingdom%22%3A%5B%22animals%22%5D%7D#baseline'
-GTEX_BED        = '/home/andrei/container.home/out.bed.gz'
+GTEX_BED        = '/home/andrei/GTEx.bed.gz'
 
 ##
 ## Parameters for variations:
