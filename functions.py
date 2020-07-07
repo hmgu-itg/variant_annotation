@@ -832,7 +832,9 @@ def getGeneXrefs (ID,build="38"):
     for xref in r:        
         db=xref['db_display_name']
         if db in xrefs:
-            xrefs[db].append((xref["primary_id"],xref["description"]))
+            x=(xref["primary_id"],xref["description"])
+            if x not in xrefs[db]:
+                xrefs[db].append(x)
 
     return xrefs
 
@@ -1718,6 +1720,17 @@ def geneGwas2df(data):
     i=0
     for x in data:
         df.loc[i]=[x["rsID"],x["Consequence"],x["Reported genes"],x["trait"],x["URL"],x["Author"]]
+        i+=1
+
+    return df
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+def goterms2df(xrefs):
+    df=pd.DataFrame(columns=["GO term ID","Description"])
+    i=0
+    for x in xrefs["GO"]:
+        df.loc[i]=[x[0],x[1]]
         i+=1
 
     return df
