@@ -191,12 +191,12 @@ uniprotDF = uniprot2df(uniprot)
 LOGGER.info("Creating GO terms dataframe")
 goDF = goterms2df(xrefs)
 
-D = {"gene_table" : infoDF.to_html(classes='utf8'),
-     "go_data": goDF.to_html(classes='utf8'),
-     "Uniprot_data" : uniprotDF.to_html(classes='utf8'),
-     "GWAS" : gwasDF.to_html(classes='utf8'),
-     "GTExVariants" : gtexDF.to_html(classes='utf8'),
-     "mouse_pheno" : mouseDF.to_html(classes='utf8')}
+D = {"gene_table" : infoDF.to_html(index=False,classes='utf8'),
+     "go_data": goDF.to_html(index=False,classes='utf8',table_id="go_data"),
+     "Uniprot_data" : uniprotDF.to_html(index=False,classes='utf8'),
+     "GWAS" : gwasDF.to_html(index=False,classes='utf8'),
+     "GTExVariants" : gtexDF.to_html(index=False,classes='utf8'),
+     "mouse_pheno" : mouseDF.to_html(index=False,classes='utf8')}
 
 html = generateHTML(config.GENE_TEMPLATE,D)
 filename = "./%s.html" % gene_ID
