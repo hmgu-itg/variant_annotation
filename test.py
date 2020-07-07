@@ -169,9 +169,8 @@ rsID=args.rs
 #print(json.dumps(getGeneInfo("ENSG00000225972"),indent=4,sort_keys=True))
 
 #--------------------------------------------------------------------------------------------------------------
-
-#print(json.dumps(getGeneXrefs("ENSG00000185973"),indent=4,sort_keys=True))
-
+LOGGER.info("XRefs")
+print(json.dumps(getGeneXrefs("ENSG00000185973"),indent=4,sort_keys=True))
 #--------------------------------------------------------------------------------------------------------------
 
 #print(getMouseID("ENSG00000185973"))

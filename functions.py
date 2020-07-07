@@ -13,17 +13,11 @@ import logging
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
-#fh=logging.FileHandler('test.log')
-#fh.setLevel(logging.DEBUG)
 ch=logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
-#fh.setFormatter(formatter)
 ch.setFormatter(formatter)
-#LOGGER.addHandler(fh)
 LOGGER.addHandler(ch)
-
-#LOGGER.info("HELLO")
 
 def getServerName(build="38"):
     server="http://grch"+build+".rest.ensembl.org"
@@ -815,8 +809,16 @@ def getGeneInfo (ID,build="38"):
 def getGeneXrefs (ID,build="38"):
     '''
     This function retrieves cross-references from Ensembl
+    Input  : gene ID, build(default: "38")
+    Output : dictionary with keys "MIM disease","MIM gene","GO","GOSlim GOA","UniProtKB/Swiss-Prot","Human Protein Atlas","ChEMBL"
+                        and lists of tuples ("primary_id","description") as values  
     '''
-    response=restQuery(makeGeneXQueryURL(ID,build=build))
+
+    r=restQuery(makeGeneXQueryURL(ID,build=build))
+    if not r:
+        LOGGER.info("No cross references found for %s" %(ID))
+        return  None
+
     xrefs = {
         "MIM disease" : [],
         "MIM gene" : [],
@@ -827,12 +829,10 @@ def getGeneXrefs (ID,build="38"):
         "ChEMBL" : [],
     }
 
-    for xref in response:
+    for xref in r:        
         db=xref['db_display_name']
-        try:
-            xrefs[db].append([xref["description"],xref["primary_id"]])
-        except:
-            continue
+        if db in xrefs:
+            xrefs[db].append((xref["primary_id"],xref["description"]))
 
     return xrefs
 
