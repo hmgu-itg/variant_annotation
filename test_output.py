@@ -181,6 +181,7 @@ infoDF = geneInfo2df(info)
 
 LOGGER.info("Creating GTEx dataframe")
 gtexDF = gtex2df(gtex)
+#gtexDF.style.set_properties(**{'text-align': 'left'}).set_table_styles([ dict(selector='th', props=[('text-align', 'left')] ) ])
 
 LOGGER.info("Creating GWAS dataframe")
 gwasDF = geneGwas2df(gwas)
@@ -191,12 +192,12 @@ uniprotDF = uniprot2df(uniprot)
 LOGGER.info("Creating GO terms dataframe")
 goDF = goterms2df(xrefs)
 
-D = {"gene_table" : infoDF.to_html(index=False,classes='utf8'),
+D = {"gene_table" : infoDF.to_html(index=False,classes='utf8',table_id="go_data"),
      "go_data": goDF.to_html(index=False,classes='utf8',table_id="go_data"),
-     "Uniprot_data" : uniprotDF.to_html(index=False,classes='utf8'),
-     "GWAS" : gwasDF.to_html(index=False,classes='utf8'),
-     "GTExVariants" : gtexDF.to_html(index=False,classes='utf8'),
-     "mouse_pheno" : mouseDF.to_html(index=False,classes='utf8')}
+     "Uniprot_data" : uniprotDF.to_html(index=False,classes='utf8',table_id="go_data"),
+     "GWAS" : gwasDF.to_html(index=False,classes='utf8',table_id="go_data"),
+     "GTExVariants" : gtexDF.to_html(index=False,classes='utf8',table_id="go_data"),
+     "mouse_pheno" : mouseDF.to_html(index=False,classes='utf8',table_id="go_data")}
 
 html = generateHTML(config.GENE_TEMPLATE,D)
 filename = "./%s.html" % gene_ID
