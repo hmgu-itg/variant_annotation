@@ -169,9 +169,9 @@ rsID=args.rs
 #print(json.dumps(getGeneInfo("ENSG00000225972"),indent=4,sort_keys=True))
 
 #--------------------------------------------------------------------------------------------------------------
-LOGGER.info("XRefs")
-#print(json.dumps(getGeneXrefs("ENSG00000185973"),indent=4,sort_keys=True))
-print(goterms2df(getGeneXrefs("ENSG00000185973")))
+# LOGGER.info("XRefs")
+# #print(json.dumps(getGeneXrefs("ENSG00000185973"),indent=4,sort_keys=True))
+# print(goterms2df(getGeneXrefs("ENSG00000185973")))
 #--------------------------------------------------------------------------------------------------------------
 
 #print(getMouseID("ENSG00000185973"))
@@ -183,6 +183,10 @@ print(goterms2df(getGeneXrefs("ENSG00000185973")))
 #--------------------------------------------------------------------------------------------------------------
 
 #print(getMgiPhenotypes("MGI:2180203"))
+
+#--------------------------------------------------------------------------------------------------------------
+
+#print(getMousePhenotypes(rsID))
 
 #--------------------------------------------------------------------------------------------------------------
 
