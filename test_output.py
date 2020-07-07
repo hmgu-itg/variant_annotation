@@ -118,7 +118,7 @@ LOGGER.info("Got %d genes\n" %(len(gene_list)))
 # Get population data from the Exome Aggregation Consortium:
 LOGGER.info("Retrieving allele frequencies from ExAC")
 Exac_parsed = getExacAF(mapping["chr"],mapping["pos"],mapping["ref"],mapping["alt"])
-print("Done\n",file=sys.stderr)
+LOGGER.info("Done\n")
 
 # Regulated genes from GTEx
 LOGGER.info("Retrieving genes regulated by the variant from the GTEx dataset")
@@ -165,6 +165,7 @@ exacDF = exac2df(Exac_parsed)
 
 LOGGER.info("Creating GTEx dataframe")
 GTEx_genesDF = gtex2df(GTEx_genes)
+LOGGER.info("\n")
 
 # ----------------------------------------------------------------------------
 
@@ -174,53 +175,36 @@ LOGGER.info("Working with gene %s\n" % gene_ID)
 
 LOGGER.info("Retreiving general information")
 info = getGeneInfo(gene_ID,build=build)
-LOGGER.info("Done\n")
 
 LOGGER.info("Retreiveing cross-references")
 xrefs = getGeneXrefs(gene_ID)
-LOGGER.info("Done\n")
 
 LOGGER.info("Retreiving UniProt data")
 uniprot = getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
-#print(json.dumps(uniprot,indent=4,sort_keys=True))
-LOGGER.info("Done\n")
-
-#exit(0)
 
 LOGGER.info("Retreiving GWAS data")
 gwas = gene2gwas(info["name"])
-LOGGER.info("Done\n")
 
 LOGGER.info("Retreiving GTEx data")
 gtex= parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
-LOGGER.info("Done\n")
 
-LOGGER.info("Retreiving mouse data")
+LOGGER.info("Retreiving mouse data\n")
 mouseDF= getMousePhenotypes(gene_ID)
-LOGGER.info("Done\n")
-
-LOGGER.info("Creating dataframes\n")
 
 LOGGER.info("Creating general info dataframe")
 infoDF = geneInfo2df(info)
-LOGGER.info("Done\n")
 
 LOGGER.info("Creating GTEx dataframe")
 gtexDF = gtex2df(gtex)
-LOGGER.info("Done\n")
 
 LOGGER.info("Creating GWAS dataframe")
 gwas2df = geneGwas2df(gwas)
-LOGGER.info("Done\n")
 
 LOGGER.info("Creating UniProt dataframe")
 uniprotDF = uniprot2df(uniprot)
-LOGGER.info("Done\n")
 
 LOGGER.info("Creating GO terms dataframe")
 goDF = goterms2df(xrefs)
-LOGGER.info("Done\n")
-
 
 D = {"gene_table" : infoDF.to_html(classes='utf8'),
      "go_data": goDF.to_html(classes='utf8'),
