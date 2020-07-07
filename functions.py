@@ -576,9 +576,9 @@ def parseGTEx(chrom,start,end,ID):
         data=fields[4].split(":")
         ID2=data[0]
         tissue=data[1]
-        pval=data[2]
-        beta=data[3]
-        SE=data[4]
+        pval=str("%.4e" % float(data[2]))
+        beta=str(round(float(data[3]),4))
+        SE=str(round(float(data[4]),4))
         dist=data[5]
         if not ID2 in D:
             D[ID2]=[]
