@@ -39,7 +39,8 @@ VAR_TEMPLATE    = '/home/andrei/variant_annotation/template.html'
 ##
 OMIM_URL        = 'http://api.omim.org/api/entry?'
 OMIM_APIKEY     = 'apiKey=MWkzg-DYShWyrfrbqUHL4g&format=python&' # will expire on March 21st, 2017.
-GWAS_FILE       = '/nfs/team144/ds26/FunctionalAnnotation/GWAS_positive_controls/full'
+#GWAS_FILE       = '/nfs/team144/ds26/FunctionalAnnotation/GWAS_positive_controls/full'
+GWAS_FILE       = "/home/andrei/gwas_catalog_v1.0.2-associations_e100_r2020-06-30.tsv.gz"
 UNIPROT_URL     = 'http://www.uniprot.org/uniprot/'
 GXA_URL         = 'http://www.ebi.ac.uk/gxa/widgets/heatmap/multiExperiment.tsv?geneQuery=%s&propertyType=bioentity_identifier&species=homo%%20sapiens'
 #GXA_URL         ='https://www.ebi.ac.uk/gxa/genes/%s?bs=%7B%22homo%20sapiens%22%3A%5B%22ORGANISM_PART%22%5D%7D&ds=%7B%22kingdom%22%3A%5B%22animals%22%5D%7D#baseline'

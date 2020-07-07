@@ -19,12 +19,6 @@ import argparse
 #sys.path.append(egg_path)
 
 import jinja2
-
-# from variations import *
-# from variations_draw import *
-# from genes import *
-# from genes_draw import *
-
 from functions import *
 import logging
 
@@ -145,34 +139,102 @@ LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(regulation)))
 
 # Creating dataframes
 
-LOGGER.info("Creating variant data frame")
+LOGGER.info("Creating variant dataframe")
 variantDF = variant2df(variant_data)
 
-LOGGER.info("Creating regulatory data frame")
+LOGGER.info("Creating regulatory dataframe")
 regulationDF = regulation2df(regulation)
 
-LOGGER.info("Creating GWAS data frame")
+LOGGER.info("Creating GWAS dataframe")
 gwasDF = gwas2df(gwas_hits)
 
-LOGGER.info("Creating VEP data frame")
+LOGGER.info("Creating VEP dataframe")
 vepDF = vepTranscript2df(VEP_data)
 
-LOGGER.info("Creating populations data frame")
+LOGGER.info("Creating populations dataframe")
 populationDF = population2df(variant_data["population_data"])
 
-LOGGER.info("Creating PubMed data frame")
+LOGGER.info("Creating PubMed dataframe")
 pubmedDF = pubmed2df(pubmed_data)
 
-# uk10K_table = draw_UK10K_table(ukData)
-
-LOGGER.info("Creating gene data frame")
+LOGGER.info("Creating gene dataframe")
 geneDF = geneList2df(gene_list)
 
-LOGGER.info("Creating ExAC data frame")
+LOGGER.info("Creating ExAC dataframe")
 exacDF = exac2df(Exac_parsed)
 
-LOGGER.info("Creating GTEx data frame")
+LOGGER.info("Creating GTEx dataframe")
 GTEx_genesDF = gtex2df(GTEx_genes)
+
+# ----------------------------------------------------------------------------
+
+gene_ID="ENSG00000002933"
+
+LOGGER.info("Working with gene %s\n" % gene_ID)
+
+LOGGER.info("Retreiving general information")
+info = getGeneInfo(gene_ID,build=build)
+LOGGER.info("Done\n")
+
+LOGGER.info("Retreiveing cross-references")
+xrefs = getGeneXrefs(gene_ID)
+LOGGER.info("Done\n")
+
+LOGGER.info("Retreiving UniProt data")
+uniprot = getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
+#print(json.dumps(uniprot,indent=4,sort_keys=True))
+LOGGER.info("Done\n")
+
+#exit(0)
+
+LOGGER.info("Retreiving GWAS data")
+gwas = gene2gwas(info["name"])
+LOGGER.info("Done\n")
+
+LOGGER.info("Retreiving GTEx data")
+gtex= parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
+LOGGER.info("Done\n")
+
+LOGGER.info("Retreiving mouse data")
+mouseDF= getMousePhenotypes(gene_ID)
+LOGGER.info("Done\n")
+
+LOGGER.info("Creating dataframes\n")
+
+LOGGER.info("Creating general info dataframe")
+infoDF = geneInfo2df(info)
+LOGGER.info("Done\n")
+
+LOGGER.info("Creating GTEx dataframe")
+gtexDF = gtex2df(gtex)
+LOGGER.info("Done\n")
+
+LOGGER.info("Creating GWAS dataframe")
+gwas2df = geneGwas2df(gwas)
+LOGGER.info("Done\n")
+
+LOGGER.info("Creating UniProt dataframe")
+uniprotDF = uniprot2df(uniprot)
+LOGGER.info("Done\n")
+
+LOGGER.info("Creating GO terms dataframe")
+goDF = goterms2df(xrefs)
+LOGGER.info("Done\n")
+
+
+D = {"gene_table" : infoDF.to_html(classes='utf8'),
+     "go_data": goDF.to_html(classes='utf8'),
+     "Uniprot_data" : uniprotDF.to_html(classes='utf8'),
+     "GWAS" : gwasDF.to_html(classes='utf8'),
+     "GTExVariants" : gtexDF.to_html(classes='utf8'),
+     "mouse_pheno" : mouseDF.to_html(classes='utf8')}
+
+html = generateHTML(config.GENE_TEMPLATE,D)
+filename = "./%s.html" % gene_ID
+f = open(filename, 'w')
+f.write(html)
+f.close()
+
 
 # LOGGER.info("Creating phenotypes data frame")
 # phenotype_table = draw_phenotpye_table_var(phenotype_df)

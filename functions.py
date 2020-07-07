@@ -10,6 +10,7 @@ import pandas as pd
 from io import StringIO
 import os.path
 import logging
+import jinja2
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -632,10 +633,10 @@ def gene2gwas(gene_name):
     '''
 
     gwas_file = config.GWAS_FILE
-    query = "fgrep -iw %s %s" % (gene_name, gwas_file)
+    query = "zcat %s | fgrep -iw %s" % (gwas_file,gene_name)
 
     gwas_data = []
-    output = subprocess.Popen(query, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output = subprocess.Popen(query,shell=True,universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     for line in output.stdout.readlines():
         fields = line.split("\t")
 
@@ -1037,10 +1038,10 @@ def getMgiPhenotypes(MGI_ID):
         LOGGER.info("No phenotype was found for %s" %(MGI_ID))
         return pd.DataFrame(columns=["Allele_ID", "Allele_name", "Allele_type","Phenotypes","Human_disease"])
 
-def getMousePhenotypes(geneID):
+def getMousePhenotypes(geneID,build="38"):
     '''returning mouse phenotype given human gene ID'''
     # Returning all mouse homologue IDs:
-    mouse_gene_IDs=getMouseID(geneID)
+    mouse_gene_IDs=getMouseID(geneID,build=build)
 
     full_dataframe=pd.DataFrame(columns=["Allele_ID", "Allele_name", "Allele_type","Phenotypes","Human_disease","mouse_gene_ID","MGI_ID","mouse_gene_name","mouse_gene_description"])
 
@@ -1049,7 +1050,7 @@ def getMousePhenotypes(geneID):
 
     MGI_IDs=dict()
     for mouse_gene_ID in mouse_gene_IDs:
-        MGI_IDs[mouse_gene_ID] = getMgiID(mouse_gene_ID)
+        MGI_IDs[mouse_gene_ID] = getMgiID(mouse_gene_ID,build=build)
 
     # Once we have all the MGI identifiers, we retrieve all the phenotypes:
     for mouse_id, mgi_id in MGI_IDs.items():
@@ -1698,7 +1699,7 @@ def gtex2df(gtex_data):
 
 def geneInfo2df(gene_info):
     df=pd.DataFrame(columns=["Gene name","Description","ID","Coordinates","Strand","Type"])
-    df.loc[0]=[gene_info["name"],gene_info["description"],gene_info["id"],gene_info["chromosome"]+":"+gene_info["start"]+"-"+gene_info["end"],gene_info["strand"],gene_info["type"],]
+    df.loc[0]=[gene_info["name"],gene_info["description"],gene_info["id"],gene_info["chromosome"]+":"+str(gene_info["start"])+"-"+str(gene_info["end"]),gene_info["strand"],gene_info["type"],]
 
     return df
 
@@ -1707,8 +1708,8 @@ def geneInfo2df(gene_info):
 def uniprot2df(data):
     df=pd.DataFrame(columns=["Field","Data"])
     i=0
-    for (k,v) in data:
-        df.loc[i]=[k,v]
+    for k in data:
+        df.loc[i]=[k,data[k]]
         i+=1
 
     return df
@@ -1735,4 +1736,18 @@ def goterms2df(xrefs):
 
     return df
 
+def generateHTML(templateFile, data):
+    # search path for template files:
+    templateLoader = jinja2.FileSystemLoader(searchpath="/")
+
+    # An environment provides the data necessary to read and
+    templateEnv = jinja2.Environment(loader=templateLoader)
+
+    # Read the template file using the environment object.
+    template = templateEnv.get_template(templateFile)
+
+    # Finally, process the template to produce our final text.
+    outputText = template.render(data)
+
+    return outputText
 
