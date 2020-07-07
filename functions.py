@@ -1032,18 +1032,18 @@ def getMgiPhenotypes(MGI_ID):
 
         # Drop unnecessary columns:
         df.drop([ "Allele Symbol", "Chromosome",  "Synonyms","Allele Attributes", "Transmission", "Unnamed: 10"], axis=1, inplace=True)
-        df.columns = ["Allele_ID", "Allele_name", "Allele_type","Phenotypes","Human_disease"]
+        df.columns = ["Allele ID", "Allele name", "Allele type","Phenotypes","Human disease"]
         return df
     except:
         LOGGER.info("No phenotype was found for %s" %(MGI_ID))
-        return pd.DataFrame(columns=["Allele_ID", "Allele_name", "Allele_type","Phenotypes","Human_disease"])
+        return pd.DataFrame(columns=["Allele ID", "Allele name", "Allele type","Phenotypes","Human disease"])
 
 def getMousePhenotypes(geneID,build="38"):
     '''returning mouse phenotype given human gene ID'''
     # Returning all mouse homologue IDs:
     mouse_gene_IDs=getMouseID(geneID,build=build)
 
-    full_dataframe=pd.DataFrame(columns=["Allele_ID", "Allele_name", "Allele_type","Phenotypes","Human_disease","mouse_gene_ID","MGI_ID","mouse_gene_name","mouse_gene_description"])
+    full_dataframe=pd.DataFrame(columns=["Allele ID", "Allele name", "Allele type","Phenotypes","Human disease","mouse gene ID","MGI ID","mouse gene name","mouse gene description"])
 
     if len(mouse_gene_IDs)==0:
         return full_dataframe
@@ -1057,10 +1057,10 @@ def getMousePhenotypes(geneID,build="38"):
         df=getMgiPhenotypes(mgi_id)
 
         # Adding extra columns for the record:
-        df["mouse_gene_ID"] = mouse_id
-        df["MGI_ID"] = mgi_id
-        df["mouse_gene_name"] = mouse_gene_IDs[mouse_id][1]
-        df["mouse_gene_description"] = mouse_gene_IDs[mouse_id][0]
+        df["mouse gene ID"] = mouse_id
+        df["MGI ID"] = mgi_id
+        df["mouse gene name"] = mouse_gene_IDs[mouse_id][1]
+        df["mouse gene description"] = mouse_gene_IDs[mouse_id][0]
         full_dataframe = pd.merge(full_dataframe, df, how="outer")
 
     return full_dataframe
