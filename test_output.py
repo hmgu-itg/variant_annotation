@@ -1,23 +1,8 @@
 #!/usr/bin/env python3
 
 import requests, sys
-
-# libray for parsing html files:
-#from lxml import html
-
-# library for generate python data structure from string:
-#import ast
-
-# Library to execute shell commands:
-#import subprocess
-
 import datetime
 import argparse
-
-# Importing the templating library that creates html files:
-#egg_path='/nfs/users/nfs_d/ds26/local/lib/python2.7/site-packages/Django-1.8.6-py2.7.egg'
-#sys.path.append(egg_path)
-
 import jinja2
 from functions import *
 import logging
@@ -61,111 +46,111 @@ filename = VAR_ID+".html"
 
 # ------------------------------------------------------------------------------------------------------------------------
 
-LOGGER.info("Retrieving variant data from Ensembl")
-variant_data = getVariantInfo(VAR_ID,build)
-mappings=set()
-for m in variant_data["mappings"]:
-    t=(m["chr"],m["pos"])
-    if t not in mappings:
-        mappings.add(t)
-LOGGER.info("Found %d mapping(s)\n" %(len(mappings)))
-#print(json.dumps(variant_data,indent=4,sort_keys=True))
-
-# there can be several chr:pos mappings
-# for each chr:pos mapping there can be several ref:alt pairs
-
-# working with only one chr:pos mapping for now
-
-mapping=variant_data["mappings"][0]
-
-# if GWAVA:
-#     print("[Info] Calculating GWAVA score of the variation ...",file=sys.stderr)
-#     variant_data = get_GWAVA_score(variant_data)
-#     print("Done",file=sys.stderr)
-
-# a variant can have more than one mapping
-gwas_hits=list()
-LOGGER.info("Looking for GWAS hits around the variant")
-gwas_hits.extend(getGwasHits(mapping["chr"],mapping["pos"]))
-LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
-#print(gwas_hits)
-
-LOGGER.info("Retreiving consequences for all overlapping transcripts")
+# LOGGER.info("Retrieving variant data from Ensembl")
+# variant_data = getVariantInfo(VAR_ID,build)
+# mappings=set()
 # for m in variant_data["mappings"]:
-#     VEP_data[m["chr"]+"_"+str(m["pos"])+"_"+m["ref"]+"_"+m["alt"]]=getVepData(m)
-VEP_data=getVepData(mapping)
-LOGGER.info("Done\n")
+#     t=(m["chr"],m["pos"])
+#     if t not in mappings:
+#         mappings.add(t)
+# LOGGER.info("Found %d mapping(s)\n" %(len(mappings)))
+# #print(json.dumps(variant_data,indent=4,sort_keys=True))
 
-LOGGER.info("Retrieving list of publications from PUBMED")
-# TODO: also run for synonyms
-# TODO: VAR_ID can be chr_pos_ref_alt
-pubmed_data=getPubmed(VAR_ID)
-LOGGER.info("Got %d PMID(s)\n" %(len(pubmed_data)))
+# # there can be several chr:pos mappings
+# # for each chr:pos mapping there can be several ref:alt pairs
 
-# # Return phenotypes:
-#LOGGER.info("Returning variants with phenotype annotation")
-#phenotype_df = get_phenotype_vars({"chr" : variant_data["chromosome"],
-#                "start" : variant_data["start"] - config.WINDOW,
-#                "end" : variant_data["start"] + config.WINDOW,
-#                "var" : variant_data["start"] })
-# print("Done",file=sys.stderr)
+# # working with only one chr:pos mapping for now
 
-# Get a list of genes close to the variation:
-LOGGER.info("Retrieving genes around the variant")
-gene_list=getGeneList(mapping["chr"],mapping["pos"],build=build)
-LOGGER.info("Got %d genes\n" %(len(gene_list)))
+# mapping=variant_data["mappings"][0]
 
-# Get population data from the Exome Aggregation Consortium:
-LOGGER.info("Retrieving allele frequencies from ExAC")
-Exac_parsed = getExacAF(mapping["chr"],mapping["pos"],mapping["ref"],mapping["alt"])
-LOGGER.info("Done\n")
+# # if GWAVA:
+# #     print("[Info] Calculating GWAVA score of the variation ...",file=sys.stderr)
+# #     variant_data = get_GWAVA_score(variant_data)
+# #     print("Done",file=sys.stderr)
 
-# Regulated genes from GTEx
-LOGGER.info("Retrieving genes regulated by the variant from the GTEx dataset")
-GTEx_genes=parseGTEx(mapping["chr"],mapping["pos"],mapping["pos"],mapping["chr"]+"_"+str(mapping["pos"])+"_"+mapping["ref"]+"_"+mapping["alt"])
-LOGGER.info("Got %d gene(s)\n" %(len(GTEx_genes)))
+# # a variant can have more than one mapping
+# gwas_hits=list()
+# LOGGER.info("Looking for GWAS hits around the variant")
+# gwas_hits.extend(getGwasHits(mapping["chr"],mapping["pos"]))
+# LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
+# #print(gwas_hits)
 
-# # Get population data from the UK10K
-# print("[Info] Retrieving allele frequencies from UK10K data ... ",file=sys.stderr)
-# ukData = get_UK10K_frequencies(variant_data)
-# print("Done",file=sys.stderr)
+# LOGGER.info("Retreiving consequences for all overlapping transcripts")
+# # for m in variant_data["mappings"]:
+# #     VEP_data[m["chr"]+"_"+str(m["pos"])+"_"+m["ref"]+"_"+m["alt"]]=getVepData(m)
+# VEP_data=getVepData(mapping)
+# LOGGER.info("Done\n")
 
-# Get regulatory features
-LOGGER.info("Retrieving overlapping regulatory features")
-regulation = getRegulation(mapping["chr"],mapping["pos"])
-LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(regulation)))
+# LOGGER.info("Retrieving list of publications from PUBMED")
+# # TODO: also run for synonyms
+# # TODO: VAR_ID can be chr_pos_ref_alt
+# pubmed_data=getPubmed(VAR_ID)
+# LOGGER.info("Got %d PMID(s)\n" %(len(pubmed_data)))
 
-#-----------------------------------------------------------------------------------------------------------------------------
+# # # Return phenotypes:
+# #LOGGER.info("Returning variants with phenotype annotation")
+# #phenotype_df = get_phenotype_vars({"chr" : variant_data["chromosome"],
+# #                "start" : variant_data["start"] - config.WINDOW,
+# #                "end" : variant_data["start"] + config.WINDOW,
+# #                "var" : variant_data["start"] })
+# # print("Done",file=sys.stderr)
 
-# Creating dataframes
+# # Get a list of genes close to the variation:
+# LOGGER.info("Retrieving genes around the variant")
+# gene_list=getGeneList(mapping["chr"],mapping["pos"],build=build)
+# LOGGER.info("Got %d genes\n" %(len(gene_list)))
 
-LOGGER.info("Creating variant dataframe")
-variantDF = variant2df(variant_data)
+# # Get population data from the Exome Aggregation Consortium:
+# LOGGER.info("Retrieving allele frequencies from ExAC")
+# Exac_parsed = getExacAF(mapping["chr"],mapping["pos"],mapping["ref"],mapping["alt"])
+# LOGGER.info("Done\n")
 
-LOGGER.info("Creating regulatory dataframe")
-regulationDF = regulation2df(regulation)
+# # Regulated genes from GTEx
+# LOGGER.info("Retrieving genes regulated by the variant from the GTEx dataset")
+# GTEx_genes=parseGTEx(mapping["chr"],mapping["pos"],mapping["pos"],mapping["chr"]+"_"+str(mapping["pos"])+"_"+mapping["ref"]+"_"+mapping["alt"])
+# LOGGER.info("Got %d gene(s)\n" %(len(GTEx_genes)))
 
-LOGGER.info("Creating GWAS dataframe")
-gwasDF = gwas2df(gwas_hits)
+# # # Get population data from the UK10K
+# # print("[Info] Retrieving allele frequencies from UK10K data ... ",file=sys.stderr)
+# # ukData = get_UK10K_frequencies(variant_data)
+# # print("Done",file=sys.stderr)
 
-LOGGER.info("Creating VEP dataframe")
-vepDF = vepTranscript2df(VEP_data)
+# # Get regulatory features
+# LOGGER.info("Retrieving overlapping regulatory features")
+# regulation = getRegulation(mapping["chr"],mapping["pos"])
+# LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(regulation)))
 
-LOGGER.info("Creating populations dataframe")
-populationDF = population2df(variant_data["population_data"])
+# #-----------------------------------------------------------------------------------------------------------------------------
 
-LOGGER.info("Creating PubMed dataframe")
-pubmedDF = pubmed2df(pubmed_data)
+# # Creating dataframes
 
-LOGGER.info("Creating gene dataframe")
-geneDF = geneList2df(gene_list)
+# LOGGER.info("Creating variant dataframe")
+# variantDF = variant2df(variant_data)
 
-LOGGER.info("Creating ExAC dataframe")
-exacDF = exac2df(Exac_parsed)
+# LOGGER.info("Creating regulatory dataframe")
+# regulationDF = regulation2df(regulation)
 
-LOGGER.info("Creating GTEx dataframe")
-GTEx_genesDF = gtex2df(GTEx_genes)
-LOGGER.info("\n")
+# LOGGER.info("Creating GWAS dataframe")
+# gwasDF = gwas2df(gwas_hits)
+
+# LOGGER.info("Creating VEP dataframe")
+# vepDF = vepTranscript2df(VEP_data)
+
+# LOGGER.info("Creating populations dataframe")
+# populationDF = population2df(variant_data["population_data"])
+
+# LOGGER.info("Creating PubMed dataframe")
+# pubmedDF = pubmed2df(pubmed_data)
+
+# LOGGER.info("Creating gene dataframe")
+# geneDF = geneList2df(gene_list)
+
+# LOGGER.info("Creating ExAC dataframe")
+# exacDF = exac2df(Exac_parsed)
+
+# LOGGER.info("Creating GTEx dataframe")
+# GTEx_genesDF = gtex2df(GTEx_genes)
+# LOGGER.info("\n")
 
 # ----------------------------------------------------------------------------
 
@@ -198,7 +183,7 @@ LOGGER.info("Creating GTEx dataframe")
 gtexDF = gtex2df(gtex)
 
 LOGGER.info("Creating GWAS dataframe")
-gwas2df = geneGwas2df(gwas)
+gwasDF = geneGwas2df(gwas)
 
 LOGGER.info("Creating UniProt dataframe")
 uniprotDF = uniprot2df(uniprot)

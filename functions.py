@@ -568,7 +568,7 @@ def parseGTEx(chrom,start,end,ID):
     Output : dictionary with variant IDs (gene IDs) as keys and dictionaries with "tissue", "p-value", "beta", "SE", "dist" as values
     '''
     filename=config.GTEX_BED
-    query = "bash -O extglob -c \'tabix %s %s:%d-%d | fgrep -w %s\'" %(filename,chrom,start,end,ID)
+    query = "tabix %s %s:%d-%d | awk -v v=%s \'BEGIN{FS=\"\t\";}$4==v{print $0;}\'" %(filename,chrom,start,end,ID)
     output = subprocess.Popen(query.strip(),universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     D=dict()
     for line in output.stdout.readlines():
@@ -1326,7 +1326,7 @@ def getExacAF(chrom,pos,ref,alt):
         LOGGER.error("ExAC file %s not found" %(ExAC_file))
         return None
 
-    query="bash -O extglob -c \'tabix %s %s:%s-%s\'" %(ExAC_file,chrom,str(pos),str(pos))
+    query="tabix %s %s:%s-%s" %(ExAC_file,chrom,str(pos),str(pos))
     output=subprocess.Popen(query.strip(),shell=True,universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
     parsed=list()
@@ -1518,7 +1518,7 @@ def getRegulation(chrom,pos,window=2000):
 
     regulatoryFile = config.REGULATORY_FILE
     FNULL = open(os.devnull, 'w')
-    query="bash -O extglob -c \'intersectBed -wb -a <(echo -e \"%s\\t%s\\t%s\\n\") -b %s -sorted\'" % (chrom,start,end,regulatoryFile)
+    query="intersectBed -wb -a <(echo -e \"%s\\t%s\\t%s\\n\") -b %s -sorted" % (chrom,start,end,regulatoryFile)
     output=subprocess.Popen(query.strip(),shell=True,universal_newlines=True,stdout=subprocess.PIPE,stderr=FNULL)
 
     parsed=dict()
@@ -1736,18 +1736,11 @@ def goterms2df(xrefs):
 
     return df
 
+# ----------------------------------------------------------------------------------------------------------------------
+
 def generateHTML(templateFile, data):
-    # search path for template files:
     templateLoader = jinja2.FileSystemLoader(searchpath="/")
-
-    # An environment provides the data necessary to read and
     templateEnv = jinja2.Environment(loader=templateLoader)
-
-    # Read the template file using the environment object.
     template = templateEnv.get_template(templateFile)
-
-    # Finally, process the template to produce our final text.
-    outputText = template.render(data)
-
-    return outputText
+    return template.render(data)
 
