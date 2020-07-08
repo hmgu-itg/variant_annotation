@@ -195,15 +195,15 @@ D=dict()
 if len(infoDF):
     D["gene_table"]=infoDF.to_html(index=False,classes='utf8',table_id="common")
 if len(goDF):
-    D["go_data"]=goDF.to_html(index=False,classes='utf8',table_id="common")
+    D["go_table"]=goDF.to_html(index=False,classes='utf8',table_id="common")
 if len(uniprotDF):
-    D["Uniprot_data"]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
+    D["uniprot_table"]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
 if len(gwasDF):
-    D["GWAS"]=gwasDF.to_html(index=False,classes='utf8',table_id="common")
+    D["GWAS_table"]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
 if len(gtexDF):
-    D["GTExVariants"]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
+    D["gtexVariants_table"]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
 if len(mouseDF):
-    D["mouse_pheno"]=mouseDF.to_html(index=False,classes='utf8',table_id="common")
+    D["mouse_table"]=mouseDF.to_html(index=False,classes='utf8',table_id="common")
 
 # D = {"gene_table" : infoDF.to_html(index=False,classes='utf8',table_id="common"),
 #      "go_data": goDF.to_html(index=False,classes='utf8',table_id="common"),

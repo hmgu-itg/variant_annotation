@@ -15,6 +15,7 @@ div.general {
     margin: 10px 10px 30px 10px
 
 }
+
 div.Footer {
     color: navy;
     font-family: "Times New Roman", Times, serif;
@@ -25,6 +26,7 @@ div.Footer {
     text-align: right;
     display: block;
 }
+
 div.missing_data {
     color : #833F4E;
     font-size: 20px;
@@ -174,7 +176,6 @@ tr.table_header {
     font-weight: bold;
 }
 
-
 /* Styles for the mouse phenotype section */
 table.mouse_phenotype {
     margin-top: 10px;
@@ -212,7 +213,7 @@ function toggle() {
 
 <!-- Gene data. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>Gene details</h1>
-<div id="Gene" class="general" >General information:<br>
+<div id="gene" class="general" >General information:<br>
 
 {{ gene_table }}
 
@@ -220,49 +221,45 @@ function toggle() {
 </div>
 </div>
 
-<!-- GO annotation and the word cloud. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>Gene Onthology annotaion</h1>
-<div id="variation" class="general" >
+<div id="GO" class="general" >
 
-{{ go_data }}
+{{ go_table }}
 
 </div>
 </div>
 
-<!-- Annotation retrieved from Uniprot. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>Uniprot annotation</h1>
-<div id="variation" class="general" >
+<div id="uniprot" class="general" >
 
-{{ Uniprot_data }}
-
-</div>
-</div>
-
+{{ uniprot_table }}
 
 </div>
 </div>
 
-<!-- Annotation retrieved from OMIM. Table generated and inserted by Python script. -->
+
+</div>
+</div>
+
 <div id="General" class="big_box"><h1>OMIM annotation</h1>
-<div id="variation" class="general" >
+<div id="omim" class="general" >
 
-{{ OMIM_annot }}
+{{ OMIM_table }}
 
 </div>
 </div>
 
-<!-- Annotation retrieved from OMIM. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>GWAS associations</h1>
 <div id="GWAS" class="general" >
 
-{{ GWAS }}
+{{ GWAS_table }}
 
 </div>
 </div>
 
 <!-- Collection of gene expression data from various sources -->
 <div id="General" class="big_box"><h1>Gene expression</h1>
-<div id="GWAS" class="general" >
+<div id="expression" class="general" >
 
 {{ GXA_table }}
 
@@ -273,17 +270,17 @@ function toggle() {
 
 <!-- Collection of gene expression data from various sources -->
 <div id="General" class="big_box"><h1>Expressed quantitative trait loci</h1>
-<div id="GWAS" class="general">GTEx:<br>
+<div id="GTEx" class="general">GTEx:<br>
 
-{{ GTExVariants }}
+{{ gtexVariants_table }}
 
 </div>
 </div>
 
 <!-- Mouse phenotypes available on MGI -->
-<div id="General" class="big_box"><h1>Mouse models</h1>
+<div id="mouse" class="big_box"><h1>Mouse models</h1>
 
-{{ mouse_pheno }}
+{{ mouse_table }}
 
 </div>
 
