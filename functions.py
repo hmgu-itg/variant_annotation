@@ -1548,7 +1548,7 @@ def variant2df(var_data):
     df.loc["MAF"]=[var_data["MAF"]]
     df.loc["Consequence"]=[var_data["consequence"]]
     df.loc["Type"]=[var_data["class"]]
-    s=",".join(var_data["synonyms"])
+    s=", ".join(var_data["synonyms"])
     if len(var_data["synonyms"])>5:
         s=",".join(var_data["synonyms"][0:5])
         s=s+"... ("+str(len(var_data["synonyms"]))+" in total)"
