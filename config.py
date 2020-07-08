@@ -21,6 +21,9 @@ Usage:
 ##
 VERSION = "2.2.0"
 
+## batch size for POST queries
+BATCHSIZE=100
+
 ##
 ## Shared parameters
 ##

@@ -170,7 +170,7 @@ rsID=args.rs
 
 #--------------------------------------------------------------------------------------------------------------
 # LOGGER.info("XRefs")
-print(json.dumps(getGeneXrefs("ENSG00000185973"),indent=4,sort_keys=True))
+# print(json.dumps(getGeneXrefs("ENSG00000185973"),indent=4,sort_keys=True))
 # print(goterms2df(getGeneXrefs("ENSG00000185973")))
 #--------------------------------------------------------------------------------------------------------------
 
@@ -225,3 +225,7 @@ print(json.dumps(getGeneXrefs("ENSG00000185973"),indent=4,sort_keys=True))
 # print(json.dumps(data,indent=4,sort_keys=True))
 
 # print(regulation2df(data))
+
+#--------------------------------------------------------------------------------------------------------------
+
+print(json.dumps(getVariantInfo(rsID,build),indent=4,sort_keys=True))

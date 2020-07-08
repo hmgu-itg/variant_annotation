@@ -63,7 +63,7 @@ def makeRSPhenotypeQueryURL(build="38"):
 
 def makePhenoOverlapQueryURL(chrom,start,end,build="38"):
     ext="/overlap/region/human/"
-    return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_variants;content-type=application/json" %(chrom,start,end)
+    return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_variants" %(chrom,start,end)
 
 def makeRsPhenotypeQuery2URL(rs,build="38"):
     ext="/variation/human/"
@@ -254,11 +254,13 @@ def checkID(id):
     else:
         return False
 
+def chunks(L,n):
+    """Yield successive n-sized chunks from L"""
+    for i in range(0, len(L), n):
+        yield L[i:i + n]
 
 # for a given genomic region, return dataframe containing variants with phenotype annotations
 def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
-# 5Mb max !
-
     '''
     Input: chromosome, position, window (default: config.WINDOW), build (default: "38") 
 
@@ -277,6 +279,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
         return None
 
     variants=restQuery(makePhenoOverlapQueryURL(chrom,start,end,build=build),qtype="get")
+    #print(json.dumps(variants,indent=4,sort_keys=True))
 
     if not variants:
         return None
@@ -289,27 +292,25 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
     for var in variants:
         rsIDs.append(var["id"])
 
-    # Given rsIDs, get the phenotypes
-    r=restQuery(makeRSPhenotypeQueryURL(build=build),data=list2string(rsIDs),qtype="post")
-
-    # Check output:
-    if not r:
+    if len(rsIDs)==0: 
+        LOGGER.info("No variants with phenotypes were found in the region %s:%d-%d" %(chrom,start,end))
         return None
-
-    buildstr=""
-    if build != "38":
-        buildstr="grch"+build+"."
+    else:
+        LOGGER.info("%d variant(s) with phenotypes were found in the region %s:%d-%d" %(len(rsIDs),chrom,start,end))
 
     output=[]
-    for rsID in r:
-        for phenotype in r[rsID]["phenotypes"]:
-            output.append({"rsID": rsID,
-                    "consequence" : r[rsID]["most_severe_consequence"],
-                    "SNPID" : "%s:%s" %(r[rsID]["mappings"][0]["seq_region_name"],r[rsID]["mappings"][0]["start"]),
-                    "phenotype" : phenotype["trait"],
-                    "source" :phenotype["source"],
-                    "distance" : abs(pos - r[rsID]["mappings"][0]["start"])})
-
+    i=0
+    df = pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Distance"])
+    for L in chunks(rsIDs,config.BATCHSIZE):
+        r=restQuery(makeRSPhenotypeQueryURL(build=build),data=list2string(L),qtype="post")
+        if r:
+            for rsID in r:
+                for phenotype in r[rsID]["phenotypes"]:
+                    m=re.match(".*phenotype\s+not\s+specified.*",phenotype["trait"])
+                    if m:
+                        continue
+                    df.loc[i]=[rsID,r[rsID]["most_severe_consequence"].replace("_"," "),r[rsID]["mappings"][0]["seq_region_name"]+":"+str(r[rsID]["mappings"][0]["start"]),phenotype["trait"],phenotype["source"],str(abs(pos - int(r[rsID]["mappings"][0]["start"])))]
+                    i+=1
             # # TODO: check all possible sources
             # # Generate phenotype link based on source:
             # if phenotype["source"] == "ClinVar":
@@ -324,10 +325,6 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
             #     link = "http://"+buildstr+"ensembl.org/Homo_sapiens/Variation/Phenotype?db=core;v=CM106680;vdb=variation"
 
             # TODO: check key availability
-
-    # Create a dataframe:
-    df = pd.DataFrame(output)
-    #df.consequence = df.consequence.str.title().str.replace("_", " ")
 
     return df
 
@@ -375,7 +372,7 @@ def getVariantInfo(rs,build="38"):
             alt=h["alt"]
             p=h["pos"]
             c=h["chr"]
-            mappings.append({"chr":c,"pos":p,"ref":ref,"alt":alt})
+            mappings.append({"chr":c,"pos":p,"ref":ref,"alt":alt,"sift_score":"NA","sift_prediction":"NA","polyphen_score":"NA","polyphen_prediction":"NA"})
 
 #------------------ population data ----------------
 
@@ -503,7 +500,7 @@ def id2rs(varid,build="38"):
     if varid.startswith("rs"):
         return varid
 
-    m=re.match("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varid)
+    m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varid)
     chrom=m.group(1)
     pos=int(m.group(2))
     a1=m.group(3)
@@ -996,7 +993,7 @@ def getMouseID(human_ID,build="38"):
             #print(json.dumps(z,indent=4,sort_keys=True))
 
             d=""
-            m=re.match("(.*)\s+\[.*\]",z["description"])
+            m=re.search("(.*)\s+\[.*\]",z["description"])
             if m:
                 d=m.group(1)
             mouse_IDs[z["id"]] = [d,z["display_name"]]
@@ -1185,19 +1182,13 @@ def getVepData(mapping_data):
 
 # ------------------------------------------------------------------------------------------------------------------
 
-    if sift_score:
+    if sift_score is not None:
         mapping_data["sift_score"]=sift_score
         mapping_data["sift_prediction"]=sift_prediction
-    else:
-        mapping_data["sift_score"]="NA"
-        mapping_data["sift_prediction"]="NA"
         
-    if polyphen_score:
+    if polyphen_score is not None:
         mapping_data["polyphen_score"]=polyphen_score
         mapping_data["polyphen_prediction"]=polyphen_prediction
-    else:
-        mapping_data["polyphen_score"]="NA"
-        mapping_data["polyphen_prediction"]="NA"
         
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -1359,7 +1350,7 @@ def getExacAF(chrom,pos,ref,alt):
                         freq=float(count)/int(data[label2][0])
                     d["populations"][p]={"count":count,"frequency":freq}
                 parsed.append(d)
-
+    
     return parsed
 
 # ======================================================================================================================
@@ -1545,7 +1536,7 @@ def getRegulation(chrom,pos,window=2000):
 # TODO: add links like in the original version
 # TODO: gwava and gerp
 def variant2df(var_data):
-    df=pd.DataFrame(columns=["Data"])
+    df=pd.DataFrame(columns=["Value"])
     df.loc["ID"]=[var_data["rsID"]]
     for m in var_data["mappings"]:
         df.loc["Location"]=[getLocationString(m["chr"],m["pos"],m["ref"],m["alt"])]
@@ -1591,7 +1582,7 @@ def gwas2df(gwas_data):
 # ----------------------------------------------------------------------------------------------------------------------
 
 def vepTranscript2df(vep_data):
-    df=pd.DataFrame(columns=["Gene ID","Transcript ID","Impact","Consequence","Principar Isoform"])
+    df=pd.DataFrame(columns=["Gene ID","Transcript ID","Impact","Consequence","Isoform"])
     i=0
     for x in vep_data["transcript"]:
         df.loc[i]=[x["gene_id"],x["ID"],x["impact"],x["consequence"],x["principal"]]
@@ -1676,7 +1667,7 @@ def exac2df(exac_data):
                 else:
                     L.append("NA (NA)")
             else:
-                LOGGER.error("could not find allele %s" %(a))
+                LOGGER.error("Could not find allele %s" %(a))
 
         df.loc[i]=L
         i+=1

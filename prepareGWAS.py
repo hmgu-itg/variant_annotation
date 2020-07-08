@@ -31,7 +31,7 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
 
     if len(row["CHR_ID"])==0 or len(row["CHR_POS"])==0:
         if len(c)==1 and len(row["SNPS"])!=0:
-            m=re.match("(rs\d+)",row["SNPS"],re.I)
+            m=re.search("(rs\d+)",row["SNPS"],re.I)
             if m:
                 rs=m.group(1)
                 L=functions.rs2position(rs)
@@ -39,46 +39,46 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
                     for z in L:
                         print("%s\t%s\t%s\t%s\t%s\t%s" %(z["chr"],z["pos"],rs,row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
             else:
-                m=re.match("^snp(\d+)-(\d+)",row["SNPS"],re.I)
+                m=re.search("^snp(\d+)-(\d+)",row["SNPS"],re.I)
                 if m:
                     c=m.group(1)
                     p=m.group(2)
                     print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
                 else:
-                    m=re.match("^(chr)?(\d+):\s*(\d+)",row["SNPS"],re.I)
+                    m=re.search("^(chr)?(\d+):\s*(\d+)",row["SNPS"],re.I)
                     if m:
                         c=m.group(2)
                         p=m.group(3)
                         print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
                     else:
-                        m=re.match("^chr(\d+)[._](\d+)",row["SNPS"],re.I)
+                        m=re.search("^chr(\d+)[._](\d+)",row["SNPS"],re.I)
                         if m:
                             c=m.group(1)
                             p=m.group(2)
                             print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
                         else:
-                            m=re.match("^(\d{1,2})-(\d+)",row["SNPS"],re.I)
+                            m=re.search("^(\d{1,2})-(\d+)",row["SNPS"],re.I)
                             if m:
                                 c=m.group(1)
                                 p=m.group(2)
                                 print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
                             else:
-                                m=re.match("^([XY]):(\d+)",row["SNPS"],re.I)
+                                m=re.search("^([XY]):(\d+)",row["SNPS"],re.I)
                                 if m:
                                     c=m.group(1)
                                     p=m.group(2)
                                     print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
                                 else:
-                                    m=re.match("^del-(\d+):(\d+)",row["SNPS"],re.I)
+                                    m=re.search("^del-(\d+):(\d+)",row["SNPS"],re.I)
                                     if m:
                                         c=m.group(1)
                                         p=m.group(2)
                                         print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
     else:
         if len(a)==1 and len(b)==1 and len(c)==1:
-            m1=re.match("^(\w+)\s+x\s+(\w+)",row["CHR_ID"],re.I)
-            m2=re.match("^(\d+)\s+x\s+(\d+)",row["CHR_POS"],re.I)
-            m3=re.match("^(rs\d+)\s+x\s+(rs\d+)",row["SNPS"],re.I)
+            m1=re.search("^(\w+)\s+x\s+(\w+)",row["CHR_ID"],re.I)
+            m2=re.search("^(\d+)\s+x\s+(\d+)",row["CHR_POS"],re.I)
+            m3=re.search("^(rs\d+)\s+x\s+(rs\d+)",row["SNPS"],re.I)
             if not m1 and not m3:
                 print("%s\t%s\t%s\t%s\t%s\t%s" %(row["CHR_ID"],row["CHR_POS"],row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
             else:
@@ -98,7 +98,7 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
                             print("%s\t%s\t%s\t%s\t%s\t%s" %(z["chr"],z["pos"],rs,row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
         elif len(c)!=1:
             for v in c:
-                m=re.match("(rs\d+)",v,re.I)
+                m=re.search("(rs\d+)",v,re.I)
                 if m:
                     rs=m.group(1)
                     L=functions.rs2position(rs)

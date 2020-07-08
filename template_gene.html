@@ -16,84 +16,9 @@ div.general {
 
 }
 
-div.Footer {
-    color: navy;
-    font-family: "Times New Roman", Times, serif;
-    font-size: 12px;
-    width: 700px;
-    margin: 0 auto 1em;
-    padding-right: 20;
-    text-align: right;
-    display: block;
-}
-
-div.missing_data {
-    color : #833F4E;
-    font-size: 20px;
-    margin-left: 25px;
-    margin-bottom: 15px;
-}
-
-h1 {
-    background-color: #8b9bc1;
-    margin: 0;
-    padding: 4px 8px 2px 24px;
-
-    -webkit-border-radius: 8px 0 8px 0;
-    line-height: 1em;
-
-    display: block;
-    -webkit-margin-before: 0px;
-    -webkit-margin-after: 0px;
-    -webkit-margin-start: 0px;
-    -webkit-margin-end: 0px;
-
-    /* Setting fonts */
-    color: navy;
-    font-family: "Times New Roman", Times, serif;
-    font-size: 25px;
-    font-weight: bold;
-}
-
-th{ text-align: left; }
-
-#common {
-border-collapse: collapse;
-table-layout: fixed;
-width: 100%;
-column-width=auto;
-    /* Setting fonts */
-    color: black;
-    font-family: "Times New Roman", Times, serif;
-    font-size: 15px;
-
-    /* Setting up margins */
-/*
-    margin-top: 10px;
-    margin-left: 30px;
-    margin-bottom: 20px;
-*/
-
-}
-
-table.gene_general, table.gene_GXA_table {
-    border-collapse: collapse;
-    width: 600px;
-
-    /* Setting fonts */
-    color: black;
-    font-family: "Times New Roman", Times, serif;
-    font-size: 15px;
-
-    /* Setting up margins */
-    margin-top: 10px;
-    margin-left: 30px;
-    margin-bottom: 20px;
-}
-
 div.big_box {
     background-color: white;
-    width: 1200px;                       /* <-- changed */
+    width: 98%;
     border: 1px solid navy;
     display: block;
 
@@ -116,100 +41,55 @@ div.big_box {
     font-family: "Times New Roman", Times, serif;
     font-size: 20px;
 }
-td.gene_cat {
-    /* Setting fonts */
+
+h1 {
+    background-color: #8b9bc1;
+    margin: 0;
+    padding: 4px 8px 2px 24px;
+
+    -webkit-border-radius: 8px 0 8px 0;
+    line-height: 1em;
+
+    display: block;
+    -webkit-margin-before: 0px;
+    -webkit-margin-after: 0px;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+
+    color: navy;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 25px;
     font-weight: bold;
-    vertical-align: top;
-
-
-    /* Setting up margins */
-    padding-top: 5px;
-
-    /* Setting up column with: */
-    width: 30%;
 }
 
-div.full_GO {
+th{ text-align: left; }
+
+#common {
+border-collapse: collapse;
+width: 100%;
+column-width=auto;
+    color: black;
     font-family: "Times New Roman", Times, serif;
     font-size: 15px;
-    margin: 10px 10px 10px 10px;
-    text-align: justify;
-    text-justify: inter-word;
-}
-
-div.UnipCategory, div.OMIM_cat {
-    margin: 10px 2px 0 20px;
-    font-weight: bold;
-    font-size: 20px;
-}
-div.UnipDescription, div.OMIM_desc {
-    width: 600px;
-    margin: 2px 5px 0 30px;
-    font-size: 18px;
-    color: black;
-    text-align: justify;
-}
-div.Uniprot_entry, div.OMIM {
-    margin: 10px 10px 0px 10px;
-}
-table.gene_GWAS_table{
-    border-collapse: collapse;
-    width: 680px;
-
-    /* Setting fonts */
-    color: black;
-    font-family: "Times New Roman", Times, serif;
-    font-size: 13px;
-
-    /* Setting up margins */
-    margin-top: 10px;
-    margin-left: 10px;
-    margin-bottom: 20px;
-}
-table.gene_GXA_table {
-    width: 350px;
-    margin-left: 80px;
-    font-size: 18px;
-}
-tr.table_header {
-    /* Setting fonts */
-    font-weight: bold;
-}
-
-/* Styles for the mouse phenotype section */
-table.mouse_phenotype {
-    margin-top: 10px;
-    margin-left: 30px;
-    margin-bottom: 20px;
-
-    width: 1000px;
-    font-size: 12px;
-}
-div.mouse_gene {
-    padding-top: 20px;
-    padding-left: 20px;
-}
-tr.mouse_pheno_header {
-    font-weight: bold;
-    background-color: #B4D4F5
 }
 </style>
 
-<script  language="javascript" type="text/javascript">
-// This function shows and hides certain elements on the page:
-function toggle() {
-  var target = event.target || event.srcElement;
-	if (target.lastElementChild.style.display == 'block'){
-		target.lastElementChild.style.display = 'none'
-	}
-	else {
-    target.lastElementChild.style.display = 'block'
-	}
-}
-</script>
+<!-- <script  language="javascript" type="text/javascript"> -->
+<!-- // This function shows and hides certain elements on the page: -->
+<!-- function toggle() { -->
+<!--   var target = event.target || event.srcElement; -->
+<!-- 	if (target.lastElementChild.style.display == 'block'){ -->
+<!-- 		target.lastElementChild.style.display = 'none' -->
+<!-- 	} -->
+<!-- 	else { -->
+<!--     target.lastElementChild.style.display = 'block' -->
+<!-- 	} -->
+<!-- } -->
+<!-- </script> -->
 
 </head>
-    <body bgcolor="#E6E6FA" class=body>
+
+<body bgcolor="#E6E6FA" class=body>
 
 <!-- Gene data. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>Gene details</h1>

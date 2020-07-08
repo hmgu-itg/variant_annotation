@@ -2,8 +2,18 @@
 <html>
 <head>
 
-<!-- Styles are defined for each object of the page-->
 <style>
+
+th{ text-align: left; }
+
+#common {
+border-collapse: collapse;
+width: 100%;
+column-width=auto;
+    color: black;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 15px;
+}
 
 div.general {
     /* Setting fonts */
@@ -60,7 +70,7 @@ h1 {
     font-weight: bold;
 }
 
-table.variation {
+table.variant {
     border-collapse: collapse;
 
     /* Setting fonts */
@@ -102,7 +112,7 @@ table.gene_list {width:650px; margin-left:10px}
 
 div.big_box {
     background-color: white;
-    width: 700px;
+    width: 98%;
     border: 1px solid navy;
     display: block;
 
@@ -194,89 +204,66 @@ function toggle() {
 </head>
     <body bgcolor="#E6E6FA" class=body>
 
-<!-- Variation data. Table generated and inserted by Python script. -->
+<!-- Variant data. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>Variant details</h1>
-<div id="variation" class="general" >General information:<br>
-
-{{ variation_table }}
-
-
+<div id="variant" class="general" >General information:<br>
+{{ variant_table }}
 </div>
 </div>
 
 <!-- All variants that has phenotype annotations around the variant, default window is used -->
-<div id="General" class="big_box"><h1>Variants with phenotypes</h1>
-<div id="variation" class="general" >The following variants has phenotype annotations within 500kbp:<br>
-
-{{ phenotypes }}
-
-</div>
+<div id="General" class="big_box"><h1>Nearby variants associated with phenotypes</h1>
+{{ phenotype_table }}
 </div>
 
-<!-- GWAS hits around our variation. Table generated and inserted by Python script. -->
-<div id="General" class="big_box"><h1>GWAS signals</h1>
-<div id="variation" class="general" >GWAS signals within 500kbp of the variant:<br>
-
+<!-- GWAS hits around our variant. Table generated and inserted by Python script. -->
+<div id="General" class="big_box"><h1>Nearby GWAS signals</h1>
 {{ gwas_table }}
-
-</div>
 </div>
 
 <!-- Various consequences dependeing on the overlapping feature. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>Predicted consequences</h1>
-<div id="variation" class="general" >
-
-{{ consequence_table }}
-
+<div id="variant" class="general" >
+{{ vep_table }}
 </div>
 </div>
 
 <!-- Allele frequencies. Table generated and inserted by Python script. -->
-<div id="General" class="big_box"><h1>Allele frequencies</h1>
-
-{{ Genomes_freq }}
-
-{{ ExAC_freq }}
-
-{{ UK10K_freq }}
-
+<div id="General" class="big_box"><h1>1kG allele frequencies</h1>
+{{ population_table }}
 </div>
+
+<div id="General" class="big_box"><h1>ExAC allele frequencies</h1>
+{{ exac_table }}
+<!-- {{ UK10K_freq }} -->
 </div>
 
 <!-- List of overlapping regulatory features. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>Regulation</h1>
-<div id="variation" class="general" >Within the 2kbp distance of the variation, the following regualtory elements were found:<br>
-
-{{ regulation }}
-
-</div>
+<!-- <div id="variant" class="general" >Within the 2kbp distance of the variant, the following regualtory elements were found:<br> -->
+{{ regulation_table }}
+<!-- </div> -->
 </div>
 
 <!-- List of overlapping regulatory features. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>Expressed Quantitative Trait Locus</h1>
-<div id="variation" class="general" >GTEx:<br>
-
-{{ GTExGenes }}
-
-</div>
+<!-- <div id="variant" class="general" >GTEx:<br> -->
+{{ gtex_gene_table }}
+<!-- </div> -->
 </div>
 
 <!-- List of gnes within 1Mbp. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>Nearby genes</h1>
-<div id="variation" class="general" >List of genes within 500kbp aroud the variation:<br>
-
-{{ genes }}
-
-</div>
+<!-- <div id="variant" class="general" >List of genes within 500kbp around the variant:<br> -->
+{{ gene_table }}
+<!-- </div> -->
 </div>
 
 <!-- List of pubmed entries, with links. Table generated and inserted by Python script. -->
 <div id="General" class="big_box"><h1>Pubmed entries</h1>
-<div id="1000_genomes" class="general" >List of publications where the variation was mentioned:<br>
-
-{{ pubmed }}
-
-</div>
+<!-- <div id="1000_genomes" class="general" >List of publications where the variant was mentioned:<br> -->
+{{ pubmed_table }}
+<!-- </div> -->
 </div>
 
 <!--The footer will also be generated based on the script version and date-->
