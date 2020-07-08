@@ -156,8 +156,6 @@ filename = VAR_ID+".html"
 
 gene_ID="ENSG00000002933"
 
-LOGGER.info("Working with gene %s\n" % gene_ID)
-
 LOGGER.info("Retreiving general information")
 info = getGeneInfo(gene_ID,build=build)
 
@@ -181,7 +179,8 @@ infoDF = geneInfo2df(info)
 
 LOGGER.info("Creating GTEx dataframe")
 gtexDF = gtex2df(gtex)
-#gtexDF.style.set_properties(**{'text-align': 'left'}).set_table_styles([ dict(selector='th', props=[('text-align', 'left')] ) ])
+#s=gtexDF.style.set_table_attributes('id="common"')
+#print(s.render())
 
 LOGGER.info("Creating GWAS dataframe")
 gwasDF = geneGwas2df(gwas)
@@ -192,12 +191,26 @@ uniprotDF = uniprot2df(uniprot)
 LOGGER.info("Creating GO terms dataframe")
 goDF = goterms2df(xrefs)
 
-D = {"gene_table" : infoDF.to_html(index=False,classes='utf8',table_id="common"),
-     "go_data": goDF.to_html(index=False,classes='utf8',table_id="common"),
-     "Uniprot_data" : uniprotDF.to_html(index=False,classes='utf8',table_id="common"),
-     "GWAS" : gwasDF.to_html(index=False,classes='utf8',table_id="common"),
-     "GTExVariants" : gtexDF.to_html(index=False,classes='utf8',table_id="common"),
-     "mouse_pheno" : mouseDF.to_html(index=False,classes='utf8',table_id="common")}
+D=dict()
+if len(infoDF):
+    D["gene_table"]=infoDF.to_html(index=False,classes='utf8',table_id="common")
+if len(goDF):
+    D["go_data"]=goDF.to_html(index=False,classes='utf8',table_id="common")
+if len(uniprotDF):
+    D["Uniprot_data"]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
+if len(gwasDF):
+    D["GWAS"]=gwasDF.to_html(index=False,classes='utf8',table_id="common")
+if len(gtexDF):
+    D["GTExVariants"]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
+if len(mouseDF):
+    D["mouse_pheno"]=mouseDF.to_html(index=False,classes='utf8',table_id="common")
+
+# D = {"gene_table" : infoDF.to_html(index=False,classes='utf8',table_id="common"),
+#      "go_data": goDF.to_html(index=False,classes='utf8',table_id="common"),
+#      "Uniprot_data" : uniprotDF.to_html(index=False,classes='utf8',table_id="common"),
+#      "GWAS" : gwasDF.to_html(index=False,classes='utf8',table_id="common"),
+#      "GTExVariants" : gtexDF.to_html(index=False,classes='utf8',table_id="common"),
+#      "mouse_pheno" : mouseDF.to_html(index=False,classes='utf8',table_id="common")}
 
 html = generateHTML(config.GENE_TEMPLATE,D)
 filename = "./%s.html" % gene_ID
