@@ -138,7 +138,8 @@ LOGGER.info("Creating populations dataframe")
 populationDF = population2df(variant_data["population_data"])
 
 LOGGER.info("Creating PubMed dataframe")
-pubmedDF = pubmed2df(pubmed_data)
+#pubmedDF = pubmed2df(pubmed_data)
+pubmedDF = getPubmedDF(VAR_ID,variant_data["synonyms"])
 
 LOGGER.info("Creating gene dataframe")
 geneDF = geneList2df(gene_list)
@@ -166,7 +167,7 @@ if len(vepDF):
 if len(populationDF):
     D["population_table"]=populationDF.to_html(index=False,classes='utf8',table_id="common")
 if len(pubmedDF):
-    D["pubmed_table"]=pubmedDF.to_html(index=False,classes='utf8',table_id="common")
+    D["pubmed_table"]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
 if phenotypeDF is not None and len(phenotypeDF):
     D["phenotype_table"]=phenotypeDF.to_html(index=False,classes='utf8',table_id="common")
 if len(geneDF):

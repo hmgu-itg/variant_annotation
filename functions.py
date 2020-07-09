@@ -1216,6 +1216,28 @@ def getVepData(mapping_data):
 
 # ======================================================= PUBMED ===========================================================
 
+# searches for publications conatining given rsID and its synonyms, returns merged dataframe
+def getPubmedDF(rsID, synonyms):
+    '''
+    Searches for publications conatining given rsID and its synonyms, returns merged dataframe
+    Input: rsID, list of synonyms
+    Output: dataframe with columns "firstAuthor", "journal", "year", "URL", "title"
+
+    '''
+
+    LOGGER.debug("Creating DF for %s" % rsID)
+    df=pubmed2df(getPubmed(rsID))
+    if len(synonyms)==0:
+        return df
+    else:
+        for v in synonyms:
+            LOGGER.debug("Creating DF for %s" % v)
+            df2=pubmed2df(getPubmed(v))
+            LOGGER.debug("Merging")
+            df=pd.concat([df,df2]).drop_duplicates().reset_index(drop=True)
+
+    return df
+
 # TODO: wrap request
 def getPubmed(rsID):
     '''
@@ -1630,7 +1652,7 @@ def pubmed2df(pubmed_data):
     i=0
     for x in pubmed_data:
         d=pubmed_data[x]
-        df.loc[i]=[d["firstAuthor"],d["journal"],d["year"],"<a href='https://"+d["URL"]+"'>Link</a>",d["title"]]
+        df.loc[i]=[d["firstAuthor"],d["journal"],d["year"],"<a href='"+d["URL"]+"'>Link</a>",d["title"]]
         i+=1
 
     return df
