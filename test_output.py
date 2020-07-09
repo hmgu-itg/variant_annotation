@@ -88,19 +88,13 @@ gwas_hits.extend(getGwasHits(mapping["chr"],mapping["pos"]))
 LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
 #print(gwas_hits)
 
-LOGGER.info("Retreiving consequences for all overlapping transcripts")
-# for m in variant_data["mappings"]:
-#     VEP_data[m["chr"]+"_"+str(m["pos"])+"_"+m["ref"]+"_"+m["alt"]]=getVepData(m)
-VEP_data=getVepData(mapping)
-#print(json.dumps(VEP_data,indent=4,sort_keys=True))
-#print(mapping)
-LOGGER.info("Done\n")
+# LOGGER.info("Retreiving consequences for all overlapping transcripts")
+# VEP_data=getVepData(mapping)
+# LOGGER.info("Done\n")
 
-LOGGER.info("Retrieving list of publications from PUBMED")
-# TODO: also run for synonyms
-# TODO: VAR_ID can be chr_pos_ref_alt
-pubmed_data=getPubmed(VAR_ID)
-LOGGER.info("Got %d PMID(s)\n" %(len(pubmed_data)))
+# LOGGER.info("Retrieving list of publications from PUBMED")
+# pubmed_data=getPubmed(VAR_ID)
+# LOGGER.info("Got %d PMID(s)\n" %(len(pubmed_data)))
 
 # Return phenotypes:
 LOGGER.info("Retreiving nearby variants with phenotype annotation")
@@ -146,7 +140,9 @@ LOGGER.info("Creating GWAS dataframe")
 gwasDF = gwas2df(gwas_hits)
 
 LOGGER.info("Creating VEP dataframe")
-vepDF = vepTranscript2df(VEP_data)
+#vepDF = vepTranscript2df(VEP_data)
+vep = getVepDF(variant_data["mappings"])
+vepDF=vep["transcript"]
 
 LOGGER.info("Creating populations dataframe")
 populationDF = population2df(variant_data["population_data"])

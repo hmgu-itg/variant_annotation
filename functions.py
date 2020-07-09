@@ -1106,11 +1106,35 @@ def getApprisInfo(gene_ID):
 
 # ======================================================= VEP ===========================================================
 
-# Retiveing data from the variant effect predictor server
-# modifies variant_data by adding SIFT/PolyPhen scores and predictions
+def getVepDF(mappings):
+    '''
+    For a given list of variant mappings (containing chr/pos/ref/alt information), 
+    return a merged dataframe
+    
+    Input  : list of mappings
+    Output : dictionary ("regulatory": regulatory DataFrame,"transcript": transcript DataFrame)
+    '''
+
+    LOGGER.debug("Input: %d mappings" %  len(mappings))
+
+    output=dict()
+    tr_data=pd.DataFrame(columns=["Gene ID","Transcript ID","Impact","Consequence","Isoform"])
+    reg_data=pd.DataFrame(columns=["Biotype","Regulatory feature ID","Impact","Consequence"])
+    for m in mappings:
+        data=getVepData(m)
+        tr_data=pd.concat([tr_data,vepTranscript2df(data)]).drop_duplicates().reset_index(drop=True)
+        reg_data=pd.concat([reg_data,vepRegulatory2df(data)]).drop_duplicates().reset_index(drop=True)
+        
+    output["transcript"]=tr_data
+    output["regulatory"]=reg_data
+    
+    return output
+
+# Retrives data from the variant effect predictor server
+# Modifies uinput mapping_data by adding SIFT/PolyPhen scores and predictions, if available
 def getVepData(mapping_data):
     '''
-    This function returns the predicted effect based on chromosome, position and the alternate allele.
+    This function returns variant's predicted effect based on chromosome, position and the alternate allele.
 
     Input: variant data, a dictionary with chr, pos, ref, alt
 
@@ -1621,7 +1645,7 @@ def vepTranscript2df(vep_data):
 def vepRegulatory2df(vep_data):
     df=pd.DataFrame(columns=["Biotype","Regulatory feature ID","Impact","Consequence"])
     i=0
-    for x in vep_data["transcript"]:
+    for x in vep_data["regulatory"]:
         df.loc[i]=[x["biotype"],x["ID"],x["impact"],",".join(x["consequence"])]
         i+=1
 
