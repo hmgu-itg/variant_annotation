@@ -1216,10 +1216,10 @@ def getVepData(mapping_data):
 
 # ======================================================= PUBMED ===========================================================
 
-# searches for publications conatining given rsID and its synonyms, returns merged dataframe
+# searches for publications containing given rsID and its synonyms, returns merged dataframe
 def getPubmedDF(rsID, synonyms):
     '''
-    Searches for publications conatining given rsID and its synonyms, returns merged dataframe
+    Searches for publications containing given rsID and its synonyms, returns merged dataframe
     Input: rsID, list of synonyms
     Output: dataframe with columns "firstAuthor", "journal", "year", "URL", "title"
 
