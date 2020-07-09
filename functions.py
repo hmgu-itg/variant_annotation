@@ -1109,7 +1109,7 @@ def getApprisInfo(gene_ID):
 def getVepDF(mappings):
     '''
     For a given list of variant mappings (containing chr/pos/ref/alt information), 
-    return a merged dataframe
+    return two merged dataframes
     
     Input  : list of mappings
     Output : dictionary ("regulatory": regulatory DataFrame,"transcript": transcript DataFrame)
@@ -1262,7 +1262,6 @@ def getPubmedDF(rsID, synonyms):
 
     return df
 
-# TODO: wrap request
 def getPubmed(rsID):
     '''
     This function returns a list of PMIDs of those publications where the given rsID was mentioned
@@ -1271,12 +1270,10 @@ def getPubmed(rsID):
     Input  : rsID
     Output : dictionary with PMID as keys and dictionaries {"firstAuthor", "title", "journal", "year", "URL"} as values
     '''
-    r=requests.get(config.PUBMED_URL_VAR % (rsID))
-    decoded=r.json()
+    decoded=restQuery(config.PUBMED_URL_VAR % (rsID))
     #json.dumps(decoded,indent=4,sort_keys=True)
     pubmed_IDs=decoded["esearchresult"]["idlist"]
 
-    # Before we return the list, let's return all the titles for all articles:
     publication_data = {}
     for ID in pubmed_IDs:
         r=requests.get(config.PUBMED_URL_PMID % (ID))
