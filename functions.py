@@ -1629,7 +1629,8 @@ def pubmed2df(pubmed_data):
     df=pd.DataFrame(columns=["First author","Journal","Year","URL","Title"])
     i=0
     for x in pubmed_data:
-        df.loc[i]=[x["firstAuthor"],x["journal"],x["year"],x["URL"],x["title"]]
+        d=pubmed_data[x]
+        df.loc[i]=[d["firstAuthor"],d["journal"],d["year"],"<a href='https://"+d["URL"]+"'>Link</a>",d["title"]]
         i+=1
 
     return df
