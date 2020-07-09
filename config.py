@@ -34,8 +34,8 @@ WINDOW      = 500000
 ##
 ## Templates:
 ##
-GENE_TEMPLATE   = '/home/andrei/variant_annotation/template_gene.html'
-VAR_TEMPLATE    = '/home/andrei/variant_annotation/template_var.html'
+GENE_TEMPLATE   = '/home/andrei/variant_annotation/templates/template_gene.html'
+VAR_TEMPLATE    = '/home/andrei/variant_annotation/templates/template_var.html'
 
 ##
 ## Parameters for genes:
@@ -153,3 +153,8 @@ PopulationNames = {
 #     "promoter_flanking_region":"",
 #     "TF_binding_site":""
 # }
+
+GXA_FILES={
+"GTEx":"/home/andrei/GXA/E-MTAB-5214-query-results.tpms.tsv",
+"Fantom":"/home/andrei/GXA/E-MTAB-3358-query-results.tpms.tsv"
+}

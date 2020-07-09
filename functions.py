@@ -571,7 +571,7 @@ def gtex2df(gtex_data):
 def getGTExDF(mappings):
     '''
     For a given list of variant mappings (containing chr/pos/ref/alt information), 
-    return two merged dataframes
+    return a merged dataframe
     
     Input  : list of mappings
     Output : dataframe with columns: "Tissue","P-value","Beta (SE)","ID","Distance from TSS"
@@ -1371,7 +1371,59 @@ def getGeneList(chrom,pos,window=1000000,build="38"):
 
     return gene_list
 
-# ======================================================================================================================
+# ==================================================== ExAC ============================================================
+
+def getExacDF(mappings):
+    '''
+    For a given list of variant mappings (containing chr/pos/ref/alt information), 
+    return a merged dataframe
+    
+    Input  : list of mappings
+    Output : dataframe with allele columns
+    '''
+
+    LOGGER.debug("Input: %d mappings" %  len(mappings))
+    df=pd.DataFrame(columns=["Population"])
+    columns_set=False
+
+    for m in mappings:
+        x=exac2df(getExacAF(m["chr"],m["pos"],m["ref"],m["alt"]))
+        df=pd.concat([df,x]).drop_duplicates().reset_index(drop=True)
+
+    return df
+
+
+def exac2df(exac_data):
+    L=["Population"]
+    L1=[]
+    for x in exac_data:
+        L1.append(x["allele"])
+    L1.sort()
+    for a in L1:
+        L.append(a)
+
+    df=pd.DataFrame(columns=L)
+    ExAC_pops = ['NFE','FIN','AFR','AMR','EAS','SAS','OTH','ALL']
+    i=0
+    for p in ExAC_pops:
+        L=[p]
+        for a in L1:
+            x=next((z for z in exac_data if z["allele"]==a),None)
+            if x:
+                if p in x["populations"]:
+                    c=x["populations"][p]["count"]
+                    f=x["populations"][p]["frequency"]
+                    L.append("%s (%s)" %(str(c),str(round(f,4))))
+                else:
+                    L.append("NA (NA)")
+            else:
+                LOGGER.error("Could not find allele %s" %(a))
+
+        df.loc[i]=L
+        i+=1
+
+    return df
+
 
 # Extract Exome Aggregation Consortium (ExAC) allele frequencies
 def getExacAF(chrom,pos,ref,alt):
@@ -1396,7 +1448,7 @@ def getExacAF(chrom,pos,ref,alt):
     for line in output.stdout.readlines():
         fields=line.strip().split("\t")
         alts = fields[4].split(",")
-        if (fields[0]==chrom and int(fields[1])==pos and fields[3]==ref and alt in alts):
+        if (fields[0]==chrom and int(fields[1])==pos and ref in fields[3].split(",") and alt in alts):
             data=dict()
             for x in fields[7].split(";"):
                 try:
@@ -1714,39 +1766,6 @@ def geneList2df(gene_data):
     i=0
     for x in gene_data:
         df.loc[i]=[x["name"],x["ID"],x["biotype"],x["distance"],x["orientation"]]
-        i+=1
-
-    return df
-
-# ----------------------------------------------------------------------------------------------------------------------
-
-def exac2df(exac_data):
-    L=["Population"]
-    L1=[]
-    for x in exac_data:
-        L1.append(x["allele"])
-    L1.sort()
-    for a in L1:
-        L.append(a)
-
-    df=pd.DataFrame(columns=L)
-    ExAC_pops = ['NFE','FIN','AFR','AMR','EAS','SAS','OTH','ALL']
-    i=0
-    for p in ExAC_pops:
-        L=[p]
-        for a in L1:
-            x=next((z for z in exac_data if z["allele"]==a),None)
-            if x:
-                if p in x["populations"]:
-                    c=x["populations"][p]["count"]
-                    f=x["populations"][p]["frequency"]
-                    L.append("%s (%s)" %(str(c),str(round(f,4))))
-                else:
-                    L.append("NA (NA)")
-            else:
-                LOGGER.error("Could not find allele %s" %(a))
-
-        df.loc[i]=L
         i+=1
 
     return df

@@ -68,7 +68,7 @@ for m in variant_data["mappings"]:
     if t not in mappings:
         mappings.add(t)
 LOGGER.info("Found %d mapping(s)\n" %(len(mappings)))
-#print(json.dumps(variant_data,indent=4,sort_keys=True))
+print(json.dumps(variant_data,indent=4,sort_keys=True))
 
 # there can be several chr:pos mappings
 # for each chr:pos mapping there can be several ref:alt pairs
@@ -107,9 +107,9 @@ gene_list=getGeneList(mapping["chr"],mapping["pos"],build=build)
 LOGGER.info("Got %d genes\n" %(len(gene_list)))
 
 # Get population data from the Exome Aggregation Consortium:
-LOGGER.info("Retrieving allele frequencies from ExAC")
-Exac_parsed = getExacAF(mapping["chr"],mapping["pos"],mapping["ref"],mapping["alt"])
-LOGGER.info("Done\n")
+# LOGGER.info("Retrieving allele frequencies from ExAC")
+# Exac_parsed = getExacAF(mapping["chr"],mapping["pos"],mapping["ref"],mapping["alt"])
+# LOGGER.info("Done\n")
 
 # Regulated genes from GTEx
 # LOGGER.info("Retrieving genes regulated by the variant from the GTEx dataset")
@@ -155,7 +155,8 @@ LOGGER.info("Creating gene dataframe")
 geneDF = geneList2df(gene_list)
 
 LOGGER.info("Creating ExAC dataframe")
-exacDF = exac2df(Exac_parsed)
+#exacDF = exac2df(Exac_parsed)
+exacDF = getExacDF(variant_data["mappings"])
 
 LOGGER.info("Creating GTEx dataframe")
 #GTEx_genesDF = gtex2df(GTEx_genes)
