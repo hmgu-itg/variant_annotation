@@ -1388,7 +1388,7 @@ def getExacDF(mappings):
 
     for m in mappings:
         x=exac2df(getExacAF(m["chr"],m["pos"],m["ref"],m["alt"]))
-        df=pd.concat([df,x]).drop_duplicates().reset_index(drop=True)
+        df=pd.concat([df,x]).drop_duplicates().reset_index(drop=True).fillna("0 (0)")
 
     return df
 
