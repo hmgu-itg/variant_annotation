@@ -558,6 +558,33 @@ def id2rs(varid,build="38"):
 
 # ===================================================== GTEx RELATED STUFF ============================================
 
+def gtex2df(gtex_data):
+    df=pd.DataFrame(columns=["Tissue","P-value","Beta (SE)","ID","Distance from TSS"])
+    i=0
+    for x in gtex_data:
+        for z in gtex_data[x]:
+            df.loc[i]=[z["tissue"],z["p-value"],z["beta"]+" ("+z["SE"]+")",x,z["dist"]]
+            i+=1
+
+    return df
+
+def getGTExDF(mappings):
+    '''
+    For a given list of variant mappings (containing chr/pos/ref/alt information), 
+    return two merged dataframes
+    
+    Input  : list of mappings
+    Output : dataframe with columns: "Tissue","P-value","Beta (SE)","ID","Distance from TSS"
+    '''
+
+    LOGGER.debug("Input: %d mappings" %  len(mappings))
+    df=pd.DataFrame(columns=["Tissue","P-value","Beta (SE)","ID","Distance from TSS"])
+
+    for m in mappings:
+        df=pd.concat([df,gtex2df(parseGTEx(m["chr"],m["pos"],m["pos"],m["chr"]+"_"+str(m["pos"])+"_"+m["ref"]+"_"+m["alt"]))]).drop_duplicates().reset_index(drop=True)
+
+    return df
+
 # given gene ID (variant ID), retreive all variant (gene) data associated with the gene (variant): tissue, p-value
 def parseGTEx(chrom,start,end,ID):
     '''
@@ -660,7 +687,6 @@ def getGwasHits(chrom,pos,window=500000):
     Retrives a list of all gwas signals within a window around a given position
 
     Input: chromosome, position, window size (default: 500000)
-
     Output: [ {"rsID","SNPID","trait","p-value","PMID","distance"}]
     '''
 
@@ -1268,13 +1294,16 @@ def getPubmed(rsID):
     Up to 1000 IDs are returned
 
     Input  : rsID
-    Output : dictionary with PMID as keys and dictionaries {"firstAuthor", "title", "journal", "year", "URL"} as values
+    Output : dictionary with PMIDs as keys and dictionaries {"firstAuthor", "title", "journal", "year", "URL"} as values
     '''
     decoded=restQuery(config.PUBMED_URL_VAR % (rsID))
     #json.dumps(decoded,indent=4,sort_keys=True)
+    publication_data = {}
+    if decoded is None:
+        return publication_data
+
     pubmed_IDs=decoded["esearchresult"]["idlist"]
 
-    publication_data = {}
     for ID in pubmed_IDs:
         r=requests.get(config.PUBMED_URL_PMID % (ID))
         decoded=r.json()
@@ -1719,18 +1748,6 @@ def exac2df(exac_data):
 
         df.loc[i]=L
         i+=1
-
-    return df
-
-# ----------------------------------------------------------------------------------------------------------------------
-
-def gtex2df(gtex_data):
-    df=pd.DataFrame(columns=["Tissue","P-value","Beta (SE)","ID","Distance from TSS"])
-    i=0
-    for x in gtex_data:
-        for z in gtex_data[x]:
-            df.loc[i]=[z["tissue"],z["p-value"],z["beta"]+" ("+z["SE"]+")",x,z["dist"]]
-            i+=1
 
     return df
 

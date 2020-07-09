@@ -112,9 +112,9 @@ Exac_parsed = getExacAF(mapping["chr"],mapping["pos"],mapping["ref"],mapping["al
 LOGGER.info("Done\n")
 
 # Regulated genes from GTEx
-LOGGER.info("Retrieving genes regulated by the variant from the GTEx dataset")
-GTEx_genes=parseGTEx(mapping["chr"],mapping["pos"],mapping["pos"],mapping["chr"]+"_"+str(mapping["pos"])+"_"+mapping["ref"]+"_"+mapping["alt"])
-LOGGER.info("Got %d gene(s)\n" %(len(GTEx_genes)))
+# LOGGER.info("Retrieving genes regulated by the variant from the GTEx dataset")
+# GTEx_genes=parseGTEx(mapping["chr"],mapping["pos"],mapping["pos"],mapping["chr"]+"_"+str(mapping["pos"])+"_"+mapping["ref"]+"_"+mapping["alt"])
+# LOGGER.info("Got %d gene(s)\n" %(len(GTEx_genes)))
 
 # # Get population data from the UK10K
 # print("[Info] Retrieving allele frequencies from UK10K data ... ",file=sys.stderr)
@@ -158,7 +158,8 @@ LOGGER.info("Creating ExAC dataframe")
 exacDF = exac2df(Exac_parsed)
 
 LOGGER.info("Creating GTEx dataframe")
-GTEx_genesDF = gtex2df(GTEx_genes)
+#GTEx_genesDF = gtex2df(GTEx_genes)
+GTEx_genesDF = getGTExDF(variant_data["mappings"])
 
 # ----------------------------------------------------------------------------
 
