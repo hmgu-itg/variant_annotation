@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 
-import requests, sys
 import datetime
 import argparse
-import jinja2
-from functions import *
 import logging
+
+import config
+
+from variant import *
+from gene import *
+from regulation import *
+from gwas import *
+from gtex import *
+from vep import *
+from exac import *
+from pubmed import *
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -68,7 +76,7 @@ for m in variant_data["mappings"]:
     if t not in mappings:
         mappings.add(t)
 LOGGER.info("Found %d mapping(s)\n" %(len(mappings)))
-print(json.dumps(variant_data,indent=4,sort_keys=True))
+#print(json.dumps(variant_data,indent=4,sort_keys=True))
 
 # there can be several chr:pos mappings
 # for each chr:pos mapping there can be several ref:alt pairs
