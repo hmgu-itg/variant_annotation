@@ -57,6 +57,14 @@ formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
+logging.getLogger("variant").setLevel(verbosity)
+logging.getLogger("gene").setLevel(verbosity)
+logging.getLogger("regulation").setLevel(verbosity)
+logging.getLogger("gwas").setLevel(verbosity)
+logging.getLogger("gtex").setLevel(verbosity)
+logging.getLogger("pubmed").setLevel(verbosity)
+logging.getLogger("vep").setLevel(verbosity)
+logging.getLogger("exac").setLevel(verbosity)
 logging.getLogger("functions").setLevel(verbosity)
 
 # ------------------------------------------------------------------------------------------------------------------------

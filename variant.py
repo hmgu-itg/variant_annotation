@@ -261,10 +261,6 @@ def id2rs(varid,build="38"):
 # ==============================================================================================================================
 
 # def get_GWAVA_score(variant_data):
-#     '''
-#     This function calculates the gerp and gwava scores for a given variation.
-#     Of course it calls the gwava on farm, and parses the result.
-#     '''
 
 #     # Using variant_data for input:
 #     bed_string = "chr%s\t%s\t%s\t%s\n" % (variant_data["chromosome"], int(variant_data["start"]) - 1, variant_data["start"],variant_data["rsID"])
@@ -286,7 +282,6 @@ def id2rs(varid,build="38"):
 #     # now we have to run gwava:
 #     GWAVA_dir = config.GWAVA_DIR
 
-#     #query = "bash -O extglob -c \'python %s/src/gwava_annotate.py %s %s\'" %(GWAVA_dir, filename, annot_filename)
 #     query = "python %s/src/gwava_annotate.py %s %s" %(GWAVA_dir, filename, annot_filename)
 
 #     PATH = "/software/hgi/pkglocal/samtools-1.2/bin:/software/hgi/pkglocal/vcftools-0.1.11/bin:/software/hgi/pkglocal/tabix-git-1ae158a/bin:/software/hgi/pkglocal/bcftools-1.2/bin:/nfs/team144/software/ensembl-releases/75/ensembl-tools/scripts/variant_effect_predictor:/nfs/team144/software/bedtools2/bin:/nfs/team144/software/scripts:/nfs/users/nfs_d/ds26/bin:/usr/local/lsf/9.1/linux2.6-glibc2.3-x86_64/etc:/usr/local/lsf/9.1/linux2.6-glibc2.3-x86_64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/software/bin"
