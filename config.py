@@ -45,7 +45,8 @@ OMIM_APIKEY     = 'apiKey=MWkzg-DYShWyrfrbqUHL4g&format=python&' # will expire o
 #GWAS_FILE       = '/nfs/team144/ds26/FunctionalAnnotation/GWAS_positive_controls/full'
 GWAS_FILE       = "/home/andrei/gwas_catalog_v1.0.2-associations_e100_r2020-06-30.tsv.gz"
 UNIPROT_URL     = 'http://www.uniprot.org/uniprot/'
-GXA_URL         = "https://www.ebi.ac.uk/gxa/genes/%s?bs=%7B%22homo%20sapiens%22%3A%5B%22ORGANISM_PART%22%5D%7D&ds=%7B%22kingdom%22%3A%5B%22animals%22%5D%7D#baseline"
+GXA_URL_PREFIX  = "https://www.ebi.ac.uk/gxa/genes/"
+GXA_URL_SUFFIX  = "?bs=%7B%22homo%20sapiens%22%3A%5B%22ORGANISM_PART%22%5D%7D&ds=%7B%22kingdom%22%3A%5B%22animals%22%5D%7D#baseline"
 GTEX_BED        = '/home/andrei/GTEx.bed.gz'
 
 ##

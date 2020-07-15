@@ -2,8 +2,7 @@ import config
 import logging
 import time
 import sys
-from os import rename
-import tempfile
+import shutil
 import pandas as pd
 import re
 
@@ -34,6 +33,8 @@ def getGxa(ID):
     Input: gene ID
     Output: none, data is saved in temporary files (their names saved in "config.GXA_FILES")
     '''
+
+    LOGGER.debug("Input: %s" % ID)
 
     fn=saveGxaData(ID)
     if fn is None:
@@ -76,7 +77,7 @@ def saveGxaData(ID):
     options.add_argument("--headless")
 
     browser = webdriver.Firefox(firefox_profile=profile,firefox_options=options)
-    browser.get(config.GXA_URL % ID)
+    browser.get(getGxaURL(ID))
     element=None
     try:
         # give it up to 60 seconds to load
@@ -88,6 +89,5 @@ def saveGxaData(ID):
     element.click()
     time.sleep(5)
     browser.quit()
-    tfn=tempfile.TemporaryFile().name
-    rename("/tmp/expression_atlas-homo_sapiens.tsv",tfn)
-    return tfn
+    shutil.move("/tmp/expression_atlas-homo_sapiens.tsv",config.OUTPUT_DIR)
+    return config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv"

@@ -1,11 +1,14 @@
-
 library("ggplot2")
 library("reshape2")
 
-d<-read.table("~/expression_atlas-homo_sapiens.tsv",quote="",sep="\t",header=F,stringsAsFactors = FALSE)
-colnames(d1)<-d1[1,]
-d<-d1[-c(1),]
-d1<-as.data.frame(lapply(d[,-c(1)],as.numeric))
-d1[,"Experiment"]<-as.factor(d[,"Experiment"])
-d2<-melt(d1,variable.name="Expression")
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==1) {
+  args[2] = "out.svg"
+}
+
+d<-read.table(args[1],quote="",sep="\t",header=T,stringsAsFactors = FALSE)
+names(d)[c(1)]<-c("Experiment")
+d[,"Experiment"]<-as.factor(d[,"Experiment"])
+d2<-melt(d,variable.name="Expression")
 h<-ggplot(data=d2,mapping=aes(x=Experiment,y=Expression,fill=value))+geom_tile()+xlab(label="Experiment")
+ggsave(file=args[2],plot=h,width=7,height=12)

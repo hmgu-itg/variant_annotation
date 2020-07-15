@@ -1,6 +1,9 @@
 import logging
 import re
 import jinja2
+import os
+
+import config
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -60,11 +63,31 @@ def getLocationString(chrom,pos,ref,alt):
 def list2string(snps):
     return "{\"ids\":["+",".join(list(map(lambda x:"\""+x+"\"",snps)))+"]}"
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ======================================================================================================================
 
 def generateHTML(templateFile, data):
     templateLoader = jinja2.FileSystemLoader(searchpath="/")
     templateEnv = jinja2.Environment(loader=templateLoader)
     template = templateEnv.get_template(templateFile)
     return template.render(data)
+
+# ======================================================================================================================
+
+def createDir(path):
+    if os.path.exists(path):
+        LOGGER.info("%s already exists" % path)
+        return path
+
+    try:
+        os.mkdir(path)
+    except OSError:
+        LOGGER.error("Creation of the directory %s failed" % path)
+        return None
+    else:
+        return path
+
+# ======================================================================================================================
+
+def getGxaURL(ID):
+    return config.GXA_URL_PREFIX+ID+config.GXA_URL_SUFFIX
 
