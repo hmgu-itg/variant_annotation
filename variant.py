@@ -406,6 +406,9 @@ def population2df(pop_data):
         C.append("Allele %d" %i)
 
     df=pd.DataFrame(columns=C)
+    if len(pop_data)==0:
+        return df
+
     i=0
 
     for p in config.PopulationNames:

@@ -105,7 +105,7 @@ variant_data = getVariantInfo(VAR_ID,build)
 # for each chr:pos there can be several ref:alt pairs
 
 LOGGER.info("Found %d chr:pos mapping(s)\n" %(len(getChrPosList(variant_data["mappings"]))))
-#print(json.dumps(variant_data,indent=4,sort_keys=True))
+print(json.dumps(variant_data,indent=4,sort_keys=True))
 
 # working with only one chr:pos:R:A mapping for now
 mapping=variant_data["mappings"][0]
@@ -114,7 +114,7 @@ mapping=variant_data["mappings"][0]
 # Creating dataframes
 
 LOGGER.info("Creating variant dataframe")
-variantDF = variant2df(variant_data)
+variantDF = variant2df(variant_data,mapping)
 LOGGER.info("Done\n")
 
 # Variants with phenotypes:
