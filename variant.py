@@ -131,7 +131,7 @@ def getVariantInfo(rs,build="38"):
     res["class"]=data["var_class"]
     res["consequence"]=data["most_severe_consequence"]
     if "synonyms" in data:
-        res["synonyms"]=data["synonyms"]
+        res["synonyms"]=list(filter(lambda x:x!=rs,data["synonyms"]))
     else:
         res["synonyms"]=[]
 
