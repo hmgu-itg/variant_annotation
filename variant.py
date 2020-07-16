@@ -106,6 +106,27 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
 
 # ===========================================================================================================================
 
+# for a list of variant mappings, return unique chr:pos pairs
+def getChrPosList(mappings):
+    L=list()
+    for m in mappings:
+        t=(m["chr"],m["pos"])
+        if t not in L:
+            L.append(t)
+
+    return L
+
+# for a list of variant mappings and a chr:pos pair, return a list of ref:alt pairs
+def getRefAltList(t,mappings):
+    L=list()
+    for m in mappings:
+        if t[0]==m["chr"] and t[1]==m["pos"]:
+            L.append((m["ref"],m["alt"]))
+
+    return L
+
+# ===========================================================================================================================
+
 # get general information about a variant, given rsID:
 # 
 # MAF, minor allele, variant class, most severe consequence
@@ -138,6 +159,8 @@ def getVariantInfo(rs,build="38"):
 #------------------- mappings----------------------
 
     mappings=list()
+    # mappings2: "chr:pos" --> list((ref1,alt1), (ref2,alt2), ...)
+    # mappings2=dict()
 
     z=restQuery(makeRSQueryURL(rs,build=build))
     for x in z:
@@ -149,6 +172,12 @@ def getVariantInfo(rs,build="38"):
             p=h["pos"]
             c=h["chr"]
             mappings.append({"chr":c,"pos":p,"ref":ref,"alt":alt,"sift_score":"NA","sift_prediction":"NA","polyphen_score":"NA","polyphen_prediction":"NA"})
+            # t=c+":"+str(p)
+            # if t in mappings2:
+            #     mappings2[t].append((ref,alt))
+            # else:
+            #     mappings2[t]=[(ref,alt)]
+        
 
 #------------------ population data ----------------
 
@@ -188,6 +217,7 @@ def getVariantInfo(rs,build="38"):
 #-----------------------------------------------------
 
     res["mappings"]=mappings
+    # res["mappings2"]=mappings2
     res["population_data"]=population_data
     res["phenotype_data"]=phenotype_data
     res["clinical_significance"]=clinical_significance
@@ -335,16 +365,15 @@ def id2rs(varid,build="38"):
 
 # TODO: add links like in the original version
 # TODO: gwava and gerp
-def variant2df(var_data):
+def variant2df(var_data,mapping):
     df=pd.DataFrame(columns=["Value"])
     df.loc["ID"]=[var_data["rsID"]]
-    for m in var_data["mappings"]:
-        df.loc["Location"]=[getLocationString(m["chr"],m["pos"],m["ref"],m["alt"])]
-        df.loc["Allele string"]=[m["ref"]+"/"+m["alt"]]
-        df.loc["SIFT score"]=[m["sift_score"]]
-        df.loc["SIFT prediction"]=[m["sift_prediction"]]
-        df.loc["PolyPhen score"]=[m["polyphen_score"]]
-        df.loc["PolyPhen prediction"]=[m["polyphen_prediction"]]
+    df.loc["Location"]=[getLocationString(mapping["chr"],mapping["pos"],mapping["ref"],mapping["alt"])]
+    df.loc["Allele string"]=[mapping["ref"]+"/"+mapping["alt"]]
+    df.loc["SIFT score"]=[mapping["sift_score"]]
+    df.loc["SIFT prediction"]=[mapping["sift_prediction"]]
+    df.loc["PolyPhen score"]=[mapping["polyphen_score"]]
+    df.loc["PolyPhen prediction"]=[mapping["polyphen_prediction"]]
     df.loc["MAF"]=[var_data["MAF"]]
     df.loc["Consequence"]=[var_data["consequence"]]
     df.loc["Type"]=[var_data["class"]]

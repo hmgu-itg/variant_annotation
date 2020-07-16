@@ -90,6 +90,8 @@ def getGeneList(chrom,pos,window=1000000,build="38"):
     "start", "end", "strand", "name", "description", "biotype", "ID", "distance", "orientation" 
     '''
 
+    LOGGER.debug("Genes around %s:%d" %(chrom,pos))
+
     end=pos+window
     start=pos-window
     if start<1: 
