@@ -104,11 +104,17 @@ def generateVarTemplate(mapping_names,fname):
         print("div.general {\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 20px;\nmargin:  10px 10px 5px 10px\n}\n")
         print("h1 {\nbackground-color: #8b9bc1;\nmargin: 0;\npadding: 4px 8px 2px 24px;\n-webkit-border-radius: 8px 0 8px 0;\nline-height: 1em;\ndisplay: block;\n-webkit-margin-before: 0px;\n-webkit-margin-after: 0px;-webkit-margin-start: 0px;\n-webkit-margin-end: 0px;\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 25px;\nfont-weight: bold;\n}\n\n")
         print("div.big_box {\nbackground-color: white;\nwidth: 98%;\nborder: 1px solid navy;\ndisplay: block;\n\nbackground-color: #fff;\npadding: 0;\nmargin: 0;\n\n/* Margins */\nmargin: 0 auto 1em;\n\n/* Rounded edges */\nborder-bottom-right-radius: 8px;\nborder-top-left-radius: 8px;\n\n/* Shadows around boxes*/\nbox-shadow: 4px 4px 10px #BCBCCC;\n\n/* Setting fonts */\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 20px;\n}\n\n")
-        print("* {box-sizing: border-box}")
-        print("/* Style the tab */\n.tab {\nfloat: left;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\nwidth: 10%;\nheight: 200px;\n
-}\n")
-        print("/* Style the buttons inside the tab */\n.tab button {\ndisplay: block;\nbackground-color: inherit;\ncolor: black;\npadding: 22px 16px;\nwidth: 100%;\nborder: none;\noutline: none;\ntext-align: left;\ncursor: pointer;\ntransition: 0.3s;\nfont-size: 17px;\n}\n")
-        print(".tab button:hover {\nbackground-color: #ddd;\n}\n.tab button.active {\nbackground-color: #ccc;\n}\n.tabcontent {\nfloat: left;\npadding: 0px 12px;\nborder: 1px solid #ccc;\nwidth: 85%;\nheight: 98%;\n}\n")
+        #print("* {box-sizing: border-box}")
+        # print("/* Style the tab */\n.tab {\nfloat: left;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\nwidth: 10%;\nheight: 200px;\n}\n")
+        # print("/* Style the buttons inside the tab */\n.tab button {\ndisplay: block;\nbackground-color: inherit;\ncolor: black;\npadding: 22px 16px;\nwidth: 100%;\nborder: none;\noutline: none;\ntext-align: left;\ncursor: pointer;\ntransition: 0.3s;\nfont-size: 12px;\n}\n")
+        # print(".tab button:hover {\nbackground-color: #ddd;\n}\n.tab button.active {\nbackground-color: #ccc;\n}\n.tabcontent {\nfloat: left;\npadding: 0px 12px;\nborder: 1px solid #ccc;\nwidth: 85%;\nheight: 98%;\n}\n")
+
+        print(".tab {\noverflow: hidden;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\n}")
+        print(".tab button {\nbackground-color: inherit;\nfloat: left;\nborder: none;\noutline: none;\ncursor: pointer;\npadding: 14px 16px;\ntransition: 0.3s;\n}\n")
+        print(".tab button:hover {\nbackground-color: #ddd;\n}\n")
+        print(".tab button.active {\nbackground-color: #ccc;\n}\n")
+        print(".tabcontent {\ndisplay: none;\npadding: 6px 12px;\nborder: 1px solid #ccc;\nborder-top: none;\n}\n")
+
         print("</style>\n")
 
         print("</head>\n<body bgcolor=\"#E6E6FA\" class=body>\n\n<h2>Variant mappings</h2>\n")
@@ -119,7 +125,7 @@ def generateVarTemplate(mapping_names,fname):
                 print("<button class=\"tablinks\" onclick=\"openTab(event, '%s')\" id=\"defaultOpen\">%s</button>" % (mapping_names[i],mapping_names[i]))
             else:
                 print("<button class=\"tablinks\" onclick=\"openTab(event, '%s')\">%s</button>" % (mapping_names[i],mapping_names[i]))
-                print("<\div>")
+                print("</div>")
 
         for i in range(0,len(mapping_names)):
             print("<div id=\"%s\" class=\"tabcontent\">" % mapping_names[i])
@@ -130,7 +136,7 @@ def generateVarTemplate(mapping_names,fname):
             print("<div id=\"General\" class=\"big_box\"><h1>1kG allele frequencies</h1>\n{{ population_table%d }}\n</div>\n" %i)
             print("<div id=\"General\" class=\"big_box\"><h1>ExAC allele frequencies</h1>\n{{ exac_table%d }}\n</div>\n" %i)
             print("<div id=\"General\" class=\"big_box\"><h1>Regulation</h1>\n{{ regulation_table%d }}\n</div>\n" %i)
-            print("<div id=\"General\" class=\"big_box\"><h1>GTEx eQTLs</h1>\{{ gtex_gene_table%d }}\</div>\n" %i)
+            print("<div id=\"General\" class=\"big_box\"><h1>GTEx eQTLs</h1>\n{{ gtex_gene_table%d }}\n</div>\n" %i)
             print("<div id=\"General\" class=\"big_box\"><h1>Nearby genes</h1>\n{{ gene_table%d }}\n</div>\n" %i)
             print("<div id=\"General\" class=\"big_box\"><h1>Pubmed entries</h1>\n{{ pubmed_table%d }}\n</div>\n" %i)
             print("</div>\n")

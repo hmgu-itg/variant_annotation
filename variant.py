@@ -1,6 +1,8 @@
 import config
 import logging
 import pandas as pd
+import json
+import re
 
 from query import *
 from utils import *
@@ -54,6 +56,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
         LOGGER.error("Maximal region size allowed: 5Mbp")
         return None
 
+    LOGGER.debug("%s:%d" %(chrom,pos))
     variants=restQuery(makePhenoOverlapQueryURL(chrom,start,end,build=build),qtype="get")
     #print(json.dumps(variants,indent=4,sort_keys=True))
 
@@ -64,7 +67,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
         LOGGER.info("No variants with phenotypes were found in the region %s:%d-%d" %(chrom,start,end))
         return None
 
-    rsIDs = []
+    rsIDs=list()
     for var in variants:
         rsIDs.append(var["id"])
 
@@ -80,12 +83,16 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
     for L in chunks(rsIDs,config.BATCHSIZE):
         r=restQuery(makeRSPhenotypeQueryURL(build=build),data=list2string(L),qtype="post")
         if r:
+            #print(json.dumps(r,indent=4,sort_keys=True))
             for rsID in r:
                 for phenotype in r[rsID]["phenotypes"]:
                     m=re.match(".*phenotype\s+not\s+specified.*",phenotype["trait"])
                     if m:
                         continue
-                    df.loc[i]=[rsID,r[rsID]["most_severe_consequence"].replace("_"," "),r[rsID]["mappings"][0]["seq_region_name"]+":"+str(r[rsID]["mappings"][0]["start"]),phenotype["trait"],phenotype["source"],str(abs(pos - int(r[rsID]["mappings"][0]["start"])))]
+                    x=next((m for m in r[rsID]["mappings"] if m["seq_region_name"]==chrom),None)
+                    if not x:
+                        continue
+                    df.loc[i]=[rsID,r[rsID]["most_severe_consequence"].replace("_"," "),chrom+":"+str(x["start"]),phenotype["trait"],phenotype["source"],str(abs(pos - int(x["start"])))]
                     i+=1
             # # TODO: check all possible sources
             # # Generate phenotype link based on source:
@@ -147,7 +154,11 @@ def getVariantInfo(rs,build="38"):
         return res
 
     res["minor_allele"]=data["minor_allele"]
-    res["MAF"]=data["MAF"]
+    if re.search("[01]\.\d+",str(data["MAF"])):
+        res["MAF"]=str(data["MAF"])
+    else:
+        res["MAF"]="NA"
+
     res["rsID"]=rs
     res["class"]=data["var_class"]
     res["consequence"]=data["most_severe_consequence"]
@@ -368,7 +379,7 @@ def id2rs(varid,build="38"):
 def variant2df(var_data,mappings):
     df=pd.DataFrame(columns=["Value"])
     df.loc["ID"]=[var_data["rsID"]]
-    df.loc["Location"]=[mappings[0]["chr"]+":"+mappings[0]["pos"]]
+    df.loc["Location"]=[mappings[0]["chr"]+":"+str(mappings[0]["pos"])]
     L=list()
     for m in mappings:
         L.append(m["ref"]+"/"+m["alt"])

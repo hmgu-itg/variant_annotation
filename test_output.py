@@ -107,101 +107,99 @@ variant_data = getVariantInfo(VAR_ID,build)
 chrpos=getChrPosList(variant_data["mappings"])
 
 LOGGER.info("Found %d chr:pos mapping(s)\n" %(len(chrpos)))
-#print(json.dumps(variant_data,indent=4,sort_keys=True))
+print(json.dumps(variant_data,indent=4,sort_keys=True))
 
-for cp in chrpos:
-    mappings=getMappingList(cp,variant_data["mappings"])
+mapping_names=list()
+D=dict()
+for i in range(0,len(chrpos)):
+    mappings=getMappingList(chrpos[i],variant_data["mappings"])
+    LOGGER.info("Current mapping: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
 
-# working with only one chr:pos:R:A mapping for now
-#mapping=variant_data["mappings"][0]
+    LOGGER.info("Creating variant dataframe")
+    variantDF = variant2df(variant_data,mappings)
+    LOGGER.info("Done\n")
 
-#-----------------------------------------------------------------------------------------------------------------------------
-# Creating dataframes
+    # Variants with phenotypes:
+    LOGGER.info("Retreiving nearby variants with phenotype annotation")
+    phenotypeDF = getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
+    LOGGER.info("Done\n")
 
-LOGGER.info("Creating variant dataframe")
-variantDF = variant2df(variant_data,mappings)
-LOGGER.info("Done\n")
+    # Get regulatory features
+    LOGGER.info("Retrieving overlapping regulatory features")
+    regulation = getRegulation(chrpos[i][0],chrpos[i][1])
+    LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(regulation)))
+    LOGGER.info("Creating regulatory dataframe")
+    regulationDF = regulation2df(regulation)
+    LOGGER.info("Done\n")
 
-# Variants with phenotypes:
-LOGGER.info("Retreiving nearby variants with phenotype annotation")
-phenotypeDF = getVariantsWithPhenotypes(mapping["chr"],mapping["pos"])
-LOGGER.info("Done\n")
+    LOGGER.info("Looking for GWAS hits around the variant")
+    gwas_hits=getGwasHits(chrpos[i][0],chrpos[i][1])
+    LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
+    LOGGER.info("Creating GWAS dataframe")
+    gwasDF = gwas2df(gwas_hits)
+    LOGGER.info("Done\n")
 
-# Get regulatory features
-LOGGER.info("Retrieving overlapping regulatory features")
-regulation = getRegulation(mapping["chr"],mapping["pos"])
-LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(regulation)))
-LOGGER.info("Creating regulatory dataframe")
-regulationDF = regulation2df(regulation)
-LOGGER.info("Done\n")
+    LOGGER.info("Creating VEP dataframe")
+    vep = getVepDF(mappings)
+    vepDF=vep["transcript"]
+    LOGGER.info("Done\n")
 
-LOGGER.info("Looking for GWAS hits around the variant")
-gwas_hits=getGwasHits(mapping["chr"],mapping["pos"])
-LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
-LOGGER.info("Creating GWAS dataframe")
-gwasDF = gwas2df(gwas_hits)
-LOGGER.info("Done\n")
+    # TODO: fix
+    LOGGER.info("Creating populations dataframe")
+    populationDF = population2df(variant_data["population_data"])
+    LOGGER.info("Done\n")
 
-LOGGER.info("Creating VEP dataframe")
-vep = getVepDF(variant_data["mappings"])
-vepDF=vep["transcript"]
-LOGGER.info("Done\n")
+    # TODO: fix
+    LOGGER.info("Creating PubMed dataframe")
+    pubmedDF = getPubmedDF(VAR_ID,variant_data["synonyms"])
+    LOGGER.info("Done\n")
 
-LOGGER.info("Creating populations dataframe")
-populationDF = population2df(variant_data["population_data"])
-LOGGER.info("Done\n")
+    # Get a list of genes close to the variation:
+    LOGGER.info("Retrieving genes around the variant")
+    gene_list=getGeneList(chrpos[i][0],chrpos[i][1],build=build)
+    LOGGER.info("Got %d gene(s)\n" %(len(gene_list)))
+    LOGGER.info("Creating gene dataframe")
+    geneDF = geneList2df(gene_list)
+    LOGGER.info("Done\n")
 
-LOGGER.info("Creating PubMed dataframe")
-pubmedDF = getPubmedDF(VAR_ID,variant_data["synonyms"])
-LOGGER.info("Done\n")
+    LOGGER.info("Creating ExAC dataframe")
+    exacDF = getExacDF(mappings)
+    LOGGER.info("Done\n")
 
-# Get a list of genes close to the variation:
-LOGGER.info("Retrieving genes around the variant")
-gene_list=getGeneList(mapping["chr"],mapping["pos"],build=build)
-LOGGER.info("Got %d genes\n" %(len(gene_list)))
-LOGGER.info("Creating gene dataframe")
-geneDF = geneList2df(gene_list)
-LOGGER.info("Done\n")
-
-LOGGER.info("Creating ExAC dataframe")
-exacDF = getExacDF(variant_data["mappings"])
-LOGGER.info("Done\n")
-
-LOGGER.info("Creating GTEx dataframe")
-GTEx_genesDF = getGTExDF(variant_data["mappings"])
-LOGGER.info("Done\n")
+    LOGGER.info("Creating GTEx dataframe")
+    GTEx_genesDF = getGTExDF(mappings)
+    LOGGER.info("Done\n")
 
 # ----------------------------------------------------------------------------
 
-D=dict()
-
-if len(variantDF):
-    D["variant_table"]=variantDF.to_html(index=True,classes='utf8',table_id="common")
-if len(exacDF) and len(exacDF.columns)>1:
-    D["exac_table"]=exacDF.to_html(index=False,classes='utf8',table_id="common")
-if len(regulationDF):
-    D["regulation_table"]=regulationDF.to_html(index=False,classes='utf8',table_id="common")
-if len(gwasDF):
-    D["gwas_table"]=gwasDF.to_html(index=False,classes='utf8',table_id="common")
-if len(vepDF):
-    D["vep_table"]=vepDF.to_html(index=False,classes='utf8',table_id="common")
-if len(populationDF):
-    D["population_table"]=populationDF.to_html(index=False,classes='utf8',table_id="common")
-if len(pubmedDF):
-    D["pubmed_table"]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-if phenotypeDF is not None and len(phenotypeDF):
-    D["phenotype_table"]=phenotypeDF.to_html(index=False,classes='utf8',table_id="common")
-if len(geneDF):
-    D["gene_table"]=geneDF.to_html(index=False,classes='utf8',table_id="common")
-if len(GTEx_genesDF):
-    D["gtex_genes_table"]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
-
+    if len(variantDF):
+        D["variant_table%d" %i]=variantDF.to_html(index=True,classes='utf8',table_id="common")
+    if len(exacDF) and len(exacDF.columns)>1:
+        D["exac_table%d" %i]=exacDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(regulationDF):
+        D["regulation_table%d" %i]=regulationDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(gwasDF):
+        D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(vepDF):
+        D["vep_table%d" %i]=vepDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(populationDF):
+        D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(pubmedDF):
+        D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+    if phenotypeDF is not None and len(phenotypeDF):
+        D["phenotype_table%d" %i]=phenotypeDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(geneDF):
+        D["gene_table%d" %i]=geneDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(GTEx_genesDF):
+        D["gtex_genes_table%d" %i]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
+    
+    mapping_names.append(chrpos[i][0]+":"+str(chrpos[i][1]))
 # ----------------------------------------------------------------------------
 
 template_fname=config.OUTPUT_DIR+"/template_var.html"
-utils.generateVarTemplate(,template_filename)
-f = open(config.OUTPUT_DIR+"/%s.html","w" %VAR_ID)
-f.write(generateHTML(template_filename,D))
+utils.generateVarTemplate(mapping_names,template_fname)
+f = open(config.OUTPUT_DIR+"/%s.html" %VAR_ID,"w")
+f.write(generateHTML(template_fname,D))
 f.close()
 
 # ----------------------------------------------------------------------------
