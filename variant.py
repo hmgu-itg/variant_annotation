@@ -117,11 +117,11 @@ def getChrPosList(mappings):
     return L
 
 # for a list of variant mappings and a chr:pos pair, return a list of ref:alt pairs
-def getRefAltList(t,mappings):
+def getMappingList(t,mappings):
     L=list()
     for m in mappings:
         if t[0]==m["chr"] and t[1]==m["pos"]:
-            L.append((m["ref"],m["alt"]))
+            L.append(m)
 
     return L
 
@@ -365,15 +365,18 @@ def id2rs(varid,build="38"):
 
 # TODO: add links like in the original version
 # TODO: gwava and gerp
-def variant2df(var_data,mapping):
+def variant2df(var_data,mappings):
     df=pd.DataFrame(columns=["Value"])
     df.loc["ID"]=[var_data["rsID"]]
-    df.loc["Location"]=[getLocationString(mapping["chr"],mapping["pos"],mapping["ref"],mapping["alt"])]
-    df.loc["Allele string"]=[mapping["ref"]+"/"+mapping["alt"]]
-    df.loc["SIFT score"]=[mapping["sift_score"]]
-    df.loc["SIFT prediction"]=[mapping["sift_prediction"]]
-    df.loc["PolyPhen score"]=[mapping["polyphen_score"]]
-    df.loc["PolyPhen prediction"]=[mapping["polyphen_prediction"]]
+    df.loc["Location"]=[mappings[0]["chr"]+":"+mappings[0]["pos"]]
+    L=list()
+    for m in mappings:
+        L.append(m["ref"]+"/"+m["alt"])
+    df.loc["Allele string(s)"]=[",".join(L)]
+    # df.loc["SIFT score"]=[mapping["sift_score"]]
+    # df.loc["SIFT prediction"]=[mapping["sift_prediction"]]
+    # df.loc["PolyPhen score"]=[mapping["polyphen_score"]]
+    # df.loc["PolyPhen prediction"]=[mapping["polyphen_prediction"]]
     df.loc["MAF"]=[var_data["MAF"]]
     df.loc["Consequence"]=[var_data["consequence"]]
     df.loc["Type"]=[var_data["class"]]
