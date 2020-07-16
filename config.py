@@ -35,7 +35,7 @@ WINDOW      = 500000
 ## Templates:
 ##
 GENE_TEMPLATE   = '/home/andrei/variant_annotation/templates/template_gene.html'
-VAR_TEMPLATE    = '/home/andrei/variant_annotation/templates/template_var.html'
+VAR_TEMPLATE    = '/home/andrei/variant_annotation/templates/template_var2.html'
 
 ##
 ## Parameters for genes:
