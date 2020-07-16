@@ -363,17 +363,37 @@ def variant2df(var_data):
 # ----------------------------------------------------------------------------------------------------------------------
 
 def population2df(pop_data):
-    df=pd.DataFrame(columns=["Population","Allele 1","Allele 2"])
+    # all alleles in all populations
+    all_alleles=set()
+    for z in pop_data:
+        for a in z["frequency"]:
+            all_alleles.add(a)
+
+    A=list(all_alleles)
+    A.sort()
+
+    C=["Population"]
+    for i in range(1,len(all_alleles)+1):
+        C.append("Allele %d" %i)
+
+    df=pd.DataFrame(columns=C)
     i=0
+
     for p in config.PopulationNames:
+        #LOGGER.debug("Population: %s" %p)
         x=next((z for z in pop_data if z["population"]==p),None)
+        L=[p]
         if x:
-            L=list(x["frequency"])
-            L.sort()
-            df.loc[i]=[p,L[0]+" ("+str(round(x["frequency"][L[0]],4))+")",L[1]+" ("+str(round(x["frequency"][L[1]],4))+")"]
-            i+=1
+            D=x["frequency"].copy()
+            for a in A:
+                if a not in D:
+                    D[a]=0.0000
+                L.append(a+" ("+str(round(D[a],4))+")")
         else:
-            df.loc[i]=[p,"NA","NA"]
-            i+=1
+            for j in range(1,len(all_alleles)+1):
+                L.append("NA")
+
+        df.loc[i]=L
+        i+=1
 
     return df

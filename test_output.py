@@ -3,9 +3,11 @@
 import datetime
 import argparse
 import logging
+import json
 
 import config
 
+import utils
 from variant import *
 from gene import *
 from regulation import *
@@ -26,6 +28,7 @@ parser = argparse.ArgumentParser()
 input_options = parser.add_argument_group('Input options')
 input_options.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38")
 input_options.add_argument("--id", "-i", help="Required: input variation, rsID or SNP ID + alleles: \"14_94844947_C_T\"", required=True)
+input_options.add_argument('--output','-o', action="store",help="Optional: output directory; defaults to variant ID in the current directory")
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 input_options.add_argument("--gwava", "-g", help="Optional: perform GWAVA prediction", required=False, action='store_true')
 
@@ -46,7 +49,20 @@ if args.verbose is not None:
         verbosity=logging.WARNING
     elif args.verbose=="error":
         verbosity=logging.ERROR
+
+outdir="./"+VAR_ID
+if args.output:
+    outdir=args.output
     
+if outdir.endswith("/"):
+    outdir=outdir[:-1]
+
+if not utils.createDir(outdir):
+    LOGGER.error("Could not create output dir %s" % outdir)
+    sys.exit(1)
+
+config.OUTPUT_DIR=outdir
+
 # ------------------------------------------------------------------------------------------------------------------------
 
 LOGGER=logging.getLogger("annotator")
@@ -65,7 +81,7 @@ logging.getLogger("gtex").setLevel(verbosity)
 logging.getLogger("pubmed").setLevel(verbosity)
 logging.getLogger("vep").setLevel(verbosity)
 logging.getLogger("exac").setLevel(verbosity)
-logging.getLogger("functions").setLevel(verbosity)
+logging.getLogger("gxa").setLevel(verbosity)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -84,12 +100,12 @@ for m in variant_data["mappings"]:
     if t not in mappings:
         mappings.add(t)
 LOGGER.info("Found %d mapping(s)\n" %(len(mappings)))
-#print(json.dumps(variant_data,indent=4,sort_keys=True))
+print(json.dumps(variant_data,indent=4,sort_keys=True))
 
 # there can be several chr:pos mappings
-# for each chr:pos mapping there can be several ref:alt pairs
+# for each chr:pos there can be several ref:alt pairs
 
-# working with only one chr:pos mapping for now
+# working with only one chr:pos:R:A mapping for now
 mapping=variant_data["mappings"][0]
 
 # if GWAVA:
@@ -156,7 +172,6 @@ LOGGER.info("Creating GWAS dataframe")
 gwasDF = gwas2df(gwas_hits)
 
 LOGGER.info("Creating VEP dataframe")
-#vepDF = vepTranscript2df(VEP_data)
 vep = getVepDF(variant_data["mappings"])
 vepDF=vep["transcript"]
 
@@ -164,18 +179,15 @@ LOGGER.info("Creating populations dataframe")
 populationDF = population2df(variant_data["population_data"])
 
 LOGGER.info("Creating PubMed dataframe")
-#pubmedDF = pubmed2df(pubmed_data)
 pubmedDF = getPubmedDF(VAR_ID,variant_data["synonyms"])
 
 LOGGER.info("Creating gene dataframe")
 geneDF = geneList2df(gene_list)
 
 LOGGER.info("Creating ExAC dataframe")
-#exacDF = exac2df(Exac_parsed)
 exacDF = getExacDF(variant_data["mappings"])
 
 LOGGER.info("Creating GTEx dataframe")
-#GTEx_genesDF = gtex2df(GTEx_genes)
 GTEx_genesDF = getGTExDF(variant_data["mappings"])
 
 # ----------------------------------------------------------------------------
@@ -203,7 +215,7 @@ if len(geneDF):
 if len(GTEx_genesDF):
     D["gtex_genes_table"]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
 
-f=open("./%s.html" % VAR_ID, 'w')
+f=open(config.OUTPUT_DIR+"/%s.html" % VAR_ID, 'w')
 f.write(generateHTML(config.VAR_TEMPLATE,D))
 f.close()
 
