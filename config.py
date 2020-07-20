@@ -110,6 +110,18 @@ CellTypeFinder = {
     "NHLF" : "Lung fibroblasts",
 }
 
+GnomadPopulations={
+"AFR": "African American",
+"AMI": "Amish",
+"AMR": "Latino",
+"ASJ": "Ashkenazi Jews",
+"EAS": "East Asian",
+"FIN": "Finnish",
+"NFE": "Non-finnish European",
+"OTH": "Other",
+"SAS": "South Asian"
+}
+
 PopulationNames = {
     "CDX" : "Chinese Dai in Xishuangbanna",
     "CHB" : "Han Chinese in Bejing",

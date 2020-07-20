@@ -32,8 +32,6 @@ input_options.add_argument('--output','-o', action="store",help="Optional: outpu
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 input_options.add_argument("--gwava", "-g", help="Optional: perform GWAVA prediction", required=False, action='store_true')
 
-choices=['servers', 'storage', 'all'],
-
 # Extracting command line parameters:
 args = parser.parse_args()
 VAR_ID = args.id
