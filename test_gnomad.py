@@ -63,8 +63,9 @@ def getVariantAF(rs, dataset="gnomad_r3"):
     return response["data"]
 
 #prettyprint(get_variant_list("ENSG00000010610"))
-afs=getVariantAF("rs782819098")
+afs=getVariantAF("12-6818479-C-T")
+prettyprint(afs)
 for p in afs["variant"]["genome"]["populations"]:
-    if not re.search("_",p["id"]) and not re.search("MALE",p["id"]):
+    if not re.search("_",p["id"]) and not re.search("MALE",p["id"],re.I):
         print("%s: %.2e" %(p["id"],float(p["ac"])/float(p["an"])))
 

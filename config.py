@@ -24,25 +24,16 @@ VERSION = "2.2.0"
 ## batch size for POST queries
 BATCHSIZE=100
 
-##
-## Shared parameters
-##
-REST_URL    = 'http://grch37.rest.ensembl.org'
+GNOMAD_URL="https://gnomad.broadinstitute.org/api"
+
 APPRIS_URL  = 'http://apprisws.bioinfo.cnio.es:80/rest/exporter/id/homo_sapiens/%s?format=json&db=hg19'
 WINDOW      = 500000
-
-##
-## Templates:
-##
-GENE_TEMPLATE   = '/home/andrei/variant_annotation/templates/template_gene.html'
-VAR_TEMPLATE    = '/home/andrei/variant_annotation/templates/template_var2.html'
 
 ##
 ## Parameters for genes:
 ##
 OMIM_URL        = 'http://api.omim.org/api/entry?'
 OMIM_APIKEY     = 'apiKey=MWkzg-DYShWyrfrbqUHL4g&format=python&' # will expire on March 21st, 2017.
-#GWAS_FILE       = '/nfs/team144/ds26/FunctionalAnnotation/GWAS_positive_controls/full'
 GWAS_FILE       = "/home/andrei/gwas_catalog_v1.0.2-associations_e100_r2020-06-30.tsv.gz"
 UNIPROT_URL     = 'http://www.uniprot.org/uniprot/'
 GXA_URL_PREFIX  = "https://www.ebi.ac.uk/gxa/genes/"
@@ -117,7 +108,7 @@ GnomadPopulations={
 "ASJ": "Ashkenazi Jews",
 "EAS": "East Asian",
 "FIN": "Finnish",
-"NFE": "Non-finnish European",
+"NFE": "Non-Finnish European",
 "OTH": "Other",
 "SAS": "South Asian"
 }

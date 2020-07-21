@@ -14,6 +14,25 @@ formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
+
+def checkGnomadID(var):
+    '''
+    Checks if provided ID confirms to GnomeAD rules (12-1234567-ACT-A)
+
+    Input  : variant ID
+    Output : True/False
+    '''
+    m=re.search("[XYM\d]+-\d+-([ACGT]+)-([ACGT]+)",var)
+    if not m:
+        LOGGER.debug("%s is not GnomeAD variant ID" % var)
+        return False
+    else:
+        if m.group(1).startswidht(m.group(2)) or m.group(2).startswidht(m.group(1)):
+            return True
+        else:
+            LOGGER.debug("%s is not GnomeAD variant ID" % var)
+            return False
+
 # check if provided input is a valid variant ID
 # valid ID: either rsID or chr_pos_ref_alt
 def checkID(id):
