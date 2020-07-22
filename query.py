@@ -3,6 +3,8 @@ from requests.exceptions import Timeout,TooManyRedirects,RequestException
 import logging
 import re
 
+import config
+
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 ch=logging.StreamHandler()
@@ -198,6 +200,6 @@ def fetchGnomAD(jsondata, url=config.GNOMAD_URL):
     response = requests.post(url, json=jsondata, headers=headers)
     json = response.json()
     if "errors" in json:
-        LOGGER.error(str(json["errors"])))
+        LOGGER.error(str(json["errors"]))
         return None
     return json

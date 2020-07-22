@@ -4,6 +4,7 @@ import datetime
 import argparse
 import logging
 import json
+import os
 
 import config
 
@@ -30,7 +31,7 @@ input_options.add_argument('--build','-b', action="store",help="Genome build: de
 input_options.add_argument("--id", "-i", help="Required: input variation, rsID or SNP ID + alleles: \"14_94844947_C_T\"", required=True)
 input_options.add_argument('--output','-o', action="store",help="Optional: output directory; defaults to variant ID in the current directory")
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
-input_options.add_argument("--gwava", "-g", help="Optional: perform GWAVA prediction", required=False, action='store_true')
+input_options.add_argument("--gwava", "-g", help="Path to GWAVA directory", required=False, action='store')
 
 # Extracting command line parameters:
 args = parser.parse_args()
@@ -48,7 +49,7 @@ if args.verbose is not None:
     elif args.verbose=="error":
         verbosity=logging.ERROR
 
-outdir="./"+VAR_ID
+outdir=os.getcwd()+"/"+VAR_ID
 if args.output:
     outdir=args.output
     
@@ -60,6 +61,11 @@ if not utils.createDir(outdir):
     sys.exit(1)
 
 config.OUTPUT_DIR=outdir
+
+if GWAVA is not None:
+    if GWAVA.endswith("/"):
+        GWAVA=GWAVA[:-1]
+    config.GWAVA_DIR=GWAVA
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -92,6 +98,9 @@ filename = VAR_ID+".html"
 
 LOGGER.info("Retrieving variant data from Ensembl")
 variant_data = getVariantInfo(VAR_ID,build)
+
+if GWAVA is not None:
+    getGwavaScore(variant_data)
 
 # for t in getChrPosList(variant_data["mappings"]):
 #     print("Mapping: %s:%s" %(t[0],str(t[1])))
@@ -192,6 +201,7 @@ for i in range(0,len(chrpos)):
         D["gtex_genes_table%d" %i]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
     
     mapping_names.append(chrpos[i][0]+":"+str(chrpos[i][1]))
+
 # ----------------------------------------------------------------------------
 
 template_fname=config.OUTPUT_DIR+"/template_var.html"

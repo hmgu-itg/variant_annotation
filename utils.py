@@ -22,16 +22,19 @@ def checkGnomadID(var):
     Input  : variant ID
     Output : True/False
     '''
-    m=re.search("[XYM\d]+-\d+-([ACGT]+)-([ACGT]+)",var)
+    m=re.search("([XYM\d]+)-(\d+)-([ACGT]+)-([ACGT]+)",var)
     if not m:
         LOGGER.debug("%s is not GnomeAD variant ID" % var)
         return False
     else:
-        if m.group(1).startswidht(m.group(2)) or m.group(2).startswidht(m.group(1)):
+        if len(m.group(3))==1 and len(m.group(4))==1:
             return True
         else:
-            LOGGER.debug("%s is not GnomeAD variant ID" % var)
-            return False
+            if m.group(3).startswith(m.group(4)) or m.group(4).startswith(m.group(3)):
+                return True
+            else:
+                LOGGER.debug("%s is not GnomeAD variant ID" % var)
+                return False
 
 # check if provided input is a valid variant ID
 # valid ID: either rsID or chr_pos_ref_alt

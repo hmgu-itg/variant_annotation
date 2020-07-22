@@ -3,6 +3,9 @@ import logging
 import pandas as pd
 import json
 import re
+import os
+import tempfile as tf
+import subprocess
 
 from query import *
 from utils import *
@@ -170,8 +173,6 @@ def getVariantInfo(rs,build="38"):
 #------------------- mappings----------------------
 
     mappings=list()
-    # mappings2: "chr:pos" --> list((ref1,alt1), (ref2,alt2), ...)
-    # mappings2=dict()
 
     z=restQuery(makeRSQueryURL(rs,build=build))
     for x in z:
@@ -182,13 +183,7 @@ def getVariantInfo(rs,build="38"):
             alt=h["alt"]
             p=h["pos"]
             c=h["chr"]
-            mappings.append({"chr":c,"pos":p,"ref":ref,"alt":alt,"sift_score":"NA","sift_prediction":"NA","polyphen_score":"NA","polyphen_prediction":"NA"})
-            # t=c+":"+str(p)
-            # if t in mappings2:
-            #     mappings2[t].append((ref,alt))
-            # else:
-            #     mappings2[t]=[(ref,alt)]
-        
+            mappings.append({"chr":c,"pos":p,"ref":ref,"alt":alt,"sift_score":"NA","sift_prediction":"NA","polyphen_score":"NA","polyphen_prediction":"NA"})        
 
 #------------------ population data ----------------
 
@@ -225,14 +220,20 @@ def getVariantInfo(rs,build="38"):
             if cs != "other" and cs != "not provided":
                 clinical_significance.append(cs)
 
+#---------------- chr:pos dependent scores -----------------
+
+    scores=dict()
+    for m in mappings:
+        scores[m["chr"]+":"+str(m["pos"])]={"avg_gerp":"NA","gerp":"NA","gwava":"NA"}
+
 #-----------------------------------------------------
 
     res["mappings"]=mappings
-    # res["mappings2"]=mappings2
     res["population_data"]=population_data
     res["phenotype_data"]=phenotype_data
     res["clinical_significance"]=clinical_significance
-
+    res["scores"]=scores
+    
     return res
 
 # ===========================================================================================================================
@@ -260,13 +261,6 @@ def id2rs(varid,build="38"):
             if a1 in v["alleles"] and a2 in v["alleles"]:
                 S.add(v["id"])
     else:
-        # difference between a1 and a2
-        # seq0=""
-        # if len(a1)>len(a2):
-        #     seq0=a1[len(a2):len(a1)]
-        # elif len(a1)<len(a2):
-        #     seq0=a2[len(a1):len(a2)]
-
         r=restQuery(makeOverlapVarQueryURL(chrom,pos-window,pos+window,build=build))
         if not r:
             return S
@@ -293,7 +287,6 @@ def id2rs(varid,build="38"):
                         continue
 
                     if (ref==a1 and alt==a2) or (ref==a2 and alt==a1):
-                    #if seq0 in stringdiff(alt[1:len(alt)],ref[1:len(ref)]):
                         S.add(var)
                         break
     return S
@@ -301,78 +294,84 @@ def id2rs(varid,build="38"):
 
 # ==============================================================================================================================
 
-# def get_GWAVA_score(variant_data):
+# for all chr:pos mappings
+def getGwavaScore(variant_data):
+    chrpos=getChrPosList(variant_data["mappings"])
 
-#     # Using variant_data for input:
-#     bed_string = "chr%s\t%s\t%s\t%s\n" % (variant_data["chromosome"], int(variant_data["start"]) - 1, variant_data["start"],variant_data["rsID"])
+    for i in range(0,len(chrpos)):
+        keystr=chrpos[i][0]+":"+str(chrpos[i][1])
+        LOGGER.debug("GWAVA scores for mapping %s\n" %keystr)
 
-#     # temporary input filename:
-#     filename = "/tmp/chr%s.bed" % variant_data["location"].replace(":", "_")
+        in_bed=tf.NamedTemporaryFile(delete=False,mode="w")
+        LOGGER.debug("Input b38 bed file: %s" % in_bed.name)
+        bed37_fname=tf.mktemp()
+        LOGGER.debug("Output b37 bed file: %s" % bed37_fname)
+        unmapped_fname=tf.mktemp()
+        LOGGER.debug("Unmapped file: %s" % unmapped_fname)
 
-#     # temporary output filename with gwava annotation:
-#     annot_filename = filename+"_ann"
+        prefix=""
+        if re.search("^\d+$",chrpos[i][0]) or re.search("^[XYM]$",chrpos[i][0]):
+            prefix="chr"
 
-#     # temporary output filename with gwava prediction:
-#     gwava_filename = filename+"_gwava"
+        in_bed.write("%s%s\t%d\t%d\t%s\n" %(prefix,chrpos[i][0],chrpos[i][1]-1,chrpos[i][1],variant_data["rsID"]))
+        in_bed.close()
 
-#     # Saving primary input file:
-#     f = open( filename, 'w')
-#     f.write(bed_string)
-#     f.close()
+        LOGGER.debug("Calling: liftOver %s /usr/bin/hg38ToHg19.over.chain.gz %s %s\n" %(in_bed.name,bed37_fname,unmapped_fname))
+        cmdline="liftOver %s /usr/bin/hg38ToHg19.over.chain.gz %s %s" %(in_bed.name,bed37_fname,unmapped_fname)
+        subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT).communicate()
 
-#     # now we have to run gwava:
-#     GWAVA_dir = config.GWAVA_DIR
+        if not os.path.isfile(bed37_fname):
+            LOGGER.error("liftOver failed to create output file %s" % bed37_fname)
+            continue
 
-#     query = "python %s/src/gwava_annotate.py %s %s" %(GWAVA_dir, filename, annot_filename)
+        if os.path.getsize(bed37_fname)==0:
+            LOGGER.warning("liftOver produced empty output file %s" % bed37_fname)
+            continue
+    
+        env=os.environ.copy()
+        env["GWAVA_DIR"]=config.GWAVA_DIR
 
-#     PATH = "/software/hgi/pkglocal/samtools-1.2/bin:/software/hgi/pkglocal/vcftools-0.1.11/bin:/software/hgi/pkglocal/tabix-git-1ae158a/bin:/software/hgi/pkglocal/bcftools-1.2/bin:/nfs/team144/software/ensembl-releases/75/ensembl-tools/scripts/variant_effect_predictor:/nfs/team144/software/bedtools2/bin:/nfs/team144/software/scripts:/nfs/users/nfs_d/ds26/bin:/usr/local/lsf/9.1/linux2.6-glibc2.3-x86_64/etc:/usr/local/lsf/9.1/linux2.6-glibc2.3-x86_64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/software/bin"
+        annot_fname=tf.mktemp()
+        LOGGER.debug("GWAVA annotation file: %s" % annot_fname)
+        gwava_fname=tf.mktemp()
+        LOGGER.debug("GWAVA score file: %s" % gwava_fname)
 
-#     # Submit query:
-#     output = subprocess.Popen(query.strip(),
-#                               shell=True,
-#                               stdout=subprocess.PIPE,
-#                               stderr=subprocess.STDOUT,
-#                               env={'GWAVA_DIR': GWAVA_dir,
-#                                    "PYTHONPATH": "/nfs/team144/software/anaconda/lib/python2.7/site-packages",
-#                                    "PATH": PATH}).wait()
+        LOGGER.debug("Calling: python2 %s/src/gwava_annotate.py %s %s" %(config.GWAVA_DIR,bed37_fname,annot_fname))
+        cmdline="python2 %s/src/gwava_annotate.py %s %s" %(config.GWAVA_DIR,bed37_fname,annot_fname)
+        subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=env).communicate()
 
-#     # Once the annotation run is completed, let's run the prediction:
-#     query = "python %s/src/gwava.py tss %s %s" %(GWAVA_dir, annot_filename, gwava_filename)
+        LOGGER.debug("Calling: python2 %s/src/gwava.py tss %s %s" %(config.GWAVA_DIR,annot_fname,gwava_fname))
+        cmdline="python2 %s/src/gwava.py tss %s %s" %(config.GWAVA_DIR,annot_fname,gwava_fname)
+        subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=env).communicate()
 
-#     # Submit query:
-#     output = subprocess.Popen(query.strip(),
-#                               shell=True,
-#                               stdout=subprocess.PIPE,
-#                               stderr=subprocess.STDOUT,
-#                               env={'GWAVA_DIR': GWAVA_dir,
-#                                    'PYTHONPATH': '/nfs/team144/software/anaconda/lib/python2.7/site-packages',
-#                                    'PATH': PATH}).wait()
+        for line in open(annot_fname, 'r'):
+            if "start" in line: continue
 
-#     # Once the queries are returned, we have to parse the output:
-#     # From the annotation file, we retrive 147 - avg_gerp, 148 - gerp
+            avg_gerp = line.split(",")[147]
+            gerp = line.split(",")[148]
 
-#     # Reading annotation file:
-#     for line in open(annot_filename, 'r'):
-#         if "start" in line: continue
+        for line in open(gwava_fname, 'r'):
+            gwava = line.strip().split("\t")[4]
 
-#         avg_gerp = line.split(",")[147]
-#         gerp = line.split(",")[148]
+        variant_data["scores"][keystr]["avg_gerp"]=avg_gerp
+        variant_data["scores"][keystr]["gerp"]=gerp
+        variant_data["scores"][keystr]["gwava"]=gwava
 
-#     # Reading prediction file:
-#     for line in open(gwava_filename, 'r'):
-#         gwava = line.strip().split("\t")[4]
+        LOGGER.info("avg_gerp: %s: gerp: %s; gwava: %s" % (avg_gerp,gerp,gwava))
 
-#     # Updating variant
-#     variant_data["avg_gerp"] = round(float(avg_gerp), 4)
-#     variant_data["gerp"] = gerp
-#     variant_data["gwava"] = gwava
+        LOGGER.debug("Removing temporary files\n")
+        if os.path.isfile(in_bed.name):
+            os.remove(in_bed.name)
+        if os.path.isfile(bed37_fname):
+            os.remove(bed37_fname)
+        if os.path.isfile(unmapped_fname):
+            os.remove(unmapped_fname)
+        if os.path.isfile(annot_fname):
+            os.remove(annot_fname)
+        if os.path.isfile(gwava_fname):
+            os.remove(gwava_fname)
 
-#     # removing temporary files:
-#     os.remove(annot_filename)
-#     os.remove(filename)
-#     os.remove(gwava_filename)
-
-#     return variant_data
+# ==============================================================================================================================
 
 # TODO: add links like in the original version
 # TODO: gwava and gerp
