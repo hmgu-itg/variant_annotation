@@ -291,7 +291,6 @@ def id2rs(varid,build="38"):
                         break
     return S
 
-
 # ==============================================================================================================================
 
 # for all chr:pos mappings
@@ -378,7 +377,8 @@ def getGwavaScore(variant_data):
 def variant2df(var_data,mappings):
     df=pd.DataFrame(columns=["Value"])
     df.loc["ID"]=[var_data["rsID"]]
-    df.loc["Location"]=[mappings[0]["chr"]+":"+str(mappings[0]["pos"])]
+    keystr=mappings[0]["chr"]+":"+str(mappings[0]["pos"])
+    df.loc["Location"]=[keystr]
     L=list()
     for m in mappings:
         L.append(m["ref"]+"/"+m["alt"])
@@ -387,6 +387,9 @@ def variant2df(var_data,mappings):
     # df.loc["SIFT prediction"]=[mapping["sift_prediction"]]
     # df.loc["PolyPhen score"]=[mapping["polyphen_score"]]
     # df.loc["PolyPhen prediction"]=[mapping["polyphen_prediction"]]
+    df.loc["Average GERP score"]=var_data["scores"][keystr]["avg_gerp"]
+    df.loc["GERP score"]=var_data["scores"][keystr]["gerp"]
+    df.loc["GWAVA score"]=var_data["scores"][keystr]["gwava"]
     df.loc["MAF"]=[var_data["MAF"]]
     df.loc["Consequence"]=[var_data["consequence"]]
     df.loc["Type"]=[var_data["class"]]
