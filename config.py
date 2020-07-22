@@ -32,6 +32,7 @@ WINDOW      = 500000
 ##
 ## Parameters for genes:
 ##
+EXAC_VAR_URL    = "http://exac.hms.harvard.edu/rest/variant/variant/%s"
 OMIM_URL        = 'http://api.omim.org/api/entry?'
 OMIM_APIKEY     = 'apiKey=MWkzg-DYShWyrfrbqUHL4g&format=python&' # will expire on March 21st, 2017.
 GWAS_FILE       = "/home/andrei/container.home/gwas_catalog_v1.0.2-associations_e100_r2020-06-30.tsv.gz"
