@@ -25,6 +25,12 @@ except:
 varID=args.id
 
 #---------------------------------------------------------------------------------------------------------------------------
-r=query.restQuery(config.EXAC_VAR_URL % "14-21853913-T-C")
+
+# r=query.restQuery(config.EXAC_VAR_URL % "1-1158562-AAC-A")
+# if r is not None:
+#     print(json.dumps(r, indent=4, sort_keys=True))
+
+r=query.restQuery(config.EXAC_DBSNP_URL % "rs745840342")
 if r is not None:
     print(json.dumps(r, indent=4, sort_keys=True))
+

@@ -5,7 +5,7 @@ import os
 import argparse
 import re
 import datetime
-from functions import *
+from variant import *
 #----------------------------------------------------------------------------------------------------------------------------------
 
 build="38"

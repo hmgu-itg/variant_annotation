@@ -33,16 +33,11 @@ import gnomad
 
 #prettyprint(get_variant_list("ENSG00000010610"))
 
-print(os.environ.copy())
-
-x=gnomad.getPopulationAF("rs782819098")
+x=gnomad.getPopulationAF("rs34945898")
 if x is not None:
     print(x)
 
-x=gnomad.getPopulationAF("12-6818479-C-T")
+x=gnomad.getPopulationAF("1-179858520-CT-C")
 if x is not None:
     print(x)
 
-x=gnomad.getPopulationAF("12-6818480-C-T")
-if x is not None:
-    print(x)

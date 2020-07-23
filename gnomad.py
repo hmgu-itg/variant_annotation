@@ -2,6 +2,7 @@ import config
 import logging
 import pandas as pd
 import re
+import json
 
 from query import *
 from utils import *
@@ -21,8 +22,7 @@ def getPopulationAF(var, dataset="gnomad_r3"):
     Get allele frequencies for a given variant
 
     Input  : variant ID and GnomAD dataset ID (default: "gnomad_r3")
-    Output : dataframe with columns "Population", "Ref", "Alt", or None if request failed
-
+    Output : dataframe with columns "Population", "Ref", "Alt", or None if request fails
     '''
 
     graphql=""
@@ -36,7 +36,8 @@ def getPopulationAF(var, dataset="gnomad_r3"):
         
     req_af = {"query": graphql % (var, dataset)}
 
-    response = fetchGnomAD(req_af)
+    response=fetchGnomAD(req_af)
+    #print(json.dumps(response, indent=4, sort_keys=True))    
     if response is not None:
         afs=response["data"]
         ref=afs["variant"]["ref"]
@@ -57,8 +58,8 @@ def getPopulationAF(var, dataset="gnomad_r3"):
                     L.append("0.00")
                     L.append("1.00")
                 else:
-                    L.append("%.2e" % (float(1.0)-float(p["ac"])/float(p["an"])))
-                    L.append("%.2e" % (float(p["ac"])/float(p["an"])))
+                    L.append("%.3e" % (float(1.0)-float(p["ac"])/float(p["an"])))
+                    L.append("%.3e" % (float(p["ac"])/float(p["an"])))
                     
                 df.loc[i]=L
                 i+=1
