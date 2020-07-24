@@ -20,8 +20,14 @@ LOGGER.addHandler(ch)
 
 # ==============================================================================================================================
 
-# given rsID, return a list of chr:pos
 def rs2position(ID,build="38"):
+    '''
+    Given rsID, return a list of dictionaries with keys "chr", "pos"
+    
+    Input: rsID, build (default: 38)
+    Output: a list of dictionaries with keys "chr", "pos", or None if query fails
+    '''
+
     L=[]
     z=restQuery(makeRSQueryURL(ID,build=build))
     if z:
@@ -39,7 +45,8 @@ def rs2position(ID,build="38"):
 
     return L
 
-# for a given genomic region, return dataframe containing variants with phenotype annotations
+# ==============================================================================================================================
+
 def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
     '''
     For a given genomic region, return dataframe containing variants with phenotype annotations
@@ -89,7 +96,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
             #print(json.dumps(r,indent=4,sort_keys=True))
             for rsID in r:
                 for phenotype in r[rsID]["phenotypes"]:
-                    m=re.match(".*phenotype\s+not\s+specified.*",phenotype["trait"])
+                    m=re.search("phenotype\s+not\s+specified",phenotype["trait"])
                     if m:
                         continue
                     x=next((m for m in r[rsID]["mappings"] if m["seq_region_name"]==chrom),None)
@@ -116,8 +123,10 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
 
 # ===========================================================================================================================
 
-# for a list of variant mappings, return unique chr:pos pairs
 def getChrPosList(mappings):
+    '''
+    For a list of variant mappings, return a list of unique chr:pos pairs
+    '''
     L=list()
     for m in mappings:
         t=(m["chr"],m["pos"])
@@ -126,8 +135,12 @@ def getChrPosList(mappings):
 
     return L
 
-# for a list of variant mappings and a chr:pos pair, return a list of ref:alt pairs
+# ===========================================================================================================================
+
 def getMappingList(t,mappings):
+    '''
+    For a list of variant mappings and a chr:pos pair, return a list of mappings corresponding to chr:pos
+    '''
     L=list()
     for m in mappings:
         if t[0]==m["chr"] and t[1]==m["pos"]:
@@ -137,15 +150,22 @@ def getMappingList(t,mappings):
 
 # ===========================================================================================================================
 
-# get general information about a variant, given rsID:
-# 
-# MAF, minor allele, variant class, most severe consequence
-# 1KG phase 3 population allele frequencies
-# mappings: chr, pos, ref, alt
-# phenotype data: trait, source, risk allele
-# variant's clinical significance
-# TODO: remove MAF and "minor_allele" ?
 def getVariantInfo(rs,build="38"):
+    '''
+    For a given rs ID, return a dictionary with variant information; keys are:
+    "minor_allele"
+    "MAF"
+    "rsID"
+    "class" : variant class
+    "synonyms" : list of synonym IDs
+    "consequence" : most severe consequence
+    "mappings" : list of mapping dictionaries with keys: "chr", "pos", "ref", "alt", "polyphen_score", "polyphen_prediction", "sift_score", "sift_preddiction"
+    "population_data" : list of dictionaries "population":{"allele":"frequency"} (from phase 3 of 1KG)
+    "phenotype_data" : list of dictionaries with keys "trait", "source", "risk_allele"
+    "clinical_significance" : list of clinical significance terms
+    "scores" : dictionary mapping "chr:pos" string to a dictionary with keys "avg_gerp", "gerp", "gwava"
+    '''
+
     res=dict()
 
 #------------------- general information ---------------
@@ -238,8 +258,13 @@ def getVariantInfo(rs,build="38"):
 
 # ===========================================================================================================================
 
-# returns a set of matching rsIDs for a given variant ID
 def id2rs(varid,build="38"):
+    '''
+    For a given variant ID (chr_pos_ref_alt), return a set of matching rs IDs
+
+    Input: variant ID, build (default: 38)
+    Output: set of rs IDs
+    '''
     if varid.startswith("rs"):
         return varid
 
@@ -293,8 +318,13 @@ def id2rs(varid,build="38"):
 
 # ==============================================================================================================================
 
-# for all chr:pos mappings
 def getGwavaScore(variant_data):
+    '''
+    Annotate variant data (output of getVariantInfo) with average GERP, GERP and GWAVA scores
+
+    Input: variant data
+    '''
+
     chrpos=getChrPosList(variant_data["mappings"])
 
     for i in range(0,len(chrpos)):
@@ -372,9 +402,13 @@ def getGwavaScore(variant_data):
 
 # ==============================================================================================================================
 
-# TODO: add links like in the original version
-# TODO: gwava and gerp
 def variant2df(var_data,mappings):
+    '''
+    Transform variant data to dataframe
+
+    Input: variant data (output of getVariantInfo), list of variant mappings
+    Output: dataframe
+    '''
     df=pd.DataFrame(columns=["Value"])
     df.loc["ID"]=[var_data["rsID"]]
     keystr=mappings[0]["chr"]+":"+str(mappings[0]["pos"])
@@ -405,10 +439,16 @@ def variant2df(var_data,mappings):
 
     return df
     
-# ----------------------------------------------------------------------------------------------------------------------
+# ==============================================================================================================================
 
 def population2df(pop_data):
-    # all alleles in all populations
+    '''
+    Transform variant's population data into a dataframe
+
+    Input: population data: "population_data" dictionary of variant data (output of getVariantInfo)
+    Output: dataframe
+    '''
+
     all_alleles=set()
     for z in pop_data:
         for a in z["frequency"]:

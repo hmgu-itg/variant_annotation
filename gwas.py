@@ -3,6 +3,7 @@ import subprocess
 import logging
 import os
 import pandas as pd
+import re
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -57,23 +58,20 @@ def getGwasHits(chrom,pos,window=500000):
     Output: [ {"rsID","SNPID","trait","p-value","PMID","distance"}]
     '''
 
-    gwas_file=config.GWAS_FILE_VAR
-
-    if not os.path.isfile(gwas_file):
-        LOGGER.error("GWAS catalog file (%s) not found" % gwas_file)
-        return None
-
     start=pos-window
     if start<1:
         start=1
     end=pos+window
 
     L=[]
-    df=pd.read_table(gwas_file,sep="\t",header=0,compression="gzip")
+    df=pd.read_table(config.GWAS_FILE_VAR,sep="\t",header=0,compression="gzip")
     for index, row in df[(df["CHR_ID"]==chrom) & (df["CHR_POS"].astype(int)>start) & (df["CHR_POS"].astype(int)<end)].iterrows():
         rsID=row["SNPS"]
         snpid=row["CHR_ID"]+"_"+str(row["CHR_POS"])
         trait=row["DISEASE/TRAIT"]
+        m=re.search("^b'(.*)'$",trait)
+        if m:
+            trait=m.group(1)
         pval=row["P-VALUE"]
         pmid=row["PUBMEDID"]
         dist=int(row["CHR_POS"])-pos

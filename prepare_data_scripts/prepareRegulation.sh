@@ -26,9 +26,9 @@ fi
 
 for f in $(find "$indir" -maxdepth 1 -name "*.gff.gz");do 
     b=$(basename $f)
-    echo "Current file: $b"
+    #echo "Current file: $b"
     cell_type=$(echo $b| perl -lne '$x="NA";if (/homo_sapiens\.GRCh38\.(\w+)\.Regulatory_Build\.regulatory_activity\.\d+\.gff\.gz/){$x=$1;} print $x;')
-    echo "Cell type: $cell_type"
+    #echo "Cell type: $cell_type"
     if [[ "$cell_type" != "NA" ]];then
 	export cell_type="$cell_type"
 	zcat "$f" | perl -F"\t" -lane '$ct=$ENV{cell_type};$,="\t";$a="NA";$id="NA";if ($F[8] =~ /activity=([^;]+);/){$a=$1;}if ($F[8] =~ /regulatory_feature_stable_id=([^;]+)/){$id=$1;} print $F[0],$F[3]-1,$F[4],$F[2],$ct,$a,$id;' >> "$out"

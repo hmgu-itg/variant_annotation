@@ -9,13 +9,13 @@ import os
 import config
 
 import utils
+import gnomad
 from variant import *
 from gene import *
 from regulation import *
 from gwas import *
 from gtex import *
 from vep import *
-from exac import *
 from pubmed import *
 
 # ------------------------------------------------------------------------------------------------------------------------
@@ -29,14 +29,24 @@ parser = argparse.ArgumentParser()
 input_options = parser.add_argument_group('Input options')
 input_options.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38")
 input_options.add_argument("--id", "-i", help="Required: input variation, rsID or SNP ID + alleles: \"14_94844947_C_T\"", required=True)
+input_options.add_argument("--data", "-d", help="Required: directory with GTEx, GWAS and Ensembl Regulation data", required=True)
 input_options.add_argument('--output','-o', action="store",help="Optional: output directory; defaults to variant ID in the current directory")
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
-input_options.add_argument("--gwava", "-g", help="Path to GWAVA directory", required=False, action='store')
+input_options.add_argument("--gwava", "-g", help="Optional: path to GWAVA directory", required=False, action='store')
 
 # Extracting command line parameters:
 args = parser.parse_args()
 VAR_ID = args.id
 GWAVA = args.gwava
+datadir=args.data
+
+if datadir.endswith("/"):
+    datadir=datadir[:-1]
+
+config.REGULATORY_FILE=datadir+"/regulation/regulation.bed.gz"
+config.GWAS_FILE_VAR=datadir+"/gwas/gwas.tsv.gz"
+config.GWAS_FILE=datadir+"/gwas/gwas_full.tsv.gz"
+config.GTEX_BED=datadir+"/gtex/gtex.bed.gz"
 
 if args.build!=None:
     build=args.build
@@ -114,7 +124,7 @@ if GWAVA is not None:
 chrpos=getChrPosList(variant_data["mappings"])
 
 LOGGER.info("Found %d chr:pos mapping(s)\n" %(len(chrpos)))
-print(json.dumps(variant_data,indent=4,sort_keys=True))
+#print(json.dumps(variant_data,indent=4,sort_keys=True))
 
 mapping_names=list()
 D=dict()
@@ -151,12 +161,10 @@ for i in range(0,len(chrpos)):
     vepDF=vep["transcript"]
     LOGGER.info("Done\n")
 
-    # TODO: fix
     LOGGER.info("Creating populations dataframe")
     populationDF = population2df(variant_data["population_data"])
     LOGGER.info("Done\n")
 
-    # TODO: fix
     LOGGER.info("Creating PubMed dataframe")
     pubmedDF = getPubmedDF(VAR_ID,variant_data["synonyms"])
     LOGGER.info("Done\n")
@@ -169,8 +177,8 @@ for i in range(0,len(chrpos)):
     geneDF = geneList2df(gene_list)
     LOGGER.info("Done\n")
 
-    LOGGER.info("Creating ExAC dataframe")
-    exacDF = getExacDF(mappings)
+    LOGGER.info("Creating gnomAD dataframe")
+    gnomadDF = gnomad.getPopulationAF(VAR_ID)
     LOGGER.info("Done\n")
 
     LOGGER.info("Creating GTEx dataframe")
@@ -179,25 +187,25 @@ for i in range(0,len(chrpos)):
 
 # ----------------------------------------------------------------------------
 
-    if len(variantDF):
+    if len(variantDF)>0:
         D["variant_table%d" %i]=variantDF.to_html(index=True,classes='utf8',table_id="common")
-    if len(exacDF) and len(exacDF.columns)>1:
-        D["exac_table%d" %i]=exacDF.to_html(index=False,classes='utf8',table_id="common")
-    if len(regulationDF):
+    if gnomadDF is not None:
+        D["gnomad_table%d" %i]=gnomadDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(regulationDF)>0:
         D["regulation_table%d" %i]=regulationDF.to_html(index=False,classes='utf8',table_id="common")
-    if len(gwasDF):
+    if len(gwasDF)>0:
         D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common")
-    if len(vepDF):
+    if len(vepDF)>0:
         D["vep_table%d" %i]=vepDF.to_html(index=False,classes='utf8',table_id="common")
-    if len(populationDF):
+    if len(populationDF)>0:
         D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
-    if len(pubmedDF):
+    if len(pubmedDF)>0:
         D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-    if phenotypeDF is not None and len(phenotypeDF):
+    if phenotypeDF is not None and len(phenotypeDF)>0:
         D["phenotype_table%d" %i]=phenotypeDF.to_html(index=False,classes='utf8',table_id="common")
-    if len(geneDF):
+    if len(geneDF)>0:
         D["gene_table%d" %i]=geneDF.to_html(index=False,classes='utf8',table_id="common")
-    if len(GTEx_genesDF):
+    if len(GTEx_genesDF)>0:
         D["gtex_genes_table%d" %i]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
     
     mapping_names.append(chrpos[i][0]+":"+str(chrpos[i][1]))

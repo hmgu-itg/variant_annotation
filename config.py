@@ -36,25 +36,25 @@ EXAC_VAR_URL    = "http://exac.hms.harvard.edu/rest/variant/variant/%s"
 EXAC_DBSNP_URL    = "http://exac.hms.harvard.edu/rest/dbsnp/%s"
 OMIM_URL        = 'http://api.omim.org/api/entry?'
 OMIM_APIKEY     = 'apiKey=MWkzg-DYShWyrfrbqUHL4g&format=python&' # will expire on March 21st, 2017.
-GWAS_FILE       = "/home/andrei/container.home/gwas_catalog_v1.0.2-associations_e100_r2020-06-30.tsv.gz"
+#GWAS_FILE       = "/home/andrei/container.home/gwas_catalog_v1.0.2-associations_e100_r2020-06-30.tsv.gz"
 UNIPROT_URL     = 'http://www.uniprot.org/uniprot/'
 GXA_URL_PREFIX  = "https://www.ebi.ac.uk/gxa/genes/"
 GXA_URL_SUFFIX  = "?bs=%7B%22homo%20sapiens%22%3A%5B%22ORGANISM_PART%22%5D%7D&ds=%7B%22kingdom%22%3A%5B%22animals%22%5D%7D#baseline"
-GTEX_BED        = '/home/andrei/container.home/GTEx.bed.gz'
+#GTEX_BED        = '/home/andrei/container.home/GTEx.bed.gz'
 
 ##
 ## Parameters for variations:
 ##
-GWAVA_DIR       = "/lustre/scratch113/teams/zeggini/users/ds26/GWAVA/gwava_release"
-GWAS_FILE_VAR   = '/home/andrei/container.home/gwas.tsv.gz'
-EXAC_FILE       = '/home/andrei/container.home/legacy_exacv1_downloads_liftover_grch38_release1_ExAC.r1.sites.liftover.b38.vcf.gz'
+#GWAVA_DIR       = "/lustre/scratch113/teams/zeggini/users/ds26/GWAVA/gwava_release"
+#GWAS_FILE_VAR   = '/home/andrei/container.home/gwas.tsv.gz'
+#EXAC_FILE       = '/home/andrei/container.home/legacy_exacv1_downloads_liftover_grch38_release1_ExAC.r1.sites.liftover.b38.vcf.gz'
 PUBMED_URL_VAR  = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%%22%s%%22%%5BAll%%20Fields%%5D&retmode=json&retmax=1000'
 PUBMED_URL_PMID = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&rettype=abstract&id=%s'
-REGULATORY_FILE  = "/home/andrei/container.home/reg.99/all.cells.regulation.v99.bed.gz"
+#REGULATORY_FILE  = "/home/andrei/container.home/reg.99/all.cells.regulation.v99.bed.gz"
 #REGULATORY_FILE = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/regulation/Ensembl_regulation_2015.11.13_AnnotatedFeatures.bed.gz'
 #REG_FEAT_FILE   = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/regulation/ALL_Ensembl_regulatory_features_resorted.bed.gz'
-UK10K_FILE      = '/nfs/vertres18/projects/uk10k/RELEASE/UK10K_COHORT/REL-2012-06-02/v3/%s.beagle.anno.csq.shapeit.20131101.vcf.gz'
-UK10K_VERSION   = 'UK10K data release 2013 Nov. 11, version: v3.'
+#UK10K_FILE      = '/nfs/vertres18/projects/uk10k/RELEASE/UK10K_COHORT/REL-2012-06-02/v3/%s.beagle.anno.csq.shapeit.20131101.vcf.gz'
+#UK10K_VERSION   = 'UK10K data release 2013 Nov. 11, version: v3.'
 #GTEX_FILE_VAR   = '/lustre/scratch113/teams/zeggini/users/ds26/refseq/GTEx/GTEx_all_tissue.bed.gz'
 
 ##

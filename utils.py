@@ -156,7 +156,7 @@ def generateVarTemplate(mapping_names,fname):
             print("<div id=\"General\" class=\"big_box\"><h1>Nearby GWAS signals</h1>\n{{ gwas_table%d }}\n</div>\n" %i)
             print("<div id=\"General\" class=\"big_box\"><h1>Predicted consequences</h1>\n<div id=\"variant\" class=\"general\" >\n{{ vep_table%d }}\n</div>\n</div>\n" %i)
             print("<div id=\"General\" class=\"big_box\"><h1>1kG allele frequencies</h1>\n{{ population_table%d }}\n</div>\n" %i)
-            print("<div id=\"General\" class=\"big_box\"><h1>ExAC allele frequencies</h1>\n{{ exac_table%d }}\n</div>\n" %i)
+            print("<div id=\"General\" class=\"big_box\"><h1>gnomAD allele frequencies</h1>\n{{ gnomad_table%d }}\n</div>\n" %i)
             print("<div id=\"General\" class=\"big_box\"><h1>Regulation</h1>\n{{ regulation_table%d }}\n</div>\n" %i)
             print("<div id=\"General\" class=\"big_box\"><h1>GTEx eQTLs</h1>\n{{ gtex_gene_table%d }}\n</div>\n" %i)
             print("<div id=\"General\" class=\"big_box\"><h1>Nearby genes</h1>\n{{ gene_table%d }}\n</div>\n" %i)
