@@ -5,6 +5,7 @@ import argparse
 import logging
 import json
 import os
+import sys
 
 import config
 
@@ -19,6 +20,8 @@ from gtex import *
 from vep import *
 from pubmed import *
 from uniprot import *
+
+sys.stdout=open(sys.stdout.fileno(),mode='w',encoding='utf8',buffering=1)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -226,6 +229,8 @@ f.write(generateHTML(template_fname,D))
 f.close()
 
 # ----------------------------------------------------------------------------
+
+D=dict()
 gene_names=list()
 for i in range(0,len(all_genes)):
     gene_ID=all_genes[i]["ID"]
@@ -267,7 +272,6 @@ for i in range(0,len(all_genes)):
     LOGGER.info("Creating GO terms dataframe")
     goDF = goterms2df(xrefs)
 
-    D=dict()
     if len(infoDF)>0:
         D["gene_table%d" %i]=infoDF.to_html(index=False,classes='utf8',table_id="common")
     if len(goDF):
