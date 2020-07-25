@@ -1,5 +1,7 @@
 import pandas as pd
 import logging
+import json
+import sys
 
 import config
 from query import *
@@ -23,6 +25,8 @@ def getGeneInfo (ID,build="38"):
     Output: dictionary with retrieved information
     '''
     response=restQuery(makeGeneQueryURL(ID,build=build))
+
+    #print(json.dumps(response,indent=4,sort_keys=True))
 
     gene_info=dict()
     gene_info["source"] = response["source"]
@@ -53,6 +57,8 @@ def getGeneXrefs (ID,build="38"):
                         and lists of tuples ("primary_id","description") as values  
     '''
 
+    LOGGER.debug(ID)
+
     r=restQuery(makeGeneXQueryURL(ID,build=build))
     if not r:
         LOGGER.info("No cross references found for %s" %(ID))
@@ -74,7 +80,7 @@ def getGeneXrefs (ID,build="38"):
             x=(xref["primary_id"],xref["description"])
             if x not in xrefs[db]:
                 xrefs[db].append(x)
-
+    
     return xrefs
 
 # ======================================================================================================================

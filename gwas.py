@@ -5,6 +5,9 @@ import os
 import pandas as pd
 import re
 
+import locale
+locale.setlocale(locale.LC_CTYPE,"en_US.UTF-8")
+
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 ch=logging.StreamHandler()
@@ -23,8 +26,7 @@ def gene2gwas(gene_name):
     Output: list of dictionaries
     '''
 
-    gwas_file = config.GWAS_FILE
-    query = "zcat %s | fgrep -iw %s" % (gwas_file,gene_name)
+    query = "zcat %s | fgrep -iw %s" % (config.GWAS_FILE,gene_name)
 
     gwas_data = []
     output = subprocess.Popen(query,shell=True,universal_newlines=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)

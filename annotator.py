@@ -10,6 +10,7 @@ import config
 
 import utils
 import gnomad
+import mouse
 from variant import *
 from gene import *
 from regulation import *
@@ -17,6 +18,7 @@ from gwas import *
 from gtex import *
 from vep import *
 from pubmed import *
+from uniprot import *
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -33,6 +35,8 @@ input_options.add_argument("--data", "-d", help="Required: directory with GTEx, 
 input_options.add_argument('--output','-o', action="store",help="Optional: output directory; defaults to variant ID in the current directory")
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 input_options.add_argument("--gwava", "-g", help="Optional: path to GWAVA directory", required=False, action='store')
+
+# ------------------------------------------------------------------------------------------------------------------------
 
 # Extracting command line parameters:
 args = parser.parse_args()
@@ -66,10 +70,6 @@ if args.output:
 if outdir.endswith("/"):
     outdir=outdir[:-1]
 
-if not utils.createDir(outdir):
-    LOGGER.error("Could not create output dir %s" % outdir)
-    sys.exit(1)
-
 config.OUTPUT_DIR=outdir
 
 if GWAVA is not None:
@@ -96,6 +96,14 @@ logging.getLogger("pubmed").setLevel(verbosity)
 logging.getLogger("vep").setLevel(verbosity)
 logging.getLogger("exac").setLevel(verbosity)
 logging.getLogger("gxa").setLevel(verbosity)
+logging.getLogger("uniprot").setLevel(verbosity)
+logging.getLogger("mouse").setLevel(verbosity)
+
+# ------------------------------------------------------------------------------------------------------------------------
+
+if not utils.createDir(outdir):
+    LOGGER.error("Could not create output dir %s" % outdir)
+    sys.exit(1)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -103,6 +111,13 @@ date_string = datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
 version = "3.0"
 
 filename = VAR_ID+".html"
+
+# ------------------------------------------------------------------------------------------------------------------------
+
+# LOGGER.info("Retreiveing cross-references")
+# xrefs = getGeneXrefs("ENSG00000137970")
+# print(xrefs)
+# sys.exit(0)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -126,6 +141,7 @@ chrpos=getChrPosList(variant_data["mappings"])
 LOGGER.info("Found %d chr:pos mapping(s)\n" %(len(chrpos)))
 #print(json.dumps(variant_data,indent=4,sort_keys=True))
 
+all_genes=list()
 mapping_names=list()
 D=dict()
 for i in range(0,len(chrpos)):
@@ -134,56 +150,47 @@ for i in range(0,len(chrpos)):
 
     LOGGER.info("Creating variant dataframe")
     variantDF = variant2df(variant_data,mappings)
-    LOGGER.info("Done\n")
-
+    
     # Variants with phenotypes:
     LOGGER.info("Retreiving nearby variants with phenotype annotation")
     phenotypeDF = getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
-    LOGGER.info("Done\n")
-
+    
     # Get regulatory features
     LOGGER.info("Retrieving overlapping regulatory features")
     regulation = getRegulation(chrpos[i][0],chrpos[i][1])
     LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(regulation)))
     LOGGER.info("Creating regulatory dataframe")
     regulationDF = regulation2df(regulation)
-    LOGGER.info("Done\n")
-
+    
     LOGGER.info("Looking for GWAS hits around the variant")
     gwas_hits=getGwasHits(chrpos[i][0],chrpos[i][1])
     LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
     LOGGER.info("Creating GWAS dataframe")
     gwasDF = gwas2df(gwas_hits)
-    LOGGER.info("Done\n")
-
+    
     LOGGER.info("Creating VEP dataframe")
     vep = getVepDF(mappings)
     vepDF=vep["transcript"]
-    LOGGER.info("Done\n")
-
+    
     LOGGER.info("Creating populations dataframe")
     populationDF = population2df(variant_data["population_data"])
-    LOGGER.info("Done\n")
 
     LOGGER.info("Creating PubMed dataframe")
     pubmedDF = getPubmedDF(VAR_ID,variant_data["synonyms"])
-    LOGGER.info("Done\n")
 
     # Get a list of genes close to the variation:
     LOGGER.info("Retrieving genes around the variant")
     gene_list=getGeneList(chrpos[i][0],chrpos[i][1],build=build)
+    all_genes.extend(gene_list)
     LOGGER.info("Got %d gene(s)\n" %(len(gene_list)))
     LOGGER.info("Creating gene dataframe")
     geneDF = geneList2df(gene_list)
-    LOGGER.info("Done\n")
-
+    
     LOGGER.info("Creating gnomAD dataframe")
     gnomadDF = gnomad.getPopulationAF(VAR_ID)
-    LOGGER.info("Done\n")
-
+    
     LOGGER.info("Creating GTEx dataframe")
-    GTEx_genesDF = getGTExDF(mappings)
-    LOGGER.info("Done\n")
+    GTEx_genesDF = getGTExDF(mappings)    
 
 # ----------------------------------------------------------------------------
 
@@ -219,61 +226,68 @@ f.write(generateHTML(template_fname,D))
 f.close()
 
 # ----------------------------------------------------------------------------
+gene_names=list()
+for i in range(0,len(all_genes)):
+    gene_ID=all_genes[i]["ID"]
+    gene_names.append(gene_ID)
 
-# gene_ID="ENSG00000002933"
+    LOGGER.info("Retreiving general information")
+    info = getGeneInfo(gene_ID,build=build)
 
-# LOGGER.info("Retreiving general information")
-# info = getGeneInfo(gene_ID,build=build)
+    LOGGER.info("Retreiveing cross-references")
+    xrefs = getGeneXrefs(gene_ID)
 
-# LOGGER.info("Retreiveing cross-references")
-# xrefs = getGeneXrefs(gene_ID)
+    LOGGER.info("Retreiving UniProt data")
+    if len(xrefs["UniProtKB/Swiss-Prot"])>0:
+        uniprot = getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
+    else:
+        uniprot=None
 
-# LOGGER.info("Retreiving UniProt data")
-# uniprot = getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
+    LOGGER.info("Retreiving GWAS data")
+    gwas = gene2gwas(info["name"])
 
-# LOGGER.info("Retreiving GWAS data")
-# gwas = gene2gwas(info["name"])
+    LOGGER.info("Retreiving GTEx data")
+    gtex= parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
 
-# LOGGER.info("Retreiving GTEx data")
-# gtex= parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
+    LOGGER.info("Retreiving mouse data\n")
+    mouseDF=mouse.getMousePhenotypes(gene_ID)
 
-# LOGGER.info("Retreiving mouse data\n")
-# mouseDF= getMousePhenotypes(gene_ID)
+    LOGGER.info("Creating general info dataframe")
+    infoDF = geneInfo2df(info)
 
-# LOGGER.info("Creating general info dataframe")
-# infoDF = geneInfo2df(info)
+    #LOGGER.info("Creating GTEx dataframe")
+    #gtexDF = gtex2df(gtex)
 
-# LOGGER.info("Creating GTEx dataframe")
-# gtexDF = gtex2df(gtex)
-# #s=gtexDF.style.set_table_attributes('id="common"')
-# #print(s.render())
+    LOGGER.info("Creating GWAS dataframe")
+    gwasDF = geneGwas2df(gwas)
 
-# LOGGER.info("Creating GWAS dataframe")
-# gwasDF = geneGwas2df(gwas)
+    LOGGER.info("Creating UniProt dataframe")
+    uniprotDF = uniprot2df(uniprot)
 
-# LOGGER.info("Creating UniProt dataframe")
-# uniprotDF = uniprot2df(uniprot)
+    LOGGER.info("Creating GO terms dataframe")
+    goDF = goterms2df(xrefs)
 
-# LOGGER.info("Creating GO terms dataframe")
-# goDF = goterms2df(xrefs)
+    D=dict()
+    if len(infoDF)>0:
+        D["gene_table%d" %i]=infoDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(goDF):
+        D["go_table%d" %i]=goDF.to_html(index=False,classes='utf8',table_id="common")
+    if uniprotDF is not None and len(uniprotDF)>0:
+        D["uniprot_table%d" %i]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(gwasDF)>0:
+        D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+    # if len(gtexDF):
+    #     D["gtexVariants_table%d" %i]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
+    if len(mouseDF)>0:
+        D["mouse_table%d" %i]=mouseDF.to_html(index=False,classes='utf8',table_id="common")
 
-# D=dict()
-# if len(infoDF):
-#     D["gene_table"]=infoDF.to_html(index=False,classes='utf8',table_id="common")
-# if len(goDF):
-#     D["go_table"]=goDF.to_html(index=False,classes='utf8',table_id="common")
-# if len(uniprotDF):
-#     D["uniprot_table"]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
-# if len(gwasDF):
-#     D["GWAS_table"]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-# if len(gtexDF):
-#     D["gtexVariants_table"]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
-# if len(mouseDF):
-#     D["mouse_table"]=mouseDF.to_html(index=False,classes='utf8',table_id="common")
+# ----------------------------------------------------------------------------
 
-# f=open("./%s.html" % gene_ID, 'w')
-# f.write(generateHTML(config.GENE_TEMPLATE,D))
-# f.close()
+template_fname=config.OUTPUT_DIR+"/template_gene.html"
+utils.generateGeneTemplate(gene_names,template_fname)
+f = open(config.OUTPUT_DIR+"/%s_genes.html" %VAR_ID,"w")
+f.write(generateHTML(template_fname,D))
+f.close()
 
 # ----------------------------------------------------------------------------
 

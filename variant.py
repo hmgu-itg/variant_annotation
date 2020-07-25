@@ -52,8 +52,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
     For a given genomic region, return dataframe containing variants with phenotype annotations
 
     Input: chromosome, position, window (default: config.WINDOW), build (default: "38") 
-    Output: pandas dataframe with the following columns:
-    'SNPID', 'consequence', 'distance', 'phenotype', 'rsID', 'source'
+    Output: pandas dataframe with the columns: "SNPID", "consequence", "distance", "phenotype", "rsID", "source"
     '''
     
     start=pos-window
@@ -126,6 +125,9 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
 def getChrPosList(mappings):
     '''
     For a list of variant mappings, return a list of unique chr:pos pairs
+
+    Input: list of mappings
+    Output: list
     '''
     L=list()
     for m in mappings:
@@ -140,6 +142,9 @@ def getChrPosList(mappings):
 def getMappingList(t,mappings):
     '''
     For a list of variant mappings and a chr:pos pair, return a list of mappings corresponding to chr:pos
+
+    Input: chr:pos tuple, list of mappings
+    Output: list
     '''
     L=list()
     for m in mappings:

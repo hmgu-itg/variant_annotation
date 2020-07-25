@@ -165,3 +165,46 @@ def generateVarTemplate(mapping_names,fname):
         
             print("</body>\n<script>\nfunction openTab(evt, tabName) {\nvar i, tabcontent, tablinks;\ntabcontent = document.getElementsByClassName(\"tabcontent\");\nfor (i = 0; i < tabcontent.length; i++) {\ntabcontent[i].style.display = \"none\";\n}\ntablinks = document.getElementsByClassName(\"tablinks\");\nfor (i = 0; i < tablinks.length; i++) {\ntablinks[i].className = tablinks[i].className.replace(\" active\", \"\");\n}\ndocument.getElementById(tabName).style.display = \"block\";\nevt.currentTarget.className += \" active\";\n}\ndocument.getElementById(\"defaultOpen\").click();\n</script>\n</html>\n")
 
+# ======================================================================================================================
+
+def generateGeneTemplate(gene_names,fname):
+    with open(fname,"w") as f:
+        sys.stdout = f
+
+        print("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<html>\n<head>\n")
+        print("<style>\n\nth{ text-align: left; }\n")
+        print("#common {\nborder-collapse: collapse;\nwidth: 100%;\ncolumn-width=auto;\ncolor: black;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 15px;\n}\n\n")
+        print("div.general {\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 20px;\nmargin:  10px 10px 5px 10px\n}\n")
+        print("h1 {\nbackground-color: #8b9bc1;\nmargin: 0;\npadding: 4px 8px 2px 24px;\n-webkit-border-radius: 8px 0 8px 0;\nline-height: 1em;\ndisplay: block;\n-webkit-margin-before: 0px;\n-webkit-margin-after: 0px;-webkit-margin-start: 0px;\n-webkit-margin-end: 0px;\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 25px;\nfont-weight: bold;\n}\n\n")
+        print("div.big_box {\nbackground-color: white;\nwidth: 98%;\nborder: 1px solid navy;\ndisplay: block;\n\nbackground-color: #fff;\npadding: 0;\nmargin: 0;\n\n/* Margins */\nmargin: 0 auto 1em;\n\n/* Rounded edges */\nborder-bottom-right-radius: 8px;\nborder-top-left-radius: 8px;\n\n/* Shadows around boxes*/\nbox-shadow: 4px 4px 10px #BCBCCC;\n\n/* Setting fonts */\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 20px;\n}\n\n")
+
+        print("* {box-sizing: border-box}")
+        print(".tab {\nfloat: left;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\nwidth: 10%;\nheight: 200px;\n}\n")
+        print(".tab button {\ndisplay: block;\nbackground-color: inherit;\ncolor: black;\npadding: 22px 16px;\nwidth: 100%;\nborder: none;\noutline: none;\ntext-align: left;\ncursor: pointer;\ntransition: 0.3s;\nfont-size: 12px;\n}\n")
+        print(".tab button:hover {\nbackground-color: #ddd;\n}\n.tab button.active {\nbackground-color: #ccc;\n}\n.tabcontent {\nfloat: left;\npadding: 0px 12px;\nborder: 1px solid #ccc;\nwidth: 85%;\nheight: 98%;\n}\n")
+
+        print("</style>\n")
+
+        print("</head>\n<body bgcolor=\"#E6E6FA\" class=body>\n\n<h2>Variant mappings</h2>\n")
+
+        print("<div class=\"tab\">")
+        for i in range(0,len(gene_names)):
+            if i==0:
+                print("<button class=\"tablinks\" onclick=\"openTab(event, '%s')\" id=\"defaultOpen\">%s</button>" % (gene_names[i],gene_names[i]))
+            else:
+                print("<button class=\"tablinks\" onclick=\"openTab(event, '%s')\">%s</button>" % (gene_names[i],gene_names[i]))
+                print("</div>")
+
+        for i in range(0,len(gene_names)):
+            print("<div id=\"%s\" class=\"tabcontent\">" % gene_names[i])
+            print("<div id=\"General\" class=\"big_box\"><h1>Gene details</h1>\n<div id=\"variant\" class=\"general\" >General information:<br>\n{{gene_table%d }}\n</div>\n</div>\n" %i)
+            print("<div id=\"General\" class=\"big_box\"><h1>Gene Onthology Annotation</h1>\n{{go_table%d }}\n</div>\n" %i)
+            print("<div id=\"General\" class=\"big_box\"><h1>UniProt Annotations</h1>\n{{uniprot_table%d }}\n</div>\n" %i)
+            #print("<div id=\"General\" class=\"big_box\"><h1>OMIM annotations</h1>\n<div id=\"variant\" class=\"general\" >\n{{ vep_table%d }}\n</div>\n</div>\n" %i)
+            print("<div id=\"General\" class=\"big_box\"><h1>GWAS Associations</h1>\n{{gwas_table%d }}\n</div>\n" %i)
+            #print("<div id=\"General\" class=\"big_box\"><h1>Gene Expression</h1>\n{{ gnomad_table%d }}\n</div>\n" %i)
+            print("<div id=\"General\" class=\"big_box\"><h1>eQTLs</h1>\n{{gtexVariants_table%d }}\n</div>\n" %i)
+            print("<div id=\"General\" class=\"big_box\"><h1>Mouse Models</h1>\n{{mouse_table%d }}\n</div>\n" %i)
+            print("</div>\n")
+        
+            print("</body>\n<script>\nfunction openTab(evt, tabName) {\nvar i, tabcontent, tablinks;\ntabcontent = document.getElementsByClassName(\"tabcontent\");\nfor (i = 0; i < tabcontent.length; i++) {\ntabcontent[i].style.display = \"none\";\n}\ntablinks = document.getElementsByClassName(\"tablinks\");\nfor (i = 0; i < tablinks.length; i++) {\ntablinks[i].className = tablinks[i].className.replace(\" active\", \"\");\n}\ndocument.getElementById(tabName).style.display = \"block\";\nevt.currentTarget.className += \" active\";\n}\ndocument.getElementById(\"defaultOpen\").click();\n</script>\n</html>\n")

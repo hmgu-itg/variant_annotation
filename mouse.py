@@ -2,7 +2,7 @@ import pandas as pd
 import re
 import logging
 
-from utils import *
+import query
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -17,7 +17,7 @@ LOGGER.addHandler(ch)
 def getMouseID(human_ID,build="38"):
     '''Looking up mouse gene ID of a given human gene ID'''
 
-    data=restQuery(makeHomologyURL(human_ID,build=build,species="mouse"))
+    data=query.restQuery(query.makeHomologyURL(human_ID,build=build,species="mouse"))
     #print(json.dumps(data,indent=4,sort_keys=True))
 
     mouse_IDs = {}
@@ -27,7 +27,7 @@ def getMouseID(human_ID,build="38"):
 
     for homolog in data["data"][0]["homologies"]:
         try:
-            z=restQuery(makeGeneQueryURL(homolog["target"]["id"],build=build))
+            z=query.restQuery(query.makeGeneQueryURL(homolog["target"]["id"],build=build))
             #print(json.dumps(z,indent=4,sort_keys=True))
 
             d=""
@@ -43,7 +43,7 @@ def getMouseID(human_ID,build="38"):
 def getMgiID(mouse_ID,build="38"):
     '''Looking up MGI cross reference for a given mouse gene ID'''
 
-    data=restQuery(makeGeneXQueryURL2(mouse_ID,build=build))
+    data=query.restQuery(query.makeGeneXQueryURL2(mouse_ID,build=build))
     #print(json.dumps(data,indent=4,sort_keys=True))
 
     # Now from the returned data we have to pick all possible homolgue IDs:

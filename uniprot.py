@@ -1,8 +1,19 @@
 import requests
-import config
 import pandas as pd
+import logging
+from io import StringIO
 
-# ===================================================== UNIPROT RELATED STUFF ============================================
+import config
+
+LOGGER=logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+ch=logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+ch.setFormatter(formatter)
+LOGGER.addHandler(ch)
+
+# ==============================================================================================================================
 
 def getUniprotData(ID):
     URL = config.UNIPROT_URL
@@ -38,6 +49,8 @@ def getUniprotData(ID):
 # ======================================================================================================================
 
 def uniprot2df(data):
+    if data is None:
+        return None
     df=pd.DataFrame(columns=["Field","Data"])
     i=0
     for k in data:
