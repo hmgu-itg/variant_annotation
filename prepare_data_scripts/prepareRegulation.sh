@@ -24,7 +24,7 @@ fi
 
 #tmpfile=$(mktemp "$PWD"/tmp_regulation.XXXX)
 
-for f in $(find "$indir" -maxdepth 1 -name "*.gff.gz");do 
+for f in $(find "$indir" -name "*.gff.gz");do 
     b=$(basename $f)
     #echo "Current file: $b"
     cell_type=$(echo $b| perl -lne '$x="NA";if (/homo_sapiens\.GRCh38\.(\w+)\.Regulatory_Build\.regulatory_activity\.\d+\.gff\.gz/){$x=$1;} print $x;')
