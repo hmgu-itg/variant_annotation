@@ -12,6 +12,8 @@ parser = argparse.ArgumentParser(description="Prepare GTEx BED file")
 parser.add_argument('--version','-v',default="8",action="store_true",help="GTEx version")
 requiredArgs=parser.add_argument_group('required arguments')
 requiredArgs.add_argument('--input','-i', action="store",help="input GTEx.tar",required=True)
+requiredArgs.add_argument('--gencode','-g', action="store",help="input Gencode GTF file",required=True)
+requiredArgs.add_argument('--lookup','-l', action="store",help="input GTEx lookup txt.gz file",required=True)
 
 if len(sys.argv[1:])==0:
     parser.print_help()
@@ -28,53 +30,90 @@ if args.version:
     version=args.version
 
 fname=args.input
+gname=args.gencode
+lname=args.lookup
 
-# ======================================== BUILDING ID AND GENE MAPPING ======================================================
+# ======================================== BUILDING ID MAPPING ======================================================
 
 id_mapping=dict() # ID --> rsID
+
+if version=="8":
+    ldf=pd.read_table(lname,header=0,compression="gzip")
+    for index, row in ldf.iterrows():
+        var=row["variant_id"]
+        rs=row["rs_id_dbSNP151_GRCh38p7"]
+        if var in id_mapping:
+            print("WARNING: %s occurs multiple times in %s" % (var,lname))
+            continue
+        else:
+            id_mapping[var]=rs
+
+# ======================================= BUILDING GENE MAPPING =====================================================
+
 gene_map=dict() # gene --> chr,start,end
 
 if version=="8":
-    infile=tf.open(fname)
-    names=infile.getnames()
-    files=infile.getmembers()
-    for f in files:
-        m=re.search("/([^.]+)\.v8\.egenes.txt.gz",f.name)
+    gdf=pd.read_table(gname,header=None,comment="#")
+    gdf=gdf[gdf[2]=="gene"]
+    for index, row in gdf.iterrows():
+        c=row[0]
+        if c.startswith("chr"):
+            c=c[3:]
+        s=row[3]
+        e=row[4]
+        f=row[8]
+        m=re.search("gene_id\s+\"(ENSG\d+)(\.\d+)?\"",f)
         if m:
-            tissue=m.group(1)
-            infile.extract(f,"/tmp")
-            T=pd.read_table("/tmp/"+f.name,compression="gzip",header=0)
-            for index, row in T.iterrows():
-                var=row["variant_id"]
-                if var.endswith("_b38"):
-                    var=var[:-4]
-                if var.startswith("chr"):
-                    var=var[3:]
-                id_mapping[var]=row["rs_id_dbSNP151_GRCh38p7"]
-                gene=row["gene_id"]
-                m1=re.search("^(ENSG\d+)",gene)
-                if m1:
-                    gene=m1.group(1)
-                    c1=row["gene_chr"]
-                    if c1.startswith("chr"):
-                        c1=c1[3:]
-                    s1=int(row["gene_start"])
-                    e1=int(row["gene_end"])
-                    if gene in gene_map:
-                        c=gene_map[gene]["chr"]
-                        s=int(gene_map[gene]["start"])
-                        e=int(gene_map[gene]["end"])
-                        if c!=c1 or s!=s1 or e!=e1:
-                            print("WARNING: in",f.name,": gene",gene,"has multiple coordinates:",sep=" ",file=sys.stderr)
-                            print(c1,str(s1),str(e1),sep=" ",file=sys.stderr)
-                            print(c,str(s),str(e),sep=" ",file=sys.stderr)
-                            print("",file=sys.stderr)
-                    else:
-                        gene_map[gene]={"chr":c1,"start":s1,"end":e1}
+            gene_id=m.group(1)
+            if gene_id in gene_map:
+                print("WARNING: %s occurs multiple times in %s" % (gene_id,gname))
+                continue
+            else:
+                gene_map[gene_id]={"chr":c,"start":int(s),"end":int(e)}
+        else:
+            print("ERROR: no gene ID in row %d" % index.astype(int),file=sys.stderr)
+            continue
 
-            print(tissue,file=sys.stderr)
-            print(f.name,file=sys.stderr)
-            sys.stderr.flush()
+    # infile=tf.open(fname)
+    # names=infile.getnames()
+    # files=infile.getmembers()
+    # for f in files:
+    #     m=re.search("/([^.]+)\.v8\.egenes.txt.gz",f.name)
+    #     if m:
+    #         tissue=m.group(1)
+    #         infile.extract(f,"/tmp")
+    #         T=pd.read_table("/tmp/"+f.name,compression="gzip",header=0)
+    #         for index, row in T.iterrows():
+    #             var=row["variant_id"]
+    #             if var.endswith("_b38"):
+    #                 var=var[:-4]
+    #             if var.startswith("chr"):
+    #                 var=var[3:]
+    #             id_mapping[var]=row["rs_id_dbSNP151_GRCh38p7"]
+    #             gene=row["gene_id"]
+    #             m1=re.search("^(ENSG\d+)",gene)
+    #             if m1:
+    #                 gene=m1.group(1)
+    #                 c1=row["gene_chr"]
+    #                 if c1.startswith("chr"):
+    #                     c1=c1[3:]
+    #                 s1=int(row["gene_start"])
+    #                 e1=int(row["gene_end"])
+    #                 if gene in gene_map:
+    #                     c=gene_map[gene]["chr"]
+    #                     s=int(gene_map[gene]["start"])
+    #                     e=int(gene_map[gene]["end"])
+    #                     if c!=c1 or s!=s1 or e!=e1:
+    #                         print("WARNING: in",f.name,": gene",gene,"has multiple coordinates:",sep=" ",file=sys.stderr)
+    #                         print(c1,str(s1),str(e1),sep=" ",file=sys.stderr)
+    #                         print(c,str(s),str(e),sep=" ",file=sys.stderr)
+    #                         print("",file=sys.stderr)
+    #                 else:
+    #                     gene_map[gene]={"chr":c1,"start":s1,"end":e1}
+
+    #         print(tissue,file=sys.stderr)
+    #         print(f.name,file=sys.stderr)
+    #         sys.stderr.flush()
 
 # ======================================== BUILDING VAR MAPPING ======================================================
 
@@ -132,6 +171,10 @@ if version=="8":
         for gene in gene2var[tissue]:
             if gene in gene_map:
                 for var in gene2var[tissue][gene]:
+                    if var in id_mapping:
+                        rs=id_mapping[var]
+                    else:
+                        print("WARNING: no rs for %s" %var)
                     L=var_map[var][tissue]
                     x=next((z for z in L if z["gene"]==gene),None)
                     if x:
@@ -146,10 +189,11 @@ if version=="8":
                 print("ERROR: gene coordinates for",gene,"were not found",sep=" ",file=sys.stderr)
 
     for var in var_map:
+        rs="."
         if var in id_mapping:
-            id2=id_mapping[var]
+            rs=id_mapping[var]
         else:
-            id2="."
+            print("WARNING: no rs for %s" %var)
         m=re.search("([^\W_]+)_(\d+)_([ACGT]+)_([ACGT]+)$",var)
         if not m:
             print("ERROR: malformed variant id %s" %(var),file=sys.stderr)

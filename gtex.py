@@ -23,6 +23,8 @@ def gtex2df(gtex_data):
 
     return df
 
+# ================================================================================================================================
+
 def getGTExDF(mappings):
     '''
     For a given list of variant mappings (containing chr/pos/ref/alt information), 
@@ -40,18 +42,33 @@ def getGTExDF(mappings):
 
     return df
 
-# given gene ID (variant ID), retreive all variant (gene) data associated with the gene (variant): tissue, p-value
+# ================================================================================================================================
+
 def parseGTEx(chrom,start,end,ID):
     '''
-    Input  : gene ID or variant ID (format: chr_pos_ref_alt)
+    Input  : gene ID or variant IDs (format: chr_pos_ref_alt/rsID)
     Output : dictionary with variant IDs (gene IDs) as keys and dictionaries with "tissue", "p-value", "beta", "SE", "dist" as values
     '''
-    filename=config.GTEX_BED
-    query = "tabix %s %s:%d-%d | awk -v v=%s \'BEGIN{FS=\"\t\";}$4==v{print $0;}\'" %(filename,chrom,start,end,ID)
+    
+    #query = "tabix %s %s:%d-%d | awk -v v=%s \'BEGIN{FS=\"\t\";}$4==v{print $0;}\'" %(config.GTEX_BED,chrom,start,end,ID)
+    query = "tabix %s %s:%d-%d" %(config.GTEX_BED,chrom,start,end)
     output = subprocess.Popen(query.strip(),universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     D=dict()
     for line in output.stdout.readlines():
         fields=line.strip().split("\t")
+
+        match=False
+        x=fields[3]
+        if x==ID: # gene ID
+            match=True
+        else:
+            z=x.split("/") # variant IDs
+            if len(z)==2:
+                if z[0]==ID or z[1]==ID:
+                    match=True
+        if not match:
+            continue
+
         data=fields[4].split(":")
         ID2=data[0]
         tissue=data[1]
@@ -59,6 +76,11 @@ def parseGTEx(chrom,start,end,ID):
         beta=str(round(float(data[3]),4))
         SE=str(round(float(data[4]),4))
         dist=data[5]
+
+        z=ID2.split("/") # variant IDs
+        if len(z)==2:
+            ID2=z[0]
+
         if not ID2 in D:
             D[ID2]=[]
         D[ID2].append({"tissue" : tissue,"p-value" : pval,"beta" : beta,"SE" : SE,"dist" : dist})

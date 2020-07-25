@@ -14,10 +14,11 @@ formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
+# ======================================================================================================================
 
 def checkGnomadID(var):
     '''
-    Checks if provided ID confirms to GnomeAD rules (12-1234567-ACT-A)
+    Checks if provided ID conforms to GnomeAD rules (12-1234567-ACT-A)
 
     Input  : variant ID
     Output : True/False
@@ -35,6 +36,8 @@ def checkGnomadID(var):
             else:
                 LOGGER.debug("%s is not GnomeAD variant ID" % var)
                 return False
+
+# ======================================================================================================================
 
 # check if provided input is a valid variant ID
 # valid ID: either rsID or chr_pos_ref_alt
@@ -55,10 +58,14 @@ def checkID(id):
     else:
         return False
 
+# ======================================================================================================================
+
 def chunks(L,n):
-    """Yield successive n-sized chunks from L"""
+    """Yields successive n-sized chunks from L"""
     for i in range(0, len(L), n):
         yield L[i:i + n]
+
+# ======================================================================================================================
 
 # VEP-style string
 def getLocationString(chrom,pos,ref,alt):
@@ -83,6 +90,8 @@ def getLocationString(chrom,pos,ref,alt):
 
     return chrom+":"+str(start)+"-"+str(end)+":"+allele1+"/"+allele2
 
+# ======================================================================================================================
+
 def list2string(snps):
     return "{\"ids\":["+",".join(list(map(lambda x:"\""+x+"\"",snps)))+"]}"
 
@@ -100,7 +109,6 @@ def createDir(path):
     if os.path.exists(path):
         LOGGER.info("%s already exists" % path)
         return path
-
     try:
         os.mkdir(path)
     except OSError:
