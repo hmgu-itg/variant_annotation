@@ -171,6 +171,7 @@ if version=="8":
         for gene in gene2var[tissue]:
             if gene in gene_map:
                 for var in gene2var[tissue][gene]:
+                    rs="."
                     if var in id_mapping:
                         rs=id_mapping[var]
                     else:
@@ -182,7 +183,7 @@ if version=="8":
                         beta=x["beta"]
                         SE=x["SE"]
                         dist=x["dist"]
-                        print("%s\t%d\t%d\t%s\t%s:%s:%s:%s:%s:%s" % (gene_map[gene]["chr"],gene_map[gene]["start"]-1,gene_map[gene]["end"],gene,var,tissue,p,beta,SE,dist),file=sys.stdout)
+                        print("%s\t%d\t%d\t%s\t%s/%s:%s:%s:%s:%s:%s" % (gene_map[gene]["chr"],gene_map[gene]["start"]-1,gene_map[gene]["end"],gene,var,rs,tissue,p,beta,SE,dist),file=sys.stdout)
                     else:
                         print("ERROR: could not find (%s %s %s) association" %(var, tissue, gene),file=sys.stderr)
             else:
@@ -207,4 +208,4 @@ if version=="8":
         for t in var_map[var]:
             L=var_map[var][t]
             for x in L:
-                print("%s\t%d\t%d\t%s\t%s:%s:%s:%s:%s:%s" %(c,start,end,var,x["gene"],t,x["p"],x["beta"],x["SE"],x["dist"]),file=sys.stdout)
+                print("%s\t%d\t%d\t%s/%s\t%s:%s:%s:%s:%s:%s" %(c,start,end,var,rs,x["gene"],t,x["p"],x["beta"],x["SE"],x["dist"]),file=sys.stdout)
