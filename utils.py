@@ -224,7 +224,16 @@ def generateGeneTemplate(gene_names,fname):
     f.write(".tab {\nfloat: left;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\nwidth: 10%;\nheight: 200px;\n}\n")
     f.write(".tab button {\ndisplay: block;\nbackground-color: inherit;\ncolor: black;\npadding: 22px 16px;\nwidth: 100%;\nborder: none;\noutline: none;\ntext-align: left;\ncursor: pointer;\ntransition: 0.3s;\nfont-size: 12px;\n}\n")
     f.write(".tab button:hover {\nbackground-color: #ddd;\n}\n.tab button.active {\nbackground-color: #ccc;\n}\n.tabcontent {\nfloat: left;\npadding: 0px 12px;\nborder: 1px solid #ccc;\nwidth: 85%;\nheight: 98%;\n}\n")
+
+    # collapsible styles
+    f.write(".collapsible {\nbackground-color: #33b2ff;\ncolor: white;\ncursor: pointer;\npadding: 18px;\nwidth: 100%;\nborder: none;\ntext-align: center;\noutline: none;\nfont-size: 15px;\nborder-radius: 12px;\n}\n\n")
+    f.write(".active, .collapsible:hover {\nbackground-color: #3399ff;\n}\n\n")
+    f.write(".content {\npadding: 0 18px;\ndisplay: none;\noverflow: hidden;\nbackground-color: #f1f1f1;\n}\n\n")
+    # ------------------
+
+    f.write("#space\n{width: 100%;\n height: 5px;\n margin: 0px;\n padding: 0px;\n border: 0px;\nbackground: #FFFFFF;\nclear:both;\n}\n\n")
     f.write("</style>\n")
+
     f.write("</head>\n<body bgcolor=\"#E6E6FA\" class=body>\n\n<h2>Genes</h2>\n")
     f.write("<div class=\"tab\">\n")
     for i in range(0,len(gene_names)):
@@ -235,14 +244,36 @@ def generateGeneTemplate(gene_names,fname):
     f.write("</div>\n\n")
     for i in range(0,len(gene_names)):
         f.write("<div id=\"%s\" class=\"tabcontent\">\n" % gene_names[i])
-        f.write("<div id=\"General\" class=\"big_box\"><h1>Gene details</h1>\n{{gene_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>Gene Onthology Annotation</h1>\n{{go_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>UniProt Annotations</h1>\n{{uniprot_table%d }}\n</div>\n" %i)
+
+
+        f.write("<button type=\"button\" class=\"collapsible\">Gene details</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{gene_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Gene Onthology Annotation</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{go_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">UniProt Annotations</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{uniprot_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">GWAS Associations</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{gwas_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">eQTLs</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{gtexVariants_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Mouse Models</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{mouse_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
         #f.write("<div id=\"General\" class=\"big_box\"><h1>OMIM annotations</h1>\n<div id=\"variant\" class=\"general\" >\n{{ vep_table%d }}\n</div>\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>GWAS Associations</h1>\n{{gwas_table%d }}\n</div>\n" %i)
         #f.write("<div id=\"General\" class=\"big_box\"><h1>Gene Expression</h1>\n{{ gnomad_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>eQTLs</h1>\n{{gtexVariants_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>Mouse Models</h1>\n{{mouse_table%d }}\n</div>\n" %i)
+
+        #f.write("<div id=\"General\" class=\"big_box\"><h1>Mouse Models</h1>\n{{mouse_table%d }}\n</div>\n" %i)
         f.write("</div>\n\n")
     f.write("</body>\n<script>\nfunction openTab(evt, tabName) {\nvar i, tabcontent, tablinks;\ntabcontent = document.getElementsByClassName(\"tabcontent\");\nfor (i = 0; i < tabcontent.length; i++) {\ntabcontent[i].style.display = \"none\";\n}\ntablinks = document.getElementsByClassName(\"tablinks\");\nfor (i = 0; i < tablinks.length; i++) {\ntablinks[i].className = tablinks[i].className.replace(\" active\", \"\");\n}\ndocument.getElementById(tabName).style.display = \"block\";\nevt.currentTarget.className += \" active\";\n}\ndocument.getElementById(\"defaultOpen\").click();\n</script>\n</html>\n")
     f.close()
