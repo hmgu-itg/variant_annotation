@@ -41,6 +41,10 @@ if version=="8":
     ldf=pd.read_table(lname,header=0,compression="gzip")
     for index, row in ldf.iterrows():
         var=row["variant_id"]
+        if var.startswith("chr"):
+            var=var[3:]
+        if var.endswith("_b38"):
+            var=var[:-4]
         rs=row["rs_id_dbSNP151_GRCh38p7"]
         if var in id_mapping:
             print("WARNING: %s occurs multiple times in %s" % (var,lname),file=sys.stderr)
@@ -73,47 +77,6 @@ if version=="8":
         else:
             print("ERROR: no gene ID in row %d" % index,file=sys.stderr)
             continue
-
-    # infile=tf.open(fname)
-    # names=infile.getnames()
-    # files=infile.getmembers()
-    # for f in files:
-    #     m=re.search("/([^.]+)\.v8\.egenes.txt.gz",f.name)
-    #     if m:
-    #         tissue=m.group(1)
-    #         infile.extract(f,"/tmp")
-    #         T=pd.read_table("/tmp/"+f.name,compression="gzip",header=0)
-    #         for index, row in T.iterrows():
-    #             var=row["variant_id"]
-    #             if var.endswith("_b38"):
-    #                 var=var[:-4]
-    #             if var.startswith("chr"):
-    #                 var=var[3:]
-    #             id_mapping[var]=row["rs_id_dbSNP151_GRCh38p7"]
-    #             gene=row["gene_id"]
-    #             m1=re.search("^(ENSG\d+)",gene)
-    #             if m1:
-    #                 gene=m1.group(1)
-    #                 c1=row["gene_chr"]
-    #                 if c1.startswith("chr"):
-    #                     c1=c1[3:]
-    #                 s1=int(row["gene_start"])
-    #                 e1=int(row["gene_end"])
-    #                 if gene in gene_map:
-    #                     c=gene_map[gene]["chr"]
-    #                     s=int(gene_map[gene]["start"])
-    #                     e=int(gene_map[gene]["end"])
-    #                     if c!=c1 or s!=s1 or e!=e1:
-    #                         print("WARNING: in",f.name,": gene",gene,"has multiple coordinates:",sep=" ",file=sys.stderr)
-    #                         print(c1,str(s1),str(e1),sep=" ",file=sys.stderr)
-    #                         print(c,str(s),str(e),sep=" ",file=sys.stderr)
-    #                         print("",file=sys.stderr)
-    #                 else:
-    #                     gene_map[gene]={"chr":c1,"start":s1,"end":e1}
-
-    #         print(tissue,file=sys.stderr)
-    #         print(f.name,file=sys.stderr)
-    #         sys.stderr.flush()
 
 # ======================================== BUILDING VAR MAPPING ======================================================
 
