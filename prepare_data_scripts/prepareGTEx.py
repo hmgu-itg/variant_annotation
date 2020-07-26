@@ -43,7 +43,7 @@ if version=="8":
         var=row["variant_id"]
         rs=row["rs_id_dbSNP151_GRCh38p7"]
         if var in id_mapping:
-            print("WARNING: %s occurs multiple times in %s" % (var,lname))
+            print("WARNING: %s occurs multiple times in %s" % (var,lname),file=sys.stderr)
             continue
         else:
             id_mapping[var]=rs
@@ -66,7 +66,7 @@ if version=="8":
         if m:
             gene_id=m.group(1)
             if gene_id in gene_map:
-                print("WARNING: %s occurs multiple times in %s" % (gene_id,gname))
+                print("WARNING: %s occurs multiple times in %s" % (gene_id,gname),file=sys.stderr)
                 continue
             else:
                 gene_map[gene_id]={"chr":c,"start":int(s),"end":int(e)}
@@ -157,7 +157,7 @@ if version=="8":
                     else:
                         var_map[var][tissue].append({"gene":gene,"p":pval,"beta":beta,"SE":SE,"dist":dist})
                         if var in gene2var[tissue][gene]:
-                            print("WARNING: in file %s variant %s has multiple associations with %s" %(f.name,var,gene))
+                            print("WARNING: in file %s variant %s has multiple associations with %s" %(f.name,var,gene),file=sys.stderr)
                         else:
                             gene2var[tissue][gene].append(var)
 
@@ -177,7 +177,7 @@ if version=="8":
                     if var in id_mapping:
                         rs=id_mapping[var]
                     else:
-                        print("WARNING: no rs for %s" %var)
+                        print("WARNING: no rs for %s" %var,file=sys.stderr)
                     L=var_map[var][tissue]
                     x=next((z for z in L if z["gene"]==gene),None)
                     if x:
@@ -196,7 +196,7 @@ if version=="8":
         if var in id_mapping:
             rs=id_mapping[var]
         else:
-            print("WARNING: no rs for %s" %var)
+            print("WARNING: no rs for %s" %var,file=sys.stderr)
         m=re.search("([^\W_]+)_(\d+)_([ACGT]+)_([ACGT]+)$",var)
         if not m:
             print("ERROR: malformed variant id %s" %(var),file=sys.stderr)
