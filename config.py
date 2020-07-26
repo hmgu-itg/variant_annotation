@@ -24,6 +24,9 @@ VERSION = "2.2.0"
 ## batch size for POST queries
 BATCHSIZE=100
 
+# window around a variant overlapping ENSEMBL regulatory elements
+REG_WINDOW=2000
+
 GNOMAD_URL="https://gnomad.broadinstitute.org/api"
 
 APPRIS_URL  = 'http://apprisws.bioinfo.cnio.es:80/rest/exporter/id/homo_sapiens/%s?format=json&db=hg19'
@@ -104,15 +107,15 @@ CellTypeFinder = {
 }
 
 GnomadPopulations={
-"AFR": "African American",
-"AMI": "Amish",
-"AMR": "Latino",
-"ASJ": "Ashkenazi Jews",
-"EAS": "East Asian",
-"FIN": "Finnish",
-"NFE": "Non-Finnish European",
-"OTH": "Other",
-"SAS": "South Asian"
+    "AFR": "African American",
+    "AMI": "Amish",
+    "AMR": "Latino",
+    "ASJ": "Ashkenazi Jews",
+    "EAS": "East Asian",
+    "FIN": "Finnish",
+    "NFE": "Non-Finnish European",
+    "OTH": "Other",
+    "SAS": "South Asian"
 }
 
 PopulationNames = {

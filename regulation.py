@@ -15,7 +15,7 @@ LOGGER.addHandler(ch)
 
 # ======================================================================================================================
 
-def getRegulation(chrom,pos,window=2000):
+def getRegulation(chrom,pos,window=config.REG_WINDOW):
     '''
     This function returns all overlapping active regulatory features within window of the variation.
 
@@ -58,7 +58,7 @@ def getRegulation(chrom,pos,window=2000):
     FNULL.close()
     return parsed
 
-# ===================================== CONVERTING DIFFERENT DATA STRUCTURES TO DATAFRAMES =====================================
+# ============================================ CONVERTING TO DATAFRAME ============================================
 
 def regulation2df(reg_data):
     df=pd.DataFrame(columns=["ID","Class","Cell type"])

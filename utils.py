@@ -137,7 +137,17 @@ def generateVarTemplate(mapping_names,fname):
     f.write(".tab button:hover {\nbackground-color: #ddd;\n}\n")
     f.write(".tab button.active {\nbackground-color: #ccc;\n}\n")
     f.write(".tabcontent {\ndisplay: none;\npadding: 6px 12px;\nborder: 1px solid #ccc;\nborder-top: none;\n}\n")
-    f.write("</style>\n")
+
+    # collapsible styles
+    f.write(".collapsible {\nbackground-color: #33b2ff;\ncolor: white;\ncursor: pointer;\npadding: 18px;\nwidth: 100%;\nborder: none;\ntext-align: center;\noutline: none;\nfont-size: 15px;\nborder-radius: 12px;\n}\n\n")
+    f.write(".active, .collapsible:hover {\nbackground-color: #3399ff;\n}\n\n")
+    f.write(".content {\npadding: 0 18px;\ndisplay: none;\noverflow: hidden;\nbackground-color: #f1f1f1;\n}\n\n")
+    # ------------------
+
+    f.write("#space\n{width: 100%;\n height: 5px;\n margin: 0px;\n padding: 0px;\n border: 0px;\nbackground: #FFFFFF;\nclear:both;\n}\n\n") 
+
+    f.write("</style>\n\n")
+
     f.write("</head>\n<body bgcolor=\"#E6E6FA\" class=body>\n\n<h2>Variant mappings</h2>\n")
     f.write("<div class=\"tab\">")
     for i in range(0,len(mapping_names)):
@@ -148,18 +158,56 @@ def generateVarTemplate(mapping_names,fname):
     f.write("</div>\n")
     for i in range(0,len(mapping_names)):
         f.write("<div id=\"%s\" class=\"tabcontent\">" % mapping_names[i])
-        f.write("<div id=\"General\" class=\"big_box\"><h1>Variant details</h1>\n{{ variant_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>Nearby variants associated with phenotypes</h1>\n{{ phenotype_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>Nearby GWAS signals</h1>\n{{ gwas_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>Predicted consequences</h1>\n<div id=\"variant\" class=\"general\" >\n{{ vep_table%d }}\n</div>\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>1kG allele frequencies</h1>\n{{ population_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>gnomAD allele frequencies</h1>\n{{ gnomad_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>Regulation</h1>\n{{ regulation_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>GTEx eQTLs</h1>\n{{ gtex_gene_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>Nearby genes</h1>\n{{ gene_table%d }}\n</div>\n" %i)
-        f.write("<div id=\"General\" class=\"big_box\"><h1>Pubmed entries</h1>\n{{ pubmed_table%d }}\n</div>\n" %i)
+
+        f.write("<button type=\"button\" class=\"collapsible\">Variant Details</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{ variant_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Nearby variants associated with phenotypes</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{ phenotype_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Nearby GWAS signals</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{ gwas_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Predicted consequences</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{ vep_table%d  }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">1kG allele frequencies</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{ population_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">gnomAD allele frequencies</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{ gnomad_table%d  }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">ENSEMBL Regulation</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{ regulation_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">GTEx eQTLs</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{ gtex_gene_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Nearby genes</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{ gene_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Pubmed entries</button>\n")
+        f.write("<div id=\"General\" class=\"content\">\n{{ pubmed_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        #f.write("<div id=\"General\" class=\"big_box\"><h1>Pubmed entries</h1>\n{{ pubmed_table%d }}\n</div>\n" %i)
         f.write("</div>\n")
-    f.write("</body>\n<script>\nfunction openTab(evt, tabName) {\nvar i, tabcontent, tablinks;\ntabcontent = document.getElementsByClassName(\"tabcontent\");\nfor (i = 0; i < tabcontent.length; i++) {\ntabcontent[i].style.display = \"none\";\n}\ntablinks = document.getElementsByClassName(\"tablinks\");\nfor (i = 0; i < tablinks.length; i++) {\ntablinks[i].className = tablinks[i].className.replace(\" active\", \"\");\n}\ndocument.getElementById(tabName).style.display = \"block\";\nevt.currentTarget.className += \" active\";\n}\ndocument.getElementById(\"defaultOpen\").click();\n</script>\n</html>\n")
+
+    f.write("</body>\n<script>\nfunction openTab(evt, tabName) {\nvar i, tabcontent, tablinks;\ntabcontent = document.getElementsByClassName(\"tabcontent\");\nfor (i = 0; i < tabcontent.length; i++) {\ntabcontent[i].style.display = \"none\";\n}\ntablinks = document.getElementsByClassName(\"tablinks\");\nfor (i = 0; i < tablinks.length; i++) {\ntablinks[i].className = tablinks[i].className.replace(\" active\", \"\");\n}\ndocument.getElementById(tabName).style.display = \"block\";\nevt.currentTarget.className += \" active\";\n}\ndocument.getElementById(\"defaultOpen\").click();\n")
+
+    f.write("var coll = document.getElementsByClassName(\"collapsible\");\nvar i;\n\n")
+    f.write("for (i = 0; i < coll.length; i++) {\ncoll[i].addEventListener(\"click\", function() {\nthis.classList.toggle(\"active\");\nvar content = this.nextElementSibling;\nif (content.style.display === \"block\") {\ncontent.style.display = \"none\";\n} else {\ncontent.style.display = \"block\";\n}\n});\n}\n\n")
+    f.write("</script>\n</html>\n")
+
     f.close()
 
 # ======================================================================================================================

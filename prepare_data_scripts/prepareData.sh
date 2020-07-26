@@ -3,7 +3,7 @@
 function usage {
     echo ""
     echo "Usage: $0 -o <output dir> { -g -x -r }"
-    echo " -g -x -r are optional, for selecting which data to prepare  (GWAS, GTEx or Regulation)"
+    echo " -g -x -r are optional, for selecting which data to prepare (GWAS, GTEx or Regulation)"
 }
 
 OPTIND=1
@@ -76,6 +76,7 @@ fi
 if [[ "$prepgwas" -eq 1 ]];then
     echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GWAS catalog"
     wget --quiet -c "$gwasURL" -O "$out/gwas/gwas_full.tsv"
+    gzip -f "$out/gwas/gwas_full.tsv"
 fi
 
 if [[ "$prepreg" -eq 1 ]];then
@@ -87,7 +88,7 @@ if [[ "$prepreg" -eq 1 ]];then
     cd "$CDIR"
 fi
 
-# -------------------------------------------------------------------------
+# -------------------------- REGULATION -----------------------------------
 
 if [[ "$prepreg" -eq 1 ]];then
     regdir="$out/temp/regulation"
@@ -95,7 +96,7 @@ if [[ "$prepreg" -eq 1 ]];then
     "$reg_script" -i "$regdir" -o "$out/regulation/regulation.bed"
 fi
 
-# -------------------------------------------------------------------------
+# ----------------------------- GTEx --------------------------------------
 
 if [[ "$prepgtex" -eq 1 ]];then
     gtex="$out/temp/GTEx.tar"
@@ -107,10 +108,10 @@ if [[ "$prepgtex" -eq 1 ]];then
     tabix -f -p bed "$out/gtex/gtex.bed.gz"
 fi
 
-# -------------------------------------------------------------------------
+# ----------------------------- GWAS ---------------------------------------
 
 if [[ "$prepgwas" -eq 1 ]];then
-    gwas="$out/gwas/gwas_full.tsv"
+    gwas="$out/gwas/gwas_full.tsv.gz"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GWAS file"
     PYTHONPATH=$(dirname "$DIR") "$gwas_script" -i "$gwas" | gzip - > "$out/gwas/gwas.tsv.gz"
 fi
