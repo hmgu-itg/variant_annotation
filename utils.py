@@ -206,6 +206,7 @@ def generateVarTemplate(mapping_names,fname):
 
     f.write("var coll = document.getElementsByClassName(\"collapsible\");\nvar i;\n\n")
     f.write("for (i = 0; i < coll.length; i++) {\ncoll[i].addEventListener(\"click\", function() {\nthis.classList.toggle(\"active\");\nvar content = this.nextElementSibling;\nif (content.style.display === \"block\") {\ncontent.style.display = \"none\";\n} else {\ncontent.style.display = \"block\";\n}\n});\n}\n\n")
+
     f.write("</script>\n</html>\n")
 
     f.close()
@@ -275,5 +276,12 @@ def generateGeneTemplate(gene_names,fname):
 
         #f.write("<div id=\"General\" class=\"big_box\"><h1>Mouse Models</h1>\n{{mouse_table%d }}\n</div>\n" %i)
         f.write("</div>\n\n")
-    f.write("</body>\n<script>\nfunction openTab(evt, tabName) {\nvar i, tabcontent, tablinks;\ntabcontent = document.getElementsByClassName(\"tabcontent\");\nfor (i = 0; i < tabcontent.length; i++) {\ntabcontent[i].style.display = \"none\";\n}\ntablinks = document.getElementsByClassName(\"tablinks\");\nfor (i = 0; i < tablinks.length; i++) {\ntablinks[i].className = tablinks[i].className.replace(\" active\", \"\");\n}\ndocument.getElementById(tabName).style.display = \"block\";\nevt.currentTarget.className += \" active\";\n}\ndocument.getElementById(\"defaultOpen\").click();\n</script>\n</html>\n")
+
+    f.write("</body>\n<script>\nfunction openTab(evt, tabName) {\nvar i, tabcontent, tablinks;\ntabcontent = document.getElementsByClassName(\"tabcontent\");\nfor (i = 0; i < tabcontent.length; i++) {\ntabcontent[i].style.display = \"none\";\n}\ntablinks = document.getElementsByClassName(\"tablinks\");\nfor (i = 0; i < tablinks.length; i++) {\ntablinks[i].className = tablinks[i].className.replace(\" active\", \"\");\n}\ndocument.getElementById(tabName).style.display = \"block\";\nevt.currentTarget.className += \" active\";\n}\ndocument.getElementById(\"defaultOpen\").click();\n")
+
+    f.write("var coll = document.getElementsByClassName(\"collapsible\");\nvar i;\n\n")
+    f.write("for (i = 0; i < coll.length; i++) {\ncoll[i].addEventListener(\"click\", function() {\nthis.classList.toggle(\"active\");\nvar content = this.nextElementSibling;\nif (content.style.display === \"block\") {\ncontent.style.display = \"none\";\n} else {\ncontent.style.display = \"block\";\n}\n});\n}\n\n")
+
+    f.write("</script>\n</html>\n")
+
     f.close()
