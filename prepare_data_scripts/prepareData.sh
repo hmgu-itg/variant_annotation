@@ -71,6 +71,7 @@ if [[ "$prepgtex" -eq 1 ]];then
 
     echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx Gencode data"
     wget --quiet -c "$gtexgencodeURL" -O "$out/gtex/gencode.gtf"
+    gzip -f "$out/gtex/gencode.gtf"
 fi
 
 if [[ "$prepgwas" -eq 1 ]];then
@@ -101,7 +102,7 @@ fi
 if [[ "$prepgtex" -eq 1 ]];then
     gtex="$out/temp/GTEx.tar"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GTEx file"
-    "$gtex_script" -i "$gtex" -g "$out/gtex/gencode.gtf" -l "$out/gtex/GTEx.lookup.txt.gz" | sort -k1,1 -k2,2n > "$out/gtex/gtex.bed"
+    "$gtex_script" -i "$gtex" -g "$out/gtex/gencode.gtf.gz" -l "$out/gtex/GTEx.lookup.txt.gz" | sort -k1,1 -k2,2n > "$out/gtex/gtex.bed"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Compressing GTEx file"
     bgzip -f "$out/gtex/gtex.bed"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Indexing GTEx file"

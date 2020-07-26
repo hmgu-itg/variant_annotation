@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(description="Prepare GTEx BED file")
 parser.add_argument('--version','-v',default="8",action="store_true",help="GTEx version")
 requiredArgs=parser.add_argument_group('required arguments')
 requiredArgs.add_argument('--input','-i', action="store",help="input GTEx.tar",required=True)
-requiredArgs.add_argument('--gencode','-g', action="store",help="input Gencode GTF file",required=True)
+requiredArgs.add_argument('--gencode','-g', action="store",help="input Gencode gtf.gz file",required=True)
 requiredArgs.add_argument('--lookup','-l', action="store",help="input GTEx lookup txt.gz file",required=True)
 
 if len(sys.argv[1:])==0:
@@ -57,7 +57,7 @@ if version=="8":
 gene_map=dict() # gene --> chr,start,end
 
 if version=="8":
-    gdf=pd.read_table(gname,header=None,comment="#")
+    gdf=pd.read_table(gname,header=None,comment="#",compression="gzip")
     gdf=gdf[gdf[2]=="gene"]
     for index, row in gdf.iterrows():
         c=row[0]
