@@ -120,6 +120,8 @@ if version=="8":
     gene2var=dict()
     var_map=dict()
 
+    infile=tf.open(fname)
+    files=infile.getmembers()
     for f in files:
         m=re.search("/([^.]+)\.v8\.signif_variant_gene_pairs\.txt\.gz",f.name)
         if m:
