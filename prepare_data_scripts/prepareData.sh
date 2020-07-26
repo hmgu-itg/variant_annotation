@@ -28,7 +28,7 @@ if [[ $# -eq 0 ]];then
     exit 0
 fi
 
-if [[ "$prepgwas" -eq 0 && "$prepgtex" -eq 0 && "$prepreg" -eq 0 ]];then
+if [ "$prepgwas" -eq 0 ] && [ "$prepgtex" -eq 0 ] && [ "$prepreg" -eq 0 ];then
     prepgwas=1
     prepgtex=1
     prepreg=1
@@ -62,50 +62,58 @@ mkdir -p "$out/temp"
 
 # ----------------------- DOWNLOADING DATA --------------------------------
 
-echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx data"
-wget --quiet -c "$gtexURL" -O "$out/temp/GTEx.tar"
+if [[ "$prepgtex" -eq 1 ]];then
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx data"
+    wget --quiet -c "$gtexURL" -O "$out/temp/GTEx.tar"
 
-echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx lookup data"
-wget --quiet -c "$gtexlookupURL" -O "$out/gtex/GTEx.lookup.txt.gz"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx lookup data"
+    wget --quiet -c "$gtexlookupURL" -O "$out/gtex/GTEx.lookup.txt.gz"
 
-echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx Gencode data"
-wget --quiet -c "$gtexgencodeURL" -O "$out/gtex/gencode.gtf"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx Gencode data"
+    wget --quiet -c "$gtexgencodeURL" -O "$out/gtex/gencode.gtf"
+fi
 
-echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GWAS catalog"
-wget --quiet -c "$gwasURL" -O "$out/gwas/gwas_full.tsv"
+if [[ "$prepgwas" -eq 1 ]];then
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GWAS catalog"
+    wget --quiet -c "$gwasURL" -O "$out/gwas/gwas_full.tsv"
+fi
 
-cd "$out/temp"
-mkdir -p regulation
-cd regulation
-echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading Ensembl Regulation"
-lftp -c "open $ensregURL; mirror -P . ." > /dev/null 2> /dev/null
-
-cd "$CDIR"
-
-# -------------------------------------------------------------------------
-
-regdir="$out/temp/regulation"
-
-echo $(date '+%d/%m/%Y %H:%M:%S') "Creating regulation file"
-"$reg_script" -i "$regdir" -o "$out/regulation/regulation.bed"
+if [[ "$prepreg" -eq 1 ]];then
+    cd "$out/temp"
+    mkdir -p regulation
+    cd regulation
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading Ensembl Regulation"
+    lftp -c "open $ensregURL; mirror -P . ." > /dev/null 2> /dev/null
+    cd "$CDIR"
+fi
 
 # -------------------------------------------------------------------------
 
-gtex="$out/temp/GTEx.tar"
-
-echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GTEx file"
-"$gtex_script" -i "$gtex" -g "$out/gtex/gencode.gtf" -l "$out/gtex/GTEx.lookup.txt.gz" | sort -k1,1 -k2,2n > "$out/gtex/gtex.bed"
-echo $(date '+%d/%m/%Y %H:%M:%S') "Compressing GTEx file"
-bgzip -f "$out/gtex/gtex.bed"
-echo $(date '+%d/%m/%Y %H:%M:%S') "Indexing GTEx file"
-tabix -f -p bed "$out/gtex/gtex.bed.gz"
+if [[ "$prepreg" -eq 1 ]];then
+    regdir="$out/temp/regulation"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating regulation file"
+    "$reg_script" -i "$regdir" -o "$out/regulation/regulation.bed"
+fi
 
 # -------------------------------------------------------------------------
 
-gwas="$out/gwas/gwas_full.tsv"
+if [[ "$prepgtex" -eq 1 ]];then
+    gtex="$out/temp/GTEx.tar"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GTEx file"
+    "$gtex_script" -i "$gtex" -g "$out/gtex/gencode.gtf" -l "$out/gtex/GTEx.lookup.txt.gz" | sort -k1,1 -k2,2n > "$out/gtex/gtex.bed"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Compressing GTEx file"
+    bgzip -f "$out/gtex/gtex.bed"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Indexing GTEx file"
+    tabix -f -p bed "$out/gtex/gtex.bed.gz"
+fi
 
-echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GWAS file"
-PYTHONPATH=$(dirname "$DIR") "$gwas_script" -i "$gwas" | gzip - > "$out/gwas/gwas.tsv.gz"
+# -------------------------------------------------------------------------
+
+if [[ "$prepgwas" -eq 1 ]];then
+    gwas="$out/gwas/gwas_full.tsv"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GWAS file"
+    PYTHONPATH=$(dirname "$DIR") "$gwas_script" -i "$gwas" | gzip - > "$out/gwas/gwas.tsv.gz"
+fi
 
 # -------------------------------------------------------------------------
 
