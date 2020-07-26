@@ -57,7 +57,7 @@ echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx Gencode data"
 wget --quiet -c "https://storage.googleapis.com/gtex_analysis_v8/reference/gencode.v26.GRCh38.genes.gtf" -O "$out/gtex/gencode.gtf"
 
 echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GWAS catalog"
-wget --quiet -c "https://www.ebi.ac.uk/gwas/api/search/downloads/alternative" -O "$out/gwas/gwas_full.tsv.gz"
+wget --quiet -c "https://www.ebi.ac.uk/gwas/api/search/downloads/alternative" -O "$out/gwas/gwas_full.tsv"
 
 cd "$out/temp"
 mkdir -p regulation
@@ -87,7 +87,7 @@ tabix -f -p bed "$out/gtex/gtex.bed.gz"
 
 # -------------------------------------------------------------------------
 
-gwas="$out/gwas/gwas_full.tsv.gz"
+gwas="$out/gwas/gwas_full.tsv"
 
 echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GWAS file"
 PYTHONPATH=$(dirname "$DIR") "$gwas_script" -i "$gwas" | gzip - > "$out/gwas/gwas.tsv.gz"

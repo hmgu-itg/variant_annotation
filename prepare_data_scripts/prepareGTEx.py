@@ -71,7 +71,7 @@ if version=="8":
             else:
                 gene_map[gene_id]={"chr":c,"start":int(s),"end":int(e)}
         else:
-            print("ERROR: no gene ID in row %d" % index.astype(int),file=sys.stderr)
+            print("ERROR: no gene ID in row %d" % index,file=sys.stderr)
             continue
 
     # infile=tf.open(fname)
