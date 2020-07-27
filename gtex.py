@@ -11,7 +11,7 @@ formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
-# ===================================================== GTEx RELATED STUFF ============================================
+# ===============================================================================================================================
 
 def gtex2df(gtex_data):
     df=pd.DataFrame(columns=["Tissue","P-value","Beta (SE)","ID","Distance from TSS"])
@@ -21,6 +21,7 @@ def gtex2df(gtex_data):
             df.loc[i]=[z["tissue"],z["p-value"],z["beta"]+" ("+z["SE"]+")",x,z["dist"]]
             i+=1
 
+    LOGGER.debug("DF: %d" % len(df))
     return df
 
 # ================================================================================================================================
@@ -50,11 +51,12 @@ def parseGTEx(chrom,start,end,ID):
     Output : dictionary with variant IDs (gene IDs) as keys and dictionaries with "tissue", "p-value", "beta", "SE", "dist" as values
     '''
     
-    #query = "tabix %s %s:%d-%d | awk -v v=%s \'BEGIN{FS=\"\t\";}$4==v{print $0;}\'" %(config.GTEX_BED,chrom,start,end,ID)
-    query = "tabix %s %s:%d-%d" %(config.GTEX_BED,chrom,start,end)
+    #LOGGER.debug("%s %d %d %s",chrom,start,end,ID)
+    query = "tabix %s %s:%d-%d" %(config.GTEX_BED,chrom,start-1,end)
     output = subprocess.Popen(query.strip(),universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     D=dict()
     for line in output.stdout.readlines():
+        #LOGGER.debug(line)
         fields=line.strip().split("\t")
 
         match=False
@@ -85,7 +87,4 @@ def parseGTEx(chrom,start,end,ID):
             D[ID2]=[]
         D[ID2].append({"tissue" : tissue,"p-value" : pval,"beta" : beta,"SE" : SE,"dist" : dist})
 
-    if len(D)==0:
-        LOGGER.info("No eQTL signals were found for %s" %(ID))
-    
     return D

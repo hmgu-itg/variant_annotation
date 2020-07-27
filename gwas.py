@@ -26,6 +26,7 @@ def gene2gwas(gene_name):
     Output: list of dictionaries
     '''
 
+    #LOGGER.debug("%s %s" % (config.GWAS_FILE,gene_name))
     query = "zcat %s | fgrep -iw %s" % (config.GWAS_FILE,gene_name)
 
     gwas_data = []

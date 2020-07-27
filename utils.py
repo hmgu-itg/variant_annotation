@@ -188,7 +188,7 @@ def generateVarTemplate(mapping_names,fname):
         f.write("<div id=\"space\"></div>\n")
 
         f.write("<button type=\"button\" class=\"collapsible\">GTEx eQTLs</button>\n")
-        f.write("<div id=\"General\" class=\"content\">\n{{ gtex_gene_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"General\" class=\"content\">\n{{ gtex_genes_table%d }}\n</div>\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
         f.write("<button type=\"button\" class=\"collapsible\">Nearby genes</button>\n")
