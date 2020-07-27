@@ -1,11 +1,11 @@
-import config
 import logging
 import pandas as pd
 import re
 import json
 
-from query import *
-from utils import *
+from . import config
+from . import query
+from . import utils
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -28,7 +28,7 @@ def getPopulationAF(var, dataset="gnomad_r3"):
     graphql=""
     if re.search("^rs\d+$",var):
         graphql="{variant (rsid: \"%s\",dataset: %s){chrom pos ref alt genome{populations{id ac an}}}}"
-    elif checkGnomadID(var):
+    elif utils.checkGnomadID(var):
         graphql="{variant (variantId: \"%s\",dataset: %s){chrom pos ref alt genome{populations{id ac an}}}}"
     else:
         LOGGER.warning("Malformed variant ID: %s" % var)
@@ -36,7 +36,7 @@ def getPopulationAF(var, dataset="gnomad_r3"):
         
     req_af = {"query": graphql % (var, dataset)}
 
-    response=fetchGnomAD(req_af)
+    response=query.fetchGnomAD(req_af)
     #print(json.dumps(response, indent=4, sort_keys=True))    
     if response is not None:
         afs=response["data"]

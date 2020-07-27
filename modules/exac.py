@@ -1,8 +1,9 @@
 import pandas as pd
 import logging
 import subprocess
-import config
 import os
+
+from . import config
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

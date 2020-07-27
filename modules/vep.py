@@ -2,7 +2,7 @@ import logging
 import pandas as pd
 import requests
 
-from query import *
+from . import query
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -120,7 +120,7 @@ def getVepData(mapping_data):
         LOGGER.error("Wrong allele encoding ref=%s, alt=%s" %(ref,alt),file=sys.stderr)
         return None
 
-    VEP=restQuery(makeVepQueryURL(chrom,start,end,allele))
+    VEP=query.restQuery(query.makeVepQueryURL(chrom,start,end,allele))
     #return data
 
     sift_score=None

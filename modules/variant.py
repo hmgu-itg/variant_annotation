@@ -1,4 +1,3 @@
-import config
 import logging
 import pandas as pd
 import json
@@ -7,8 +6,9 @@ import os
 import tempfile as tf
 import subprocess
 
-from query import *
-from utils import *
+from . import config
+from . import query
+from . import utils
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -29,7 +29,7 @@ def rs2position(ID,build="38"):
     '''
 
     L=[]
-    z=restQuery(makeRSQueryURL(ID,build=build))
+    z=query.restQuery(query.makeRSQueryURL(ID,build=build))
     if z:
         for x in z:
             spdis=x["spdi"]
@@ -66,7 +66,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
         return None
 
     LOGGER.debug("%s:%d" %(chrom,pos))
-    variants=restQuery(makePhenoOverlapQueryURL(chrom,start,end,build=build),qtype="get")
+    variants=query.restQuery(query.makePhenoOverlapQueryURL(chrom,start,end,build=build),qtype="get")
     #print(json.dumps(variants,indent=4,sort_keys=True))
 
     if not variants:
@@ -89,8 +89,8 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
     output=[]
     i=0
     df = pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Distance"])
-    for L in chunks(rsIDs,config.BATCHSIZE):
-        r=restQuery(makeRSPhenotypeQueryURL(build=build),data=list2string(L),qtype="post")
+    for L in utils.chunks(rsIDs,config.BATCHSIZE):
+        r=query.restQuery(query.makeRSPhenotypeQueryURL(build=build),data=utils.list2string(L),qtype="post")
         if r:
             #print(json.dumps(r,indent=4,sort_keys=True))
             for rsID in r:
@@ -175,7 +175,7 @@ def getVariantInfo(rs,build="38"):
 
 #------------------- general information ---------------
 
-    data=restQuery(makeRsPhenotypeQuery2URL(rs,build))
+    data=query.restQuery(query.makeRsPhenotypeQuery2URL(rs,build))
     #print(json.dumps(data,indent=4,sort_keys=True))
 
     if not data:
@@ -199,11 +199,11 @@ def getVariantInfo(rs,build="38"):
 
     mappings=list()
 
-    z=restQuery(makeRSQueryURL(rs,build=build))
+    z=query.restQuery(query.makeRSQueryURL(rs,build=build))
     for x in z:
         spdis=x["spdi"]
         for spdi in spdis:
-            h=parseSPDI(spdi,alleles=True)
+            h=query.parseSPDI(spdi,alleles=True)
             ref=h["ref"]
             alt=h["alt"]
             p=h["pos"]
@@ -286,17 +286,17 @@ def id2rs(varid,build="38"):
 
     S=set()
     if len(a1)==1 and len(a2)==1: # SNP
-        r=restQuery(makeOverlapVarQueryURL(chrom,pos,pos,build=build))
+        r=query.restQuery(query.makeOverlapVarQueryURL(chrom,pos,pos,build=build))
         for v in r:
             if a1 in v["alleles"] and a2 in v["alleles"]:
                 S.add(v["id"])
     else:
-        r=restQuery(makeOverlapVarQueryURL(chrom,pos-window,pos+window,build=build))
+        r=query.restQuery(query.makeOverlapVarQueryURL(chrom,pos-window,pos+window,build=build))
         if not r:
             return S
 
         for v in r:
-            z=restQuery(makeRSQueryURL(v["id"],build=build))
+            z=query.restQuery(query.makeRSQueryURL(v["id"],build=build))
             if not z:
                 continue
 

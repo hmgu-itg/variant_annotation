@@ -3,7 +3,7 @@ import pandas as pd
 import logging
 from io import StringIO
 
-import config
+from . import config
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

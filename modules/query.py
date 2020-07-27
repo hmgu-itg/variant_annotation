@@ -3,7 +3,7 @@ from requests.exceptions import Timeout,TooManyRedirects,RequestException
 import logging
 import re
 
-import config
+from . import config
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

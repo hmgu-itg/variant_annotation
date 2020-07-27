@@ -1,9 +1,10 @@
-import config
 import subprocess
 import logging
 import os
 import pandas as pd
 import re
+
+from . import config
 
 import locale
 locale.setlocale(locale.LC_CTYPE,"en_US.UTF-8")

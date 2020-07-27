@@ -3,8 +3,8 @@ import logging
 import json
 import sys
 
-import config
-from query import *
+from . import config
+from . import query
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -24,7 +24,7 @@ def getGeneInfo (ID,build="38"):
     Input: Ensembl stable ID
     Output: dictionary with retrieved information
     '''
-    response=restQuery(makeGeneQueryURL(ID,build=build))
+    response=query.restQuery(query.makeGeneQueryURL(ID,build=build))
 
     #print(json.dumps(response,indent=4,sort_keys=True))
 
@@ -59,7 +59,7 @@ def getGeneXrefs (ID,build="38"):
 
     LOGGER.debug(ID)
 
-    r=restQuery(makeGeneXQueryURL(ID,build=build))
+    r=query.restQuery(query.makeGeneXQueryURL(ID,build=build))
     if not r:
         LOGGER.info("No cross references found for %s" %(ID))
         return  None
@@ -103,7 +103,7 @@ def getGeneList(chrom,pos,window=1000000,build="38"):
     if start<1: 
         start=1
 
-    overlapping_genes=restQuery(makeGeneOverlapQueryURL(chrom,start,end,build=build))
+    overlapping_genes=query.restQuery(query.makeGeneOverlapQueryURL(chrom,start,end,build=build))
     gene_list=list()
 
     for gene in overlapping_genes:

@@ -1,9 +1,9 @@
 import pandas as pd
 import logging
-import config
 import requests
 
-from query import *
+from . import query
+from . import config
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -46,7 +46,7 @@ def getPubmed(rsID):
     Input  : rsID
     Output : dictionary with PMIDs as keys and dictionaries {"firstAuthor", "title", "journal", "year", "URL"} as values
     '''
-    decoded=restQuery(config.PUBMED_URL_VAR % (rsID))
+    decoded=query.restQuery(config.PUBMED_URL_VAR % (rsID))
     #json.dumps(decoded,indent=4,sort_keys=True)
     publication_data = {}
     if decoded is None:

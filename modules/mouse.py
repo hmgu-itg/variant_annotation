@@ -2,7 +2,7 @@ import pandas as pd
 import re
 import logging
 
-import query
+from . import query
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

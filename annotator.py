@@ -6,20 +6,20 @@ import logging
 import json
 import os
 import sys
+import jinja2
 
-import config
-
-import utils
-import gnomad
-import mouse
-from variant import *
-from gene import *
-from regulation import *
-from gwas import *
-from gtex import *
-from vep import *
-from pubmed import *
-from uniprot import *
+from modules import config
+from modules import utils
+from modules import gnomad
+from modules import mouse
+from modules import variant
+from modules import gene
+from modules import regulation
+from modules import gwas
+from modules import gtex
+from modules import vep
+from modules import pubmed
+from modules import uniprot
 
 sys.stdout=open(sys.stdout.fileno(),mode='w',encoding='utf8',buffering=1)
 
@@ -116,12 +116,12 @@ version = "3.0"
 # ------------------------------------------------------------------------------------------------------------------------
 
 LOGGER.info("Retrieving variant data from Ensembl")
-variant_data = getVariantInfo(VAR_ID,build)
+variant_data=variant.getVariantInfo(VAR_ID,build)
 
 if GWAVA is not None:
-    getGwavaScore(variant_data)
+    variant.getGwavaScore(variant_data)
 
-chrpos=getChrPosList(variant_data["mappings"])
+chrpos=variant.getChrPosList(variant_data["mappings"])
 
 LOGGER.info("Found %d chr:pos mapping(s)\n" %(len(chrpos)))
 #print(json.dumps(variant_data,indent=4,sort_keys=True))
@@ -130,52 +130,52 @@ all_genes=list()
 mapping_names=list()
 D=dict()
 for i in range(0,len(chrpos)):
-    mappings=getMappingList(chrpos[i],variant_data["mappings"])
+    mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
     LOGGER.info("Current mapping: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
 
     LOGGER.info("Creating variant dataframe")
-    variantDF = variant2df(variant_data,mappings)
+    variantDF=variant.variant2df(variant_data,mappings)
     
     # Variants with phenotypes:
     LOGGER.info("Retreiving nearby variants with phenotype annotation")
-    phenotypeDF = getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
+    phenotypeDF=variant.getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
     
     # Get regulatory features
     LOGGER.info("Retrieving overlapping regulatory features")
-    regulation = getRegulation(chrpos[i][0],chrpos[i][1])
-    LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(regulation)))
+    reg=regulation.getRegulation(chrpos[i][0],chrpos[i][1])
+    LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(reg)))
     LOGGER.info("Creating regulatory dataframe")
-    regulationDF = regulation2df(regulation)
+    regulationDF=regulation.regulation2df(reg)
     
     LOGGER.info("Looking for GWAS hits around the variant")
-    gwas_hits=getGwasHits(chrpos[i][0],chrpos[i][1])
+    gwas_hits=gwas.getGwasHits(chrpos[i][0],chrpos[i][1])
     LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
     LOGGER.info("Creating GWAS dataframe")
-    gwasDF = gwas2df(gwas_hits)
+    gwasDF=gwas.gwas2df(gwas_hits)
     
     LOGGER.info("Creating VEP dataframe")
-    vep = getVepDF(mappings)
-    vepDF=vep["transcript"]
+    vepDF=vep.getVepDF(mappings)["transcript"]
+    #vepDF=vep["transcript"]
     
     LOGGER.info("Creating populations dataframe")
-    populationDF = population2df(variant_data["population_data"])
+    populationDF=variant.population2df(variant_data["population_data"])
 
     LOGGER.info("Creating PubMed dataframe")
-    pubmedDF = getPubmedDF(VAR_ID,variant_data["synonyms"])
+    pubmedDF=pubmed.getPubmedDF(VAR_ID,variant_data["synonyms"])
 
     # Get a list of genes close to the variation:
     LOGGER.info("Retrieving genes around the variant")
-    gene_list=getGeneList(chrpos[i][0],chrpos[i][1],build=build)
+    gene_list=gene.getGeneList(chrpos[i][0],chrpos[i][1],build=build)
     all_genes.extend(gene_list)
     LOGGER.info("Got %d gene(s)\n" %(len(gene_list)))
     LOGGER.info("Creating gene dataframe")
-    geneDF = geneList2df(gene_list)
+    geneDF=gene.geneList2df(gene_list)
     
     LOGGER.info("Creating gnomAD dataframe")
-    gnomadDF = gnomad.getPopulationAF(VAR_ID)
+    gnomadDF=gnomad.getPopulationAF(VAR_ID)
     
     LOGGER.info("Creating GTEx dataframe")
-    GTEx_genesDF=getGTExDF(mappings)    
+    GTEx_genesDF=gtex.getGTExDF(mappings)    
     LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
 
 # ----------------------------------------------------------------------------
@@ -207,8 +207,8 @@ for i in range(0,len(chrpos)):
 
 template_fname=config.OUTPUT_DIR+"/template_var.html"
 utils.generateVarTemplate(mapping_names,template_fname)
-f = open(config.OUTPUT_DIR+"/%s.html" %VAR_ID,"w")
-f.write(generateHTML(template_fname,D))
+f=open(config.OUTPUT_DIR+"/%s.html" %VAR_ID,"w")
+f.write(utils.generateHTML(template_fname,D))
 f.close()
 
 # ----------------------------------------------------------------------------
@@ -220,40 +220,40 @@ for i in range(0,len(all_genes)):
     gene_names.append(gene_ID)
 
     LOGGER.info("Retreiving general information")
-    info = getGeneInfo(gene_ID,build=build)
+    info=gene.getGeneInfo(gene_ID,build=build)
 
     LOGGER.info("Retreiveing cross-references")
-    xrefs = getGeneXrefs(gene_ID)
+    xrefs=gene.getGeneXrefs(gene_ID)
 
     LOGGER.info("Retreiving UniProt data")
     if len(xrefs["UniProtKB/Swiss-Prot"])>0:
-        uniprot = getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
+        up=uniprot.getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
     else:
-        uniprot=None
+        up=None
 
     LOGGER.info("Retreiving GWAS data")
-    gwas = gene2gwas(info["name"])
+    gw=gwas.gene2gwas(info["name"])
 
     LOGGER.info("Retreiving GTEx data")
-    gtex= parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
+    gt=gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
 
     LOGGER.info("Retreiving mouse data\n")
     mouseDF=mouse.getMousePhenotypes(gene_ID)
 
     LOGGER.info("Creating general info dataframe")
-    infoDF = geneInfo2df(info)
+    infoDF=gene.geneInfo2df(info)
 
     LOGGER.info("Creating GTEx dataframe")
-    gtexDF = gtex2df(gtex)
+    gtexDF=gtex.gtex2df(gt)
 
     LOGGER.info("Creating GWAS dataframe")
-    gwasDF = geneGwas2df(gwas)
+    gwasDF=gwas.geneGwas2df(gw)
 
     LOGGER.info("Creating UniProt dataframe")
-    uniprotDF = uniprot2df(uniprot)
+    uniprotDF=uniprot.uniprot2df(up)
 
     LOGGER.info("Creating GO terms dataframe")
-    goDF = goterms2df(xrefs)
+    goDF=gene.goterms2df(xrefs)
 
     if len(infoDF)>0:
         D["gene_table%d" %i]=infoDF.to_html(index=False,classes='utf8',table_id="common")
@@ -273,6 +273,6 @@ for i in range(0,len(all_genes)):
 template_fname=config.OUTPUT_DIR+"/template_gene.html"
 utils.generateGeneTemplate(gene_names,template_fname)
 f = open(config.OUTPUT_DIR+"/%s_genes.html" %VAR_ID,"w")
-f.write(generateHTML(template_fname,D))
+f.write(utils.generateHTML(template_fname,D))
 f.close()
 

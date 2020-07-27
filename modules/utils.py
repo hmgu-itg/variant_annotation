@@ -4,7 +4,7 @@ import jinja2
 import os
 import sys
 
-import config
+from . import config
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

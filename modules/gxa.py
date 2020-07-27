@@ -13,8 +13,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from query import *
-from utils import *
+from . import config
+from . import utils
 
 LOGGER=logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -77,7 +77,7 @@ def saveGxaData(ID):
     options.add_argument("--headless")
 
     browser = webdriver.Firefox(firefox_profile=profile,firefox_options=options)
-    browser.get(getGxaURL(ID))
+    browser.get(utils.getGxaURL(ID))
     element=None
     try:
         # give it up to 60 seconds to load
