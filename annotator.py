@@ -16,6 +16,7 @@ from modules import variant
 from modules import gene
 from modules import regulation
 from modules import gwas
+from modules import gxa
 from modules import gtex
 from modules import vep
 from modules import pubmed
@@ -100,6 +101,7 @@ logging.getLogger("vep").setLevel(verbosity)
 logging.getLogger("exac").setLevel(verbosity)
 logging.getLogger("gxa").setLevel(verbosity)
 logging.getLogger("uniprot").setLevel(verbosity)
+logging.getLogger("utils").setLevel(verbosity)
 logging.getLogger("mouse").setLevel(verbosity)
 
 # ------------------------------------------------------------------------------------------------------------------------
@@ -155,7 +157,6 @@ for i in range(0,len(chrpos)):
     
     LOGGER.info("Creating VEP dataframe")
     vepDF=vep.getVepDF(mappings)["transcript"]
-    #vepDF=vep["transcript"]
     
     LOGGER.info("Creating populations dataframe")
     populationDF=variant.population2df(variant_data["population_data"])
@@ -219,6 +220,7 @@ for i in range(0,len(all_genes)):
     gene_ID=all_genes[i]["ID"]
     gene_names.append(gene_ID)
 
+    LOGGER.info("Current gene: %s",gene_ID)
     LOGGER.info("Retreiving general information")
     info=gene.getGeneInfo(gene_ID,build=build)
 
@@ -237,7 +239,7 @@ for i in range(0,len(all_genes)):
     LOGGER.info("Retreiving GTEx data")
     gt=gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
 
-    LOGGER.info("Retreiving mouse data\n")
+    LOGGER.info("Retreiving mouse data")
     mouseDF=mouse.getMousePhenotypes(gene_ID)
 
     LOGGER.info("Creating general info dataframe")
@@ -249,11 +251,16 @@ for i in range(0,len(all_genes)):
     LOGGER.info("Creating GWAS dataframe")
     gwasDF=gwas.geneGwas2df(gw)
 
+    LOGGER.info("Creating GXA dataframe")
+#    gxaDF=gxa.getGxaDF(gene_ID)
+    gxaHeatmap=gxa.getGxaHeatmap(gene_ID)
+
     LOGGER.info("Creating UniProt dataframe")
     uniprotDF=uniprot.uniprot2df(up)
 
     LOGGER.info("Creating GO terms dataframe")
     goDF=gene.goterms2df(xrefs)
+    LOGGER.info("")
 
     if len(infoDF)>0:
         D["gene_table%d" %i]=infoDF.to_html(index=False,classes='utf8',table_id="common")
@@ -263,6 +270,9 @@ for i in range(0,len(all_genes)):
         D["uniprot_table%d" %i]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
     if len(gwasDF)>0:
         D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+    #if gxaDF is not None and len(gxaDF)>0:
+        #D["gxa_table%d" %i]=gxaDF.to_html(index=True,classes='utf8',table_id="common",render_links=True,escape=False)
+    D["gxa_heatmap%d" %i]=gxaHeatmap
     if len(gtexDF)>0:
         D["gtexVariants_table%d" %i]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
     if len(mouseDF)>0:

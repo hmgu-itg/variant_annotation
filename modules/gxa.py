@@ -1,10 +1,12 @@
-import config
 import logging
 import time
 import sys
 import shutil
 import pandas as pd
 import re
+import os
+import plotly.express as px
+import tempfile as tf
 
 from selenium.webdriver.firefox.options import Options
 from selenium import webdriver
@@ -26,9 +28,28 @@ LOGGER.addHandler(ch)
 
 # ==============================================================================================================================
 
-def getGxa(ID):
+def getGxaHeatmap(ID):
+    df=getGxaDF(ID)
+    if df is None:
+        return None
+    
+    fig = px.imshow(df)
+    out=tf.NamedTemporaryFile(delete=False,mode="w")
+    fig.write_html(out.name,full_html=False)
+    out.close()
+    with open (out.name, "r") as f:
+        data=f.readlines()
+    f.close()
+    if os.path.isfile(out.name):
+        os.remove(out.name)
+
+    return "".join(data)
+
+# ==============================================================================================================================
+
+def getGxaDF(ID):
     '''
-    Geiven a gene ID, get data from GXA (baseline expression)
+    Given a gene ID, get data from GXA (baseline expression)
 
     Input: gene ID
     Output: none, data is saved in temporary files (their names saved in "config.GXA_FILES")
@@ -41,19 +62,21 @@ def getGxa(ID):
         LOGGER.warning("Could not retreive GXA data for %s" % ID)
         return None
 
-    df=pd.read_table(fn,comment="#",header=0)
-    df=df.set_index("Unnamed: 0")
+    df=pd.read_table(fn,comment="#",header=0).rename(columns={"Unnamed: 0":"Experiment"})
+    #df=df.rename(columns={"Unnamed: 0":"Experiment"})
+    df=df.set_index("Experiment")
     # tissues with highest values
     tissues=set()
     idxs=list()
     for idx in df.index:
         # only selected experiments
-        if re.search("GTEx",idx.format(),re.I) or re.search("FANTOM",idx.format(),re.I):
-            idxs.append(idx)
-            z=df.loc[idx,:].nlargest(n=int(config.GXA_HIGHEST))
-            tissues.update(set(z.index.format()))
+        #if re.search("GTEx",idx.format(),re.I) or re.search("FANTOM",idx.format(),re.I):
+        idxs.append(idx)
+        z=df.loc[idx,:].nlargest(n=int(config.GXA_HIGHEST))
+        tissues.update(set(z.index.format()))
             
-    df.loc[idxs,list(tissues)].to_csv(config.OUTPUT_DIR+"/"+ID+".tsv",sep="\t")
+    #df.loc[idxs,list(tissues)].to_csv(config.OUTPUT_DIR+"/"+ID+".tsv",sep="\t")
+    return df.loc[idxs,list(tissues)]
 
 # ======================================================================================================================
 
@@ -89,5 +112,12 @@ def saveGxaData(ID):
     element.click()
     time.sleep(5)
     browser.quit()
+
+    try:
+        os.remove(config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv")
+    except OSError:
+        pass
+
     shutil.move("/tmp/expression_atlas-homo_sapiens.tsv",config.OUTPUT_DIR)
+
     return config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv"
