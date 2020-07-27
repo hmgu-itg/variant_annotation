@@ -304,7 +304,7 @@ def id2rs(varid,build="38"):
                 spdis=x["spdi"]
                 var=x["id"][0]
                 for spdi in spdis:
-                    h=parseSPDI(spdi,alleles=True)
+                    h=query.parseSPDI(spdi,alleles=True)
                     ref=h["ref"]
                     alt=h["alt"]
                     p=h["pos"]
