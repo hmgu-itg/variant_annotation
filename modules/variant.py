@@ -336,7 +336,7 @@ def getGwavaScore(variant_data):
         keystr=chrpos[i][0]+":"+str(chrpos[i][1])
         LOGGER.debug("GWAVA scores for mapping %s\n" %keystr)
 
-        in_bed=tf.NamedTemporaryFile(delete=False,mode="w")
+        in_bed=tf.NamedTemporaryFile(delete=Falsemode="w")
         LOGGER.debug("Input b38 bed file: %s" % in_bed.name)
         bed37_fname=tf.mktemp()
         LOGGER.debug("Output b37 bed file: %s" % bed37_fname)
