@@ -287,6 +287,9 @@ def id2rs(varid,build="38"):
     S=set()
     if len(a1)==1 and len(a2)==1: # SNP
         r=query.restQuery(query.makeOverlapVarQueryURL(chrom,pos,pos,build=build))
+        if not r:
+            return S
+
         for v in r:
             if a1 in v["alleles"] and a2 in v["alleles"]:
                 S.add(v["id"])

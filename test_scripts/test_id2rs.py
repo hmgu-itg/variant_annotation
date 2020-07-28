@@ -30,11 +30,11 @@ if args.build!=None:
     build=args.build
 
 varID=args.id
-m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varID)
-chrom=m.group(1)
-pos=int(m.group(2))
-a1=m.group(3)
-a2=m.group(4)
+# m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varID)
+# chrom=m.group(1)
+# pos=int(m.group(2))
+# a1=m.group(3)
+# a2=m.group(4)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
