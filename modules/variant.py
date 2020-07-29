@@ -580,3 +580,65 @@ def population2df(pop_data):
 
 #     return OMIM_data
 
+
+# ==============================================================================================================================
+
+# def annotateVariant(var,gwava=False):
+#     LOGGER.info("Retrieving variant data from Ensembl")
+#     variant_data=variant.getVariantInfo(var,build)
+
+#     if gwava:
+#         variant.getGwavaScore(variant_data)
+
+#     chrpos=variant.getChrPosList(variant_data["mappings"])
+
+#     LOGGER.info("Found %d chr:pos mapping(s)\n" %(len(chrpos)))
+#     #print(json.dumps(variant_data,indent=4,sort_keys=True))
+
+#         all_genes=list()
+#         mapping_names=list()
+#         D=dict()
+#         for i in range(0,len(chrpos)):
+#             mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
+#             LOGGER.info("Current mapping: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
+
+#             LOGGER.info("Creating variant dataframe")
+#             variantDF=variant.variant2df(variant_data,mappings)
+    
+#             LOGGER.info("Retreiving nearby variants with phenotype annotation")
+#             phenotypeDF=variant.getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
+    
+#             LOGGER.info("Retrieving overlapping regulatory features")
+#             reg=regulation.getRegulation(chrpos[i][0],chrpos[i][1])
+#             LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(reg)))
+#             LOGGER.info("Creating regulatory dataframe")
+#             regulationDF=regulation.regulation2df(reg)
+    
+#             LOGGER.info("Looking for GWAS hits around the variant")
+#             gwas_hits=gwas.getGwasHits(chrpos[i][0],chrpos[i][1])
+#             LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
+#             LOGGER.info("Creating GWAS dataframe")
+#             gwasDF=gwas.gwas2df(gwas_hits)
+    
+#             LOGGER.info("Creating VEP dataframe")
+#             vepDF=vep.getVepDF(mappings)["transcript"]
+    
+#             LOGGER.info("Creating populations dataframe")
+#             populationDF=variant.population2df(variant_data["population_data"])
+
+#             LOGGER.info("Creating PubMed dataframe")
+#             pubmedDF=pubmed.getPubmedDF(var,variant_data["synonyms"])
+
+#             LOGGER.info("Retrieving genes around the variant")
+#             gene_list=gene.getGeneList(chrpos[i][0],chrpos[i][1],build=build)
+#             all_genes.extend(gene_list)
+#             LOGGER.info("Got %d gene(s)\n" %(len(gene_list)))
+#             LOGGER.info("Creating gene dataframe")
+#             geneDF=gene.geneList2df(gene_list)
+    
+#             LOGGER.info("Creating gnomAD dataframe")
+#             gnomadDF=gnomad.getPopulationAF(var)
+    
+#             LOGGER.info("Creating GTEx dataframe")
+#             GTEx_genesDF=gtex.getGTExDF(mappings)    
+#             LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))

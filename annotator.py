@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import jinja2
+import gzip
 
 from modules import config
 from modules import utils
@@ -131,6 +132,7 @@ LOGGER.info("Found %d chr:pos mapping(s)\n" %(len(chrpos)))
 all_genes=list()
 mapping_names=list()
 D=dict()
+D1=dict()
 for i in range(0,len(chrpos)):
     mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
     LOGGER.info("Current mapping: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
@@ -179,6 +181,20 @@ for i in range(0,len(chrpos)):
     GTEx_genesDF=gtex.getGTExDF(mappings)    
     LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
 
+
+# ----------------------------------------------------------------------------
+
+    D1["variant_table%d" %i]=variantDF.to_json()
+    D1["gnomad_table%d" %i]=gnomadDF.to_json()
+    D1["regulation_table%d" %i]=regulationDF.to_json()
+    D1["gwas_table%d" %i]=gwasDF.to_json()
+    D1["vep_table%d" %i]=vepDF.to_json()
+    D1["population_table%d" %i]=populationDF.to_json()
+    D1["pubmed_table%d" %i]=pubmedDF.to_json()
+    D1["phenotype_table%d" %i]=phenotypeDF.to_json()
+    D1["gene_table%d" %i]=geneDF.to_json()
+    D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json()
+
 # ----------------------------------------------------------------------------
 
     if len(variantDF)>0:
@@ -203,6 +219,12 @@ for i in range(0,len(chrpos)):
         D["gtex_genes_table%d" %i]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
     
     mapping_names.append(chrpos[i][0]+":"+str(chrpos[i][1]))
+
+# ----------------------------------------------------------------------------
+
+LOGGER.info("Saving variant JSON\n")
+with gzip.GzipFile(config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID,"w") as fout:
+    fout.write(json.dumps(D1).encode('utf-8'))               
 
 # ----------------------------------------------------------------------------
 
