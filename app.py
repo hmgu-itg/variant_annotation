@@ -10,7 +10,6 @@ import plotly.graph_objects as go
 import dash
 import dash_table
 import dash_core_components as dcc
-import plotly.figure_factory as ff
 import dash_html_components as html
 import plotly.express as px
 from dash.dependencies import Input, Output
@@ -58,7 +57,6 @@ for x in data:
         t=pd.read_json(data[x])
         if len(t)>0:
             regfigs[mappings[m.group(1)]]=dash_table.DataTable(style_cell={'textAlign': 'left','whiteSpace': 'normal','height': 'auto'},style_header={'backgroundColor': 'white','fontWeight': 'bold'},columns=[{"name": i, "id": i} for i in t.columns],data=t.to_dict("records"))
-#ff.create_table(t)
         else:
             regfigs[mappings[m.group(1)]]=None
 
@@ -69,7 +67,6 @@ for x in data:
         t=pd.read_json(data[x])
         if len(t)>0:
             gwasfigs[mappings[m.group(1)]]=dash_table.DataTable(style_cell={'textAlign': 'left','whiteSpace': 'normal','height': 'auto'},style_cell_conditional=[{'if': {'column_id': 'Trait'},'width': '25%'}],style_header={'backgroundColor': 'white','fontWeight': 'bold'},columns=[{"name": i, "id": i} for i in t.columns],data=t.to_dict("records"))
-#            gwasfigs[mappings[m.group(1)]]=ff.create_table(t)
         else:
             gwasfigs[mappings[m.group(1)]]=None
 
