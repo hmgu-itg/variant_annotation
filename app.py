@@ -75,15 +75,17 @@ for x in data:
 
 figs=dict()
 for t in tables:
-    figs[t.loc["Location","Value"]]=table2fig(t)
+    figs[t.loc["Location","Value"]]=dash_table.DataTable(style_cell={'textAlign': 'left','whiteSpace': 'normal','height': 'auto'},style_header={'backgroundColor': 'white','fontWeight': 'bold'},columns=[{"name": i, "id": i} for i in t.columns],data=t.to_dict("records"))
+    #figs[t.loc["Location","Value"]]=table2fig(t)
 
 # -----------------------------------------------------------------------------------------------------------------------
 
 app=dash.Dash(__name__)
 
 elements=[html.H1(children='Variant info',style={"textAlign":"center"}),dcc.Dropdown(placeholder="Select a mapping",clearable=False,id="select",options=[{"label":x.loc["Location","Value"],"value":x.loc["Location","Value"]} for x in tables],value=tables[0].loc["Location","Value"])]
-elements.append(html.Button('Details',id='details-btn',className="collapsible",n_clicks=0))
-elements.append(dcc.Graph(id="info_table",figure=figs[tables[0].loc["Location","Value"]],className="content"))
+#elements.append(html.Button('Details',id='details-btn',className="collapsible",n_clicks=0))
+elements.append(html.Div(children=figs[tables[0].loc["Location","Value"]],id="info_table"))
+
 elements.append(html.Button('GnomAD Allele Frequencies',id='gnomad-btn',className="collapsible",n_clicks=0))
 elements.append(dcc.Graph(id="gnomad_table",figure=gnomADfigs[tables[0].loc["Location","Value"]],className="content"))
 
@@ -99,20 +101,13 @@ app.layout = html.Div(children=elements)
 
 # -----------------------------------------------------------------------------------------------------------------------
 
-@app.callback(Output("info_table","figure"),[Input("select","value")])
+@app.callback(Output("info_table","children"),[Input("select","value")])
 def update_figure(location_str):
-    return figs[location_str]
+    return [figs[location_str]]
 
 @app.callback(Output("gnomad_table","figure"),[Input("select","value")])
 def update_gnomad(location_str):
     return gnomADfigs[location_str]
-
-@app.callback(Output("info_table","style"),[Input("details-btn","n_clicks")])
-def collapseInfo(val):
-    if val%2:
-        return {"display":"block"}
-    else:
-        return {"display":"none"}
 
 @app.callback(Output("gnomad_table","style"),[Input("gnomad-btn","n_clicks")])
 def collapseGnomAD(val):
