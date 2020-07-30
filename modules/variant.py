@@ -415,35 +415,63 @@ def variant2df(var_data,mappings):
     Transform variant data to dataframe
 
     Input: variant data (output of getVariantInfo), list of variant mappings
-    Output: dataframe
+    Output: dataframe with columns "Key", "Value"
     '''
-    df=pd.DataFrame(columns=["Value"])
-    df.loc["ID"]=[var_data["rsID"]]
+
+    df=pd.DataFrame(columns=["Key","Value"])
+    i=0
+
+    df.loc[i]=["ID",var_data["rsID"]]
+    i+=1
+
     keystr=mappings[0]["chr"]+":"+str(mappings[0]["pos"])
-    df.loc["Location"]=[keystr]
+    df.loc[i]=["Location",keystr]
+    i+=1
+
     L=list()
     for m in mappings:
         L.append(m["ref"]+"/"+m["alt"])
-    df.loc["Allele string(s)"]=[",".join(L)]
+
+    df.loc[i]=["Allele string(s)",",".join(L)]
+    i+=1
+
     # df.loc["SIFT score"]=[mapping["sift_score"]]
     # df.loc["SIFT prediction"]=[mapping["sift_prediction"]]
     # df.loc["PolyPhen score"]=[mapping["polyphen_score"]]
     # df.loc["PolyPhen prediction"]=[mapping["polyphen_prediction"]]
-    df.loc["Average GERP score"]=var_data["scores"][keystr]["avg_gerp"]
-    df.loc["GERP score"]=var_data["scores"][keystr]["gerp"]
-    df.loc["GWAVA score"]=var_data["scores"][keystr]["gwava"]
-    df.loc["MAF"]=[var_data["MAF"]]
-    df.loc["Consequence"]=[var_data["consequence"]]
-    df.loc["Type"]=[var_data["class"]]
+
+    df.loc[i]=["Average GERP score",var_data["scores"][keystr]["avg_gerp"]]
+    i+=1
+
+    df.loc[i]=["GERP score",var_data["scores"][keystr]["gerp"]]
+    i+=1
+
+    df.loc[i]=["GWAVA score",var_data["scores"][keystr]["gwava"]]
+    i+=1
+
+    df.loc[i]=["MAF",var_data["MAF"]]
+    i+=1
+
+    df.loc[i]=["Consequence",var_data["consequence"]]
+    i+=1
+
+    df.loc[i]=["Type",var_data["class"]]
+    i+=1
+
     s=", ".join(var_data["synonyms"])
     if len(var_data["synonyms"])>5:
         s=",".join(var_data["synonyms"][0:5])
         s=s+"... ("+str(len(var_data["synonyms"]))+" in total)"
-    df.loc["Synonyms"]=[s]
+    df.loc[i]=["Synonyms",s]
+    i+=1
+
     for p in var_data["phenotype_data"]:
-        df.loc["Phenotype"]=[p["trait"]+" - "+p["source"]+" - "+p["risk_allele"]]
+        df.loc[i]=["Phenotype",p["trait"]+" - "+p["source"]+" - "+p["risk_allele"]]
+        i+=1
+
     if len(var_data["clinical_significance"])!=0:
-        df.loc["Clinical significance"]=[",".join(var_data["clinical_significance"])]
+        df.loc[i]=["Clinical significance",",".join(var_data["clinical_significance"])]
+        i+=1
 
     return df
     
