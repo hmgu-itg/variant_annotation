@@ -42,13 +42,7 @@ except:
     sys.exit(0)
 
 ID=args.id
-
 outdir="./"+ID
-# if args.output:
-#     outdir=args.output
-    
-if outdir.endswith("/"):
-    outdir=outdir[:-1]
 
 #---------------------------------------------------------------------------------------------------------------------------
 
@@ -59,14 +53,14 @@ config.OUTPUT_DIR=outdir
 
 df=gxa.getGxaDF(ID)
 print(df)
-out=tf.NamedTemporaryFile(delete=False,mode="w")
-fig = px.imshow(df)
-print(fig.write_html(out.name,full_html=False))
-out.close()
-with open (out.name, "r") as f:
-    data=f.readlines()
-f.close()
-print("".join(data))
-if os.path.isfile(out.name):
-    os.remove(out.name)
+# out=tf.NamedTemporaryFile(delete=False,mode="w")
+# fig = px.imshow(df)
+# print(fig.write_html(out.name,full_html=False))
+# out.close()
+# with open (out.name, "r") as f:
+#     data=f.readlines()
+# f.close()
+# print("".join(data))
+# if os.path.isfile(out.name):
+#     os.remove(out.name)
 

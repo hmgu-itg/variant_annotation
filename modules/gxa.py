@@ -73,6 +73,7 @@ def getGxaDF(ID):
         #if re.search("GTEx",idx.format(),re.I) or re.search("FANTOM",idx.format(),re.I):
         idxs.append(idx)
         z=df.loc[idx,:].nlargest(n=int(config.GXA_HIGHEST))
+        #print(z)
         tissues.update(set(z.index.format()))
             
     #df.loc[idxs,list(tissues)].to_csv(config.OUTPUT_DIR+"/"+ID+".tsv",sep="\t")
@@ -87,6 +88,11 @@ def saveGxaData(ID):
     Input  : gene ID
     Output : name of the file where the data are stored
     """
+
+    try:
+        os.remove("/tmp/expression_atlas-homo_sapiens.tsv")
+    except OSError:
+        pass
 
     profile = webdriver.FirefoxProfile()
     profile.set_preference("browser.download.panel.shown", False)
