@@ -49,6 +49,7 @@ outdir="./"+ID
 if not utils.createDir(outdir):
     LOGGER.error("Could not create output dir %s" % outdir)
 
+#config.GXA_HIGHEST=5
 config.OUTPUT_DIR=outdir
 
 df=gxa.getGxaDF(ID)

@@ -111,8 +111,9 @@ def saveGxaData(ID):
     try:
         # give it up to 60 seconds to load
         element = WebDriverWait(browser, 60).until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Download"]')))
-    except:
+    except Exception as e:
         LOGGER.error("Exception occured")
+        LOGGER.error(e)
         return None
 
     element.click()
