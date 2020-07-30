@@ -71,7 +71,7 @@ def getGwasHits(chrom,pos,window=500000):
     df=pd.read_table(config.GWAS_FILE_VAR,sep="\t",header=0,compression="gzip")
     for index, row in df[(df["CHR_ID"]==chrom) & (df["CHR_POS"].astype(int)>start) & (df["CHR_POS"].astype(int)<end)].iterrows():
         rsID=row["SNPS"]
-        snpid=row["CHR_ID"]+"_"+str(row["CHR_POS"])
+        snpid=row["CHR_ID"]+":"+str(row["CHR_POS"])
         trait=row["DISEASE/TRAIT"]
         m=re.search("^b'(.*)'$",trait)
         if m:
