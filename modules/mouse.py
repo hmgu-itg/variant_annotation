@@ -78,6 +78,8 @@ def getMousePhenotypes(geneID,build="38"):
     # Returning all mouse homologue IDs:
     mouse_gene_IDs=getMouseID(geneID,build=build)
 
+    #print(mouse_gene_IDs)
+
     full_dataframe=pd.DataFrame(columns=["Allele ID", "Allele name", "Allele type","Phenotypes","Human disease","mouse gene ID","MGI ID","mouse gene name","mouse gene description"])
 
     if len(mouse_gene_IDs)==0:
@@ -87,16 +89,23 @@ def getMousePhenotypes(geneID,build="38"):
     for mouse_gene_ID in mouse_gene_IDs:
         MGI_IDs[mouse_gene_ID] = getMgiID(mouse_gene_ID,build=build)
 
+    #print(MGI_IDs)
+
     # Once we have all the MGI identifiers, we retrieve all the phenotypes:
     for mouse_id, mgi_id in MGI_IDs.items():
         df=getMgiPhenotypes(mgi_id)
+
+        #print(df)
 
         # Adding extra columns for the record:
         df["mouse gene ID"] = mouse_id
         df["MGI ID"] = mgi_id
         df["mouse gene name"] = mouse_gene_IDs[mouse_id][1]
         df["mouse gene description"] = mouse_gene_IDs[mouse_id][0]
-        full_dataframe = pd.merge(full_dataframe, df, how="outer")
+
+        #print(df)
+
+        full_dataframe = pd.concat([full_dataframe,df])
 
     return full_dataframe
 

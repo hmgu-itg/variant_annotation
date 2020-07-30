@@ -31,6 +31,6 @@ ID=args.id
 # if r is not None:
 #     print(json.dumps(r, indent=4, sort_keys=True))
 
-mouseDF=mouse.getMousePhenotypes(gene_ID)
+mouseDF=mouse.getMousePhenotypes(ID)
 print(mouseDF)
 
