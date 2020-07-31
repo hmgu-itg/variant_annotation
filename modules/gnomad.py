@@ -22,8 +22,10 @@ def getPopulationAF(var, dataset="gnomad_r3"):
     Get allele frequencies for a given variant
 
     Input  : variant ID and GnomAD dataset ID (default: "gnomad_r3")
-    Output : dataframe with columns "Population", "Ref", "Alt", or None if request fails
+    Output : dataframe with columns "Population", "Ref", "Alt", or empty dataframe if request fails
     '''
+    
+    empty_df=pd.DataFrame(columns=["Population","Ref","Alt"])
 
     graphql=""
     if re.search("^rs\d+$",var):
@@ -32,7 +34,7 @@ def getPopulationAF(var, dataset="gnomad_r3"):
         graphql="{variant (variantId: \"%s\",dataset: %s){chrom pos ref alt genome{populations{id ac an}}}}"
     else:
         LOGGER.warning("Malformed variant ID: %s" % var)
-        return None
+        return empty_df
         
     req_af = {"query": graphql % (var, dataset)}
 
@@ -65,4 +67,4 @@ def getPopulationAF(var, dataset="gnomad_r3"):
                 i+=1
         return df
     else:
-        return None
+        return empty_df

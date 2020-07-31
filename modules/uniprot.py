@@ -50,7 +50,7 @@ def getUniprotData(ID):
 
 def uniprot2df(data):
     if data is None:
-        return None
+        return pd.DataFrame(columns=["Field","Data"])
     df=pd.DataFrame(columns=["Field","Data"])
     i=0
     for k in data:

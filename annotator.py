@@ -199,7 +199,7 @@ for i in range(0,len(chrpos)):
 
     if len(variantDF)>0:
         D["variant_table%d" %i]=variantDF.to_html(index=True,classes='utf8',table_id="common")
-    if gnomadDF is not None:
+    if len(gnomadDF)>0:
         D["gnomad_table%d" %i]=gnomadDF.to_html(index=False,classes='utf8',table_id="common")
     if len(regulationDF)>0:
         D["regulation_table%d" %i]=regulationDF.to_html(index=False,classes='utf8',table_id="common")
@@ -211,7 +211,7 @@ for i in range(0,len(chrpos)):
         D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
     if len(pubmedDF)>0:
         D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-    if phenotypeDF is not None and len(phenotypeDF)>0:
+    if len(phenotypeDF)>0:
         D["phenotype_table%d" %i]=phenotypeDF.to_html(index=False,classes='utf8',table_id="common")
     if len(geneDF)>0:
         D["gene_table%d" %i]=geneDF.to_html(index=False,classes='utf8',table_id="common")
@@ -219,12 +219,6 @@ for i in range(0,len(chrpos)):
         D["gtex_genes_table%d" %i]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
     
     mapping_names.append(chrpos[i][0]+":"+str(chrpos[i][1]))
-
-# ----------------------------------------------------------------------------
-
-LOGGER.info("Saving variant JSON\n")
-with gzip.GzipFile(config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID,"w") as fout:
-    fout.write(json.dumps(D1).encode('utf-8'))               
 
 # ----------------------------------------------------------------------------
 
@@ -274,7 +268,7 @@ for i in range(0,len(all_genes)):
     gwasDF=gwas.geneGwas2df(gw)
 
     LOGGER.info("Creating GXA dataframe")
-#    gxaDF=gxa.getGxaDF(gene_ID)
+    gxaDF=gxa.getGxaDF(gene_ID)
     gxaHeatmap=gxa.getGxaHeatmap(gene_ID)
 
     LOGGER.info("Creating UniProt dataframe")
@@ -284,11 +278,23 @@ for i in range(0,len(all_genes)):
     goDF=gene.goterms2df(xrefs)
     LOGGER.info("")
 
+# ----------------------------------------------------------------------------
+
+    D1["gene2_table%d" %i]=infoDF.to_json()
+    D1["uniprot_table%d" %i]=uniprotDF.to_json()
+    D1["gwas2_table%d" %i]=gwasDF.to_json()
+    D1["gxa_table%d" %i]=gxaDF.to_json()
+    D1["gtex_variants_table%d" %i]=gtexDF.to_json()
+    D1["mouse_table%d" %i]=mouseDF.to_json()
+    D1["go_table%d" %i]=goDF.to_json()
+
+# ----------------------------------------------------------------------------
+
     if len(infoDF)>0:
         D["gene_table%d" %i]=infoDF.to_html(index=False,classes='utf8',table_id="common")
     if len(goDF):
         D["go_table%d" %i]=goDF.to_html(index=False,classes='utf8',table_id="common")
-    if uniprotDF is not None and len(uniprotDF)>0:
+    if len(uniprotDF)>0:
         D["uniprot_table%d" %i]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
     if len(gwasDF)>0:
         D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
@@ -307,4 +313,10 @@ utils.generateGeneTemplate(gene_names,template_fname)
 f = open(config.OUTPUT_DIR+"/%s_genes.html" %VAR_ID,"w")
 f.write(utils.generateHTML(template_fname,D))
 f.close()
+
+# ----------------------------------------------------------------------------
+
+LOGGER.info("Saving JSON data\n")
+with gzip.GzipFile(config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID,"w") as fout:
+    fout.write(json.dumps(D1).encode('utf-8'))               
 

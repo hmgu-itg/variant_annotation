@@ -52,7 +52,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
     For a given genomic region, return dataframe containing variants with phenotype annotations
 
     Input: chromosome, position, window (default: config.WINDOW), build (default: "38") 
-    Output: pandas dataframe with the columns: "SNPID", "consequence", "distance", "phenotype", "rsID", "source"
+    Output: pandas dataframe with the columns: "ID","Consequence","Location","Phenotype","Source","Distance"
     '''
     
     start=pos-window
@@ -61,20 +61,22 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
     if start<1 : 
         start=1
 
+    empty_df=pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Distance"])
+
     if end-start>5000000:
         LOGGER.error("Maximal region size allowed: 5Mbp")
-        return None
+        return empty_df
 
     LOGGER.debug("%s:%d" %(chrom,pos))
     variants=query.restQuery(query.makePhenoOverlapQueryURL(chrom,start,end,build=build),qtype="get")
     #print(json.dumps(variants,indent=4,sort_keys=True))
 
     if not variants:
-        return None
+        return empty_df
 
     if len(variants)==0: 
         LOGGER.info("No variants with phenotypes were found in the region %s:%d-%d" %(chrom,start,end))
-        return None
+        return empty_df
 
     rsIDs=list()
     for var in variants:
@@ -82,7 +84,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
 
     if len(rsIDs)==0: 
         LOGGER.info("No variants with phenotypes were found in the region %s:%d-%d" %(chrom,start,end))
-        return None
+        return empty_df
     else:
         LOGGER.info("%d variant(s) with phenotypes were found in the region %s:%d-%d" %(len(rsIDs),chrom,start,end))
 

@@ -6,6 +6,7 @@ import argparse
 import re
 
 from modules import variant
+from modules import query
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -41,3 +42,4 @@ varID=args.id
 for x in variant.id2rs(varID,build):
     print(x,varID,sep="\t",file=sys.stdout)
 
+#print(query.getRefSeq("8",9325847,9325849,build=build))
