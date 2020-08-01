@@ -478,8 +478,9 @@ def population2df(pop_data):
     A.sort()
 
     C=["Population"]
-    for i in range(1,len(all_alleles)+1):
-        C.append("Allele %d" %i)
+    #for i in range(1,len(all_alleles)+1):
+    for a in A:
+        C.append("%s" %a)
 
     df=pd.DataFrame(columns=C)
     if len(pop_data)==0:
@@ -496,9 +497,9 @@ def population2df(pop_data):
             for a in A:
                 if a not in D:
                     D[a]=0.0000
-                L.append(a+" ("+str(round(D[a],4))+")")
+                L.append(str(round(D[a],4)))
         else:
-            for j in range(1,len(all_alleles)+1):
+            for j in range(0,len(A)):
                 L.append("NA")
 
         df.loc[i]=L

@@ -28,9 +28,8 @@ LOGGER.addHandler(ch)
 
 # ==============================================================================================================================
 
-def getGxaHeatmap(ID):
-    df=getGxaDF(ID)
-    if df is None:
+def df2heatmap(df):
+    if len(df)==0:
         return None
     
     fig = px.imshow(df)
@@ -47,6 +46,11 @@ def getGxaHeatmap(ID):
 
 # ==============================================================================================================================
 
+def getGxaHeatmap(ID):
+    return df2heatmap(getGxaDF(ID))
+
+# ==============================================================================================================================
+
 def getGxaDF(ID):
     '''
     Given a gene ID, get data from GXA (baseline expression)
@@ -60,7 +64,7 @@ def getGxaDF(ID):
     fn=saveGxaData(ID)
     if fn is None:
         LOGGER.warning("Could not retreive GXA data for %s" % ID)
-        return None
+        return pd.DataFrame(columns=["Empty"])
 
     df=pd.read_table(fn,comment="#",header=0).rename(columns={"Unnamed: 0":"Experiment"})
     #df=df.rename(columns={"Unnamed: 0":"Experiment"})
@@ -112,8 +116,7 @@ def saveGxaData(ID):
         # give it up to 60 seconds to load
         element = WebDriverWait(browser, 60).until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Download"]')))
     except Exception as e:
-        LOGGER.error("Exception occured")
-        LOGGER.error(e)
+        LOGGER.error(type(e).__name__)
         return None
 
     element.click()

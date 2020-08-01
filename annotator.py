@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import datetime
 import argparse
 import logging
 import json
@@ -113,11 +112,6 @@ if not utils.createDir(outdir):
 
 # ------------------------------------------------------------------------------------------------------------------------
 
-date_string = datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')
-version = "3.0"
-
-# ------------------------------------------------------------------------------------------------------------------------
-
 LOGGER.info("Retrieving variant data from Ensembl")
 variant_data=variant.getVariantInfo(VAR_ID,build)
 
@@ -184,16 +178,17 @@ for i in range(0,len(chrpos)):
 
 # ----------------------------------------------------------------------------
 
-    D1["variant_table%d" %i]=variantDF.to_json()
-    D1["gnomad_table%d" %i]=gnomadDF.to_json()
-    D1["regulation_table%d" %i]=regulationDF.to_json()
-    D1["gwas_table%d" %i]=gwasDF.to_json()
-    D1["vep_table%d" %i]=vepDF.to_json()
-    D1["population_table%d" %i]=populationDF.to_json()
-    D1["pubmed_table%d" %i]=pubmedDF.to_json()
-    D1["phenotype_table%d" %i]=phenotypeDF.to_json()
-    D1["gene_table%d" %i]=geneDF.to_json()
-    D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json()
+    # "records"
+    D1["variant_table%d" %i]=variantDF.to_json(orient="records")
+    D1["gnomad_table%d" %i]=gnomadDF.to_json(orient="records")
+    D1["regulation_table%d" %i]=regulationDF.to_json(orient="records")
+    D1["gwas_table%d" %i]=gwasDF.to_json(orient="records")
+    D1["vep_table%d" %i]=vepDF.to_json(orient="records")
+    D1["population_table%d" %i]=populationDF.to_json(orient="records")
+    D1["pubmed_table%d" %i]=pubmedDF.to_json(orient="records")
+    D1["phenotype_table%d" %i]=phenotypeDF.to_json(orient="records")
+    D1["gene_table%d" %i]=geneDF.to_json(orient="records")
+    D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json(orient="records")
 
 # ----------------------------------------------------------------------------
 
@@ -230,8 +225,9 @@ f.close()
 
 # ----------------------------------------------------------------------------
 
-D=dict()
+D.clear()
 gene_names=list()
+LOGGER.info("Total genes: %d" % len(all_genes))
 for i in range(0,len(all_genes)):
     gene_ID=all_genes[i]["ID"]
     gene_names.append(gene_ID)
@@ -269,7 +265,7 @@ for i in range(0,len(all_genes)):
 
     LOGGER.info("Creating GXA dataframe")
     gxaDF=gxa.getGxaDF(gene_ID)
-    gxaHeatmap=gxa.getGxaHeatmap(gene_ID)
+    gxaHeatmap=gxa.df2heatmap(gxaDF)
 
     LOGGER.info("Creating UniProt dataframe")
     uniprotDF=uniprot.uniprot2df(up)
@@ -280,13 +276,14 @@ for i in range(0,len(all_genes)):
 
 # ----------------------------------------------------------------------------
 
-    D1["gene2_table%d" %i]=infoDF.to_json()
-    D1["uniprot_table%d" %i]=uniprotDF.to_json()
-    D1["gwas2_table%d" %i]=gwasDF.to_json()
-    D1["gxa_table%d" %i]=gxaDF.to_json()
-    D1["gtex_variants_table%d" %i]=gtexDF.to_json()
-    D1["mouse_table%d" %i]=mouseDF.to_json()
-    D1["go_table%d" %i]=goDF.to_json()
+    # "records"
+    D1["gene2_table%d" %i]=infoDF.to_json(orient="records")
+    D1["uniprot_table%d" %i]=uniprotDF.to_json(orient="records")
+    D1["gwas2_table%d" %i]=gwasDF.to_json(orient="records")
+    D1["gxa_table%d" %i]=gxaDF.to_json(orient="records")
+    D1["gtex_variants_table%d" %i]=gtexDF.to_json(orient="records")
+    D1["mouse_table%d" %i]=mouseDF.to_json(orient="records")
+    D1["go_table%d" %i]=goDF.to_json(orient="records")
 
 # ----------------------------------------------------------------------------
 
@@ -318,5 +315,5 @@ f.close()
 
 LOGGER.info("Saving JSON data\n")
 with gzip.GzipFile(config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID,"w") as fout:
-    fout.write(json.dumps(D1).encode('utf-8'))               
+    fout.write(json.dumps(D1).encode('utf-8'))
 
