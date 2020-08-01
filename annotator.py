@@ -277,13 +277,13 @@ for i in range(0,len(all_genes)):
 # ----------------------------------------------------------------------------
 
     # "records"
-    D1["gene2_table%d" %i]=infoDF.to_json(orient="records")
-    D1["uniprot_table%d" %i]=uniprotDF.to_json(orient="records")
-    D1["gwas2_table%d" %i]=gwasDF.to_json(orient="records")
-    D1["gxa_table%d" %i]=gxaDF.to_json(orient="records")
-    D1["gtex_variants_table%d" %i]=gtexDF.to_json(orient="records")
-    D1["mouse_table%d" %i]=mouseDF.to_json(orient="records")
-    D1["go_table%d" %i]=goDF.to_json(orient="records")
+    D1["gene2_table_%s" %gene_ID]=infoDF.to_json(orient="records")
+    D1["uniprot_table_%s" %gene_ID]=uniprotDF.to_json(orient="records")
+    D1["gwas2_table_%s" %gene_ID]=gwasDF.to_json(orient="records")
+    D1["gxa_table_%s" %gene_ID]=gxaDF.to_json(orient="records")
+    D1["gtex_variants_table_%s" %gene_ID]=gtexDF.to_json(orient="records")
+    D1["mouse_table_%s" %gene_ID]=mouseDF.to_json(orient="records")
+    D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
 
 # ----------------------------------------------------------------------------
 
