@@ -58,7 +58,7 @@ ui <- fluidPage(
                          mainPanel(
                              tags$div(id="main_genes_div",width="100%",
                                           actionButton("gene2_btn", "Gene info",width="100%"),
-                                          #hidden(tags$div(id="variant0_div",align="center",tableOutput("variant0"))),
+                                          hidden(tags$div(id="gene2_div",align="center",tableOutput("gene2"))),
 
                                           actionButton("uniprot_btn", "UniProt",width="100%"),
                                           #hidden(tags$div(id="gnomad0_div",align="center",plotlyOutput("gnomad0"))),
@@ -128,9 +128,14 @@ server <- function(input, output,session) {
             disable("gtex_genes0_btn")
             }
 
-        updateSelectInput(session,"gene_selector",label="Geness",choices=lapply(colnames(data[,grepl("go_table_ENSG",colnames(data))==T]),function (x) substring(x,10)))
+        L <- lapply(colnames(data[,grepl("go_table_ENSG",colnames(data))==T]),function (x) substring(x,10))
+        updateSelectInput(session,"gene_selector",label="Genes",choices=L,selected=L[1])
         
         data
+    })
+    
+    observeEvent(input$gene2_btn,{
+        toggle("gene2_div")
     })
     
     observeEvent(input$variant0_btn,{
@@ -180,6 +185,17 @@ server <- function(input, output,session) {
 
         data<-json_data()
         as.data.frame(lapply(data$variant_table0,function(x) fromJSON(x, flatten=T)))
+    })
+
+    output$gene2<-renderTable({
+        fname<-input$file1
+        if (is.null(fname))
+            return(NULL)
+
+        data<-json_data()
+        gene <- input$gene_selector
+        tname <- paste("gene2_table_",gene,sep="")
+        as.data.frame(lapply(data[,colnames(data) %in% c(tname)],function(x) fromJSON(x, flatten=T)))
     })
 
     output$gnomad0 <- renderPlotly({
