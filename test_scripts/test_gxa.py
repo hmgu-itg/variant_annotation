@@ -54,6 +54,7 @@ config.OUTPUT_DIR=outdir
 
 df=gxa.getGxaDF(ID)
 print(df)
+print(df.columns)
 # out=tf.NamedTemporaryFile(delete=False,mode="w")
 # fig = px.imshow(df)
 # print(fig.write_html(out.name,full_html=False))

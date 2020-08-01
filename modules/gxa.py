@@ -32,6 +32,8 @@ def df2heatmap(df):
     if len(df)==0:
         return None
     
+    df=df.set_index("Experiment")
+
     fig = px.imshow(df)
     out=tf.NamedTemporaryFile(delete=False,mode="w")
     fig.write_html(out.name,full_html=False)
@@ -67,7 +69,8 @@ def getGxaDF(ID):
         return pd.DataFrame(columns=["Empty"])
 
     df=pd.read_table(fn,comment="#",header=0).rename(columns={"Unnamed: 0":"Experiment"})
-    #df=df.rename(columns={"Unnamed: 0":"Experiment"})
+    #print(df)
+
     df=df.set_index("Experiment")
     # tissues with highest values
     tissues=set()
@@ -81,7 +84,10 @@ def getGxaDF(ID):
         tissues.update(set(z.index.format()))
             
     #df.loc[idxs,list(tissues)].to_csv(config.OUTPUT_DIR+"/"+ID+".tsv",sep="\t")
-    return df.loc[idxs,list(tissues)]
+    #print(df.loc[idxs,list(tissues)])
+    df2=df.loc[idxs,list(tissues)]
+    df2["Experiment"]=df2.index
+    return df2
 
 # ======================================================================================================================
 
