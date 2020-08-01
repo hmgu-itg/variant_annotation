@@ -1,4 +1,5 @@
 library(shiny)
+library(plotly)
 library(shinyjs)
 library(jsonlite)
 
@@ -32,7 +33,19 @@ ui <- fluidPage(
             
             actionButton("population0_btn","1KG",width="100%"),
             #hidden(tags$div(id="population0_div",align="center",tableOutput("population0")))
-            hidden(tags$div(id="population0_div",align="center",plotlyOutput("population0")))
+            hidden(tags$div(id="population0_div",align="center",plotlyOutput("population0"))),
+            
+            actionButton("pubmed0_btn","PubMed",width="100%"),
+            hidden(tags$div(id="pubmed0_div",align="center",tableOutput("pubmed0"))),
+
+            actionButton("phenotype0_btn","Variants with phenotypes",width="100%"),
+            hidden(tags$div(id="phenotype0_div",align="center",tableOutput("phenotype0"))),
+
+            actionButton("gene0_btn","Nearby genes",width="100%"),
+            hidden(tags$div(id="gene0_div",align="center",tableOutput("gene0"))),
+
+            actionButton("gtex_genes0_btn","GTEx",width="100%"),
+            hidden(tags$div(id="gtex_genes0_div",align="center",tableOutput("gtex_genes0")))
             )
         )
     )
@@ -66,6 +79,22 @@ server <- function(input, output,session) {
             disable("population0_btn")
             }
 
+        if (nrow(as.data.frame(lapply(data$pubmed_table0,function(x) fromJSON(x, flatten=T))))==0){
+            disable("pubmed0_btn")
+            }
+
+        if (nrow(as.data.frame(lapply(data$phenotype_table0,function(x) fromJSON(x, flatten=T))))==0){
+            disable("phenotype0_btn")
+            }
+
+        if (nrow(as.data.frame(lapply(data$gene_table0,function(x) fromJSON(x, flatten=T))))==0){
+            disable("gene0_btn")
+            }
+
+        if (nrow(as.data.frame(lapply(data$gtex_genes_table0,function(x) fromJSON(x, flatten=T))))==0){
+            disable("gtex_genes0_btn")
+            }
+
         data
     })
     
@@ -91,6 +120,22 @@ server <- function(input, output,session) {
     
     observeEvent(input$vep0_btn,{
         toggle("vep0_div")
+    })
+    
+    observeEvent(input$pubmed0_btn,{
+        toggle("pubmed0_div")
+    })
+    
+    observeEvent(input$phenotype0_btn,{
+        toggle("phenotype0_div")
+    })
+    
+    observeEvent(input$gene0_btn,{
+        toggle("gene0_div")
+    })
+    
+    observeEvent(input$gtex_genes0_btn,{
+        toggle("gtex_genes0_div")
     })
     
     output$variant0<-renderTable({
@@ -160,6 +205,43 @@ server <- function(input, output,session) {
         as.data.frame(lapply(data$vep_table0,function(x) fromJSON(x, flatten=T)))
     })
 
+    output$uniprot0<-renderTable({
+        fname<-input$file1
+        if (is.null(fname))
+            return(NULL)
+
+        data <- json_data()
+        as.data.frame(lapply(data$uniprot_table0,function(x) fromJSON(x, flatten=T)))
+    })
+
+    output$phenotype0<-renderTable({
+        fname<-input$file1
+        if (is.null(fname))
+            return(NULL)
+
+        data <- json_data()
+        as.data.frame(lapply(data$phenotype_table0,function(x) fromJSON(x, flatten=T)))
+    })
+
+    output$gene0<-renderTable({
+        fname<-input$file1
+        if (is.null(fname))
+            return(NULL)
+
+        data <- json_data()
+        as.data.frame(lapply(data$gene_table0,function(x) fromJSON(x, flatten=T)))
+    })
+
+    output$gtex_genes0<-renderTable({
+        fname<-input$file1
+        if (is.null(fname))
+            return(NULL)
+
+        data <- json_data()
+        as.data.frame(lapply(data$gtex_genes_table0,function(x) fromJSON(x, flatten=T)))
+    })
+
+   
     ## output$population0<-renderTable({
     ##     fname<-input$file1
     ##     if (is.null(fname))
@@ -174,4 +256,3 @@ server <- function(input, output,session) {
 }
 
 shinyApp(ui, server)
-
