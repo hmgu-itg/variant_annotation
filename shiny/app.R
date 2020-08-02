@@ -384,6 +384,8 @@ server <- function(input, output,session) {
 
     observe({updateSelectInput(session,"mapping_selector",label="Mappings",choices=unlist(lapply(lapply(json_data()[,grepl("variant_table",colnames(json_data()))==T],function(x) fromJSON(x, flatten=T)),function(x) {z<-as.data.frame(x);z[z["Key"]=="Location","Value"]}),use.names=F))})
 
+# ======================================================== GENE SELECTOR ==========================================================
+    
     observeEvent(input$gene_selector,{
         if (nrow(as.data.frame(lapply(json_data()[,colnames(json_data()) %in% c(paste("uniprot_table_",input$gene_selector,sep=""))],function(x) fromJSON(x, flatten=T))))==0)
             disable("uniprot_btn")
@@ -413,11 +415,10 @@ server <- function(input, output,session) {
         if (nrow(as.data.frame(lapply(json_data()[,colnames(json_data()) %in% c(paste("gxa_table_",input$gene_selector,sep=""))],function(x) fromJSON(x, flatten=T))))==0)
             disable("gxa_btn")
         else
-            enable("gxa_btn")
-
-        
+            enable("gxa_btn")        
     })
-    
+# =============================================================================================================================    
+
 }
 
 shinyApp(ui, server)
