@@ -69,22 +69,15 @@ def getGxaDF(ID):
         return pd.DataFrame(columns=["Empty"])
 
     df=pd.read_table(fn,comment="#",header=0).rename(columns={"Unnamed: 0":"Experiment"})
-    #print(df)
-
     df=df.set_index("Experiment")
     # tissues with highest values
     tissues=set()
     idxs=list()
     for idx in df.index:
-        # only selected experiments
-        #if re.search("GTEx",idx.format(),re.I) or re.search("FANTOM",idx.format(),re.I):
         idxs.append(idx)
         z=df.loc[idx,:].nlargest(n=int(config.GXA_HIGHEST))
-        #print(z)
         tissues.update(set(z.index.format()))
             
-    #df.loc[idxs,list(tissues)].to_csv(config.OUTPUT_DIR+"/"+ID+".tsv",sep="\t")
-    #print(df.loc[idxs,list(tissues)])
     df2=df.loc[idxs,list(tissues)]
     df2["Experiment"]=df2.index
     return df2
@@ -119,10 +112,11 @@ def saveGxaData(ID):
     browser.get(utils.getGxaURL(ID))
     element=None
     try:
-        # give it up to 60 seconds to load
+        # 60 seconds to load
         element = WebDriverWait(browser, 60).until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Download"]')))
     except Exception as e:
         LOGGER.error(type(e).__name__)
+        browser.quit()
         return None
 
     element.click()
