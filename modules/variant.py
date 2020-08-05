@@ -47,11 +47,11 @@ def rs2position(ID,build="38"):
 
 # ==============================================================================================================================
 
-def getVariantsWithPhenotypes(chrom,pos,window=config.WINDOW,build="38"):
+def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
     '''
     For a given genomic region, return dataframe containing variants with phenotype annotations
 
-    Input: chromosome, position, window (default: config.WINDOW), build (default: "38") 
+    Input: chromosome, position, window (default: config.PHENO_WINDOW), build (default: "38") 
     Output: pandas dataframe with the columns: "ID","Consequence","Location","Phenotype","Source","Distance"
     '''
     

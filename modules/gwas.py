@@ -54,7 +54,7 @@ def gene2gwas(gene_name):
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-def getGwasHits(chrom,pos,window=500000):
+def getGwasHits(chrom,pos,window=config.GWAS_WINDOW):
     '''
     Retrives a list of all gwas signals within a window around a given position
 

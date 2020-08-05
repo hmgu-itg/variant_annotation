@@ -85,11 +85,10 @@ def getGeneXrefs (ID,build="38"):
 
 # ======================================================================================================================
 
-# Based on a genomic location, this function retrieves a list of genes within a window around it
-def getGeneList(chrom,pos,window=1000000,build="38"):
+def getGeneList(chrom,pos,window=config.GENE_WINDOW,build="38"):
     '''
     Based on the submitted chromosome and position, this function returns
-    all genes within a window
+    all genes overlapping a window
 
     Input: chromosome, position, window (default: 1Mbp), build (default: "38")
     Output: list of dictionaries with keys: 
