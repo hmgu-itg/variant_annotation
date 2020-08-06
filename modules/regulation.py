@@ -25,10 +25,6 @@ def getRegulation(chrom,pos,window=config.REG_WINDOW):
 
     '''
 
-    # Cell type abbreviations are retrieved from Ensembl, which are replaced
-    # by conventional names for better readibility.
-    CellTypeFinder = config.CellTypeFinder
-
     start=pos-window
     if start<1:
         start=1

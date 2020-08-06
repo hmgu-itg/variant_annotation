@@ -140,44 +140,44 @@ server <- function(input, output,session) {
     
     ##----------------------------------------------------------------------------------------------------
 
-    observeEvent(input$variant0_btn,{
-        toggle("variant0_div")
+    observeEvent(input$variant_btn,{
+        toggle("variant_div")
     })
     
-    observeEvent(input$gnomad0_btn,{
-        toggle("gnomad0_div")
+    observeEvent(input$gnomad_btn,{
+        toggle("gnomad_div")
     })
     
-    observeEvent(input$regulation0_btn,{
-        toggle("regulation0_div")
+    observeEvent(input$regulation_btn,{
+        toggle("regulation_div")
     })
     
-    observeEvent(input$gwas0_btn,{
-        toggle("gwas0_div")
+    observeEvent(input$gwas_btn,{
+        toggle("gwas_div")
     })
     
-    observeEvent(input$population0_btn,{
-        toggle("population0_div")
+    observeEvent(input$population_btn,{
+        toggle("population_div")
     })
     
-    observeEvent(input$vep0_btn,{
-        toggle("vep0_div")
+    observeEvent(input$vep_btn,{
+        toggle("vep_div")
     })
     
-    observeEvent(input$pubmed0_btn,{
-        toggle("pubmed0_div")
+    observeEvent(input$pubmed_btn,{
+        toggle("pubmed_div")
     })
     
-    observeEvent(input$phenotype0_btn,{
-        toggle("phenotype0_div")
+    observeEvent(input$phenotype_btn,{
+        toggle("phenotype_div")
     })
     
-    observeEvent(input$gene0_btn,{
-        toggle("gene0_div")
+    observeEvent(input$gene_btn,{
+        toggle("gene_div")
     })
     
-    observeEvent(input$gtex_genes0_btn,{
-        toggle("gtex_genes0_div")
+    observeEvent(input$gtex_genes_btn,{
+        toggle("gtex_genes_div")
     })
 
     ##----------------------------------------------------------------------------------------------------
@@ -213,7 +213,7 @@ server <- function(input, output,session) {
         gene <- input$gene_selector
         tname <- paste("gwas2_table_",gene,sep="")
         as.data.frame(lapply(data[,colnames(data) %in% c(tname)],function(x) fromJSON(x, flatten=T)))
-    })
+    }, sanitize.text.function = function(x) x)
 
     output$gtex_variants<-renderTable({
         fname<-input$file1
@@ -264,98 +264,125 @@ server <- function(input, output,session) {
 
     ##----------------------------------------------------------------------------------------------------
 
-    output$variant0<-renderTable({
+    output$variant<-renderTable({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data<-json_data()
-        as.data.frame(lapply(data$variant_table0,function(x) fromJSON(x, flatten=T)))
+        sfx <- unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F)
+        tname <- paste0("variant_table",sfx)
+        df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
+        colnames(df)<-lapply(colnames(df),function(x) substring(x,16))
+        df
     })
 
-    output$gnomad0 <- renderPlotly({
+    output$gnomad <- renderPlotly({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data<-json_data()
-        df <- as.data.frame(lapply(data$gnomad_table0,function(x) fromJSON(x, flatten=T)))
+        sfx <- unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F)
+        tname <- paste0("gnomad_table",sfx)
+        df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
         df[,!names(df) %in% c("Population")]<-sapply(df[,!names(df) %in% c("Population")],as.numeric)
         plot_ly(x=df$Population,y=df[,2],type ='bar',name=names(df)[2],marker=list(color='red')) %>% add_trace(y = df[,3],name=names(df)[3],marker=list(color='blue')) %>% layout(barmode='stack',yaxis = list(title='AF'),xaxis=list(title="Population",showticklabels=T))
     })
     
-    output$population0 <- renderPlotly({
+    output$population <- renderPlotly({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data<-json_data()
-        df <- as.data.frame(lapply(data$population_table0,function(x) fromJSON(x, flatten=T)))
+        sfx <- unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F)
+        tname <- paste0("population_table",sfx)        
+        df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
         df[,!names(df) %in% c("Population")]<-sapply(df[,!names(df) %in% c("Population")],as.numeric)
         plot_ly(x=df$Population,y=df[,2],type ='bar',name=names(df)[2],marker=list(color='red')) %>% add_trace(y = df[,3],name=names(df)[3],marker=list(color='blue')) %>% layout(barmode='stack',yaxis = list(title='AF'),xaxis=list(title="Population",showticklabels=T))
     })
     
-    output$regulation0<-renderTable({
+    output$regulation<-renderTable({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data <- json_data()
-        as.data.frame(lapply(data$regulation_table0,function(x) fromJSON(x, flatten=T)))
+        tname <- paste0("regulation_table",unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F))        
+        as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
     })
 
-    output$gwas0<-renderTable({
+    output$gwas<-renderTable({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data <- json_data()
-        as.data.frame(lapply(data$gwas_table0,function(x) fromJSON(x, flatten=T)))
+        tname <- paste0("gwas_table",unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F))
+        df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
+        colnames(df)<-lapply(colnames(df),function(x) substring(x,13))
+        df
     })
 
-    output$vep0<-renderTable({
+    output$pubmed<-renderTable({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data <- json_data()
-        as.data.frame(lapply(data$vep_table0,function(x) fromJSON(x, flatten=T)))
+        tname <- paste0("pubmed_table",unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F))
+        df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
+        colnames(df)<-lapply(colnames(df),function(x) substring(x,15))
+        df
     })
 
-    output$uniprot0<-renderTable({
+    output$vep<-renderTable({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data <- json_data()
-        as.data.frame(lapply(data$uniprot_table0,function(x) fromJSON(x, flatten=T)))
+        tname <- paste0("vep_table",unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F))
+        df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
+        colnames(df)<-lapply(colnames(df),function(x) substring(x,12))
+        df
     })
 
-    output$phenotype0<-renderTable({
+    output$phenotype<-renderTable({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data <- json_data()
-        as.data.frame(lapply(data$phenotype_table0,function(x) fromJSON(x, flatten=T)))
+        tname <- paste0("phenotype_table",unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F))
+        df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
+        colnames(df)<-lapply(colnames(df),function(x) substring(x,18))
+        df
     })
 
-    output$gene0<-renderTable({
+    output$gene<-renderTable({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data <- json_data()
-        as.data.frame(lapply(data$gene_table0,function(x) fromJSON(x, flatten=T)))
+        tname <- paste0("gene_table",unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F))
+        df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
+        colnames(df)<-lapply(colnames(df),function(x) substring(x,13))
+        df
     })
 
-    output$gtex_genes0<-renderTable({
+    output$gtex_genes<-renderTable({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data <- json_data()
-        as.data.frame(lapply(data$gtex_genes_table0,function(x) fromJSON(x, flatten=T)))
+        tname <- paste0("gtex_genes_table",unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F))
+        df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
+        colnames(df)<-lapply(colnames(df),function(x) substring(x,19))
+        df
     })
 
 # ====================================================== MAPPING SELECTOR =========================================================
@@ -369,15 +396,19 @@ server <- function(input, output,session) {
     })
 
     observeEvent(input$mapping_selector,{
+        fname<-input$file1
+        if (is.null(fname))
+            return(NULL)
+
         mapping <- input$mapping_selector
         sfx <- unlist(mapping_lookup()[mapping_lookup()["mapping"]==mapping,]["suffix"],use.names=F)
-        print(paste(mapping,sfx,sep=" "))
+        print(paste(mapping,sfx))
 
-        for (tname in c("regulation","gnomad","gwas","vep","population","pubmed","phenotype","gene","gtex")){
-            tname2 <- paste(tname,"_table",sfx)
-            btn_name <- paste(tname,"_btn")
-            
-            if (nrow(as.data.frame(lapply(data[tname2],function(x) fromJSON(x, flatten=T))))==0){
+        for (tname in c("variant","regulation","gnomad","gwas","vep","population","pubmed","phenotype","gene","gtex_genes")){
+            tname2 <- paste0(tname,"_table",sfx)
+            btn_name <- paste0(tname,"_btn")
+            print(tname2)
+            if (nrow(as.data.frame(lapply(json_data()[tname2],function(x) fromJSON(x, flatten=T))))==0){
                 disable(btn_name)
             }
             else{
