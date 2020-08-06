@@ -15,35 +15,35 @@ ui <- fluidPage(
                              ),
                              mainPanel(
                                  tags$div(id="main_div",width="100%",
-                                          actionButton("variant0_btn", "Variant info",width="100%"),
-                                          hidden(tags$div(id="variant0_div",align="center",tableOutput("variant0"))),
+                                          actionButton("variant_btn", "Variant info",width="100%"),
+                                          hidden(tags$div(id="variant_div",align="center",tableOutput("variant"))),
 
-                                          actionButton("gnomad0_btn", "GnomAD",width="100%"),
-                                          hidden(tags$div(id="gnomad0_div",align="center",plotlyOutput("gnomad0"))),
+                                          actionButton("gnomad_btn", "GnomAD",width="100%"),
+                                          hidden(tags$div(id="gnomad_div",align="center",plotlyOutput("gnomad"))),
                                           
-                                          actionButton("regulation0_btn","ENSEMBL Regulation",width="100%"),
-                                          hidden(tags$div(id="regulation0_div",align="center",tableOutput("regulation0"))),
+                                          actionButton("regulation_btn","ENSEMBL Regulation",width="100%"),
+                                          hidden(tags$div(id="regulation_div",align="center",tableOutput("regulation"))),
                                           
-                                          actionButton("gwas0_btn","GWAS signals nearby",width="100%"),
-                                          hidden(tags$div(id="gwas0_div",align="center",tableOutput("gwas0"))),
+                                          actionButton("gwas_btn","GWAS signals nearby",width="100%"),
+                                          hidden(tags$div(id="gwas_div",align="center",tableOutput("gwas"))),
                                           
-                                          actionButton("vep0_btn","VEP annotation",width="100%"),
-                                          hidden(tags$div(id="vep0_div",align="center",tableOutput("vep0"))),
+                                          actionButton("vep_btn","VEP annotation",width="100%"),
+                                          hidden(tags$div(id="vep_div",align="center",tableOutput("vep"))),
                                           
-                                          actionButton("population0_btn","1KG",width="100%"),
-                                          hidden(tags$div(id="population0_div",align="center",plotlyOutput("population0"))),
+                                          actionButton("population_btn","1KG",width="100%"),
+                                          hidden(tags$div(id="population_div",align="center",plotlyOutput("population"))),
                                           
-                                          actionButton("pubmed0_btn","PubMed",width="100%"),
-                                          hidden(tags$div(id="pubmed0_div",align="center",tableOutput("pubmed0"))),
+                                          actionButton("pubmed_btn","PubMed",width="100%"),
+                                          hidden(tags$div(id="pubmed_div",align="center",tableOutput("pubmed"))),
 
-                                          actionButton("phenotype0_btn","Variants with phenotypes",width="100%"),
-                                          hidden(tags$div(id="phenotype0_div",align="center",tableOutput("phenotype0"))),
+                                          actionButton("phenotype_btn","Variants with phenotypes",width="100%"),
+                                          hidden(tags$div(id="phenotype_div",align="center",tableOutput("phenotype"))),
 
-                                          actionButton("gene0_btn","Nearby genes",width="100%"),
-                                          hidden(tags$div(id="gene0_div",align="center",tableOutput("gene0"))),
+                                          actionButton("gene_btn","Nearby genes",width="100%"),
+                                          hidden(tags$div(id="gene_div",align="center",tableOutput("gene"))),
 
-                                          actionButton("gtex_genes0_btn","GTEx",width="100%"),
-                                          hidden(tags$div(id="gtex_genes0_div",align="center",tableOutput("gtex_genes0")))
+                                          actionButton("gtex_genes_btn","GTEx",width="100%"),
+                                          hidden(tags$div(id="gtex_genes_div",align="center",tableOutput("gtex_genes")))
                                           )
                              )
                          )
@@ -83,50 +83,26 @@ ui <- fluidPage(
 
 server <- function(input, output,session) {
 
+    mapping_lookup <- reactive({
+        fname<-input$file1
+        if (is.null(fname))
+            return(NULL)
+
+        L2<-unlist(lapply(lapply(json_data()[,grepl("variant_table",colnames(json_data()))==T],function (x) fromJSON(x,flatten=T)),function(x) x[x$Key %in% c("Location"),]["Value"]),use.names=F)
+        L1<-unlist(lapply(colnames(json_data()[,grepl("variant_table",colnames(json_data()))==T]),function (x) substring(x,14)),use.names=F)
+        mapping_lookup <- data.frame(as.character(L2),as.character(L1))
+        colnames(mapping_lookup) <- c("mapping","suffix")
+
+        mapping_lookup
+    })
+
     json_data<-reactive({
         fname<-input$file1
         if (is.null(fname))
             return(NULL)
 
         data <- stream_in(file(fname$datapath))
-        
-        if (nrow(as.data.frame(lapply(data$regulation_table0,function(x) fromJSON(x, flatten=T))))==0){
-            disable("regulation0_btn")
-            }
-        
-        if (nrow(as.data.frame(lapply(data$gnomad_table0,function(x) fromJSON(x, flatten=T))))==0){
-            disable("gnomad0_btn")
-            }
-        
-        if (nrow(as.data.frame(lapply(data$gwas_table0,function(x) fromJSON(x, flatten=T))))==0){
-            disable("gwas0_btn")
-            }
-        
-        if (nrow(as.data.frame(lapply(data$vep_table0,function(x) fromJSON(x, flatten=T))))==0){
-            disable("vep0_btn")
-            }
-        
-        if (nrow(as.data.frame(lapply(data$population_table0,function(x) fromJSON(x, flatten=T))))==0){
-            disable("population0_btn")
-            }
 
-        if (nrow(as.data.frame(lapply(data$pubmed_table0,function(x) fromJSON(x, flatten=T))))==0){
-            disable("pubmed0_btn")
-            }
-
-        if (nrow(as.data.frame(lapply(data$phenotype_table0,function(x) fromJSON(x, flatten=T))))==0){
-            disable("phenotype0_btn")
-            }
-
-        if (nrow(as.data.frame(lapply(data$gene_table0,function(x) fromJSON(x, flatten=T))))==0){
-            disable("gene0_btn")
-            }
-
-        if (nrow(as.data.frame(lapply(data$gtex_genes_table0,function(x) fromJSON(x, flatten=T))))==0){
-            disable("gtex_genes0_btn")
-            }
-
-        
         L <- lapply(colnames(data[,grepl("go_table_ENSG",colnames(data))==T]),function (x) substring(x,10))
         updateSelectInput(session,"gene_selector",label="Genes",choices=L,selected=L[1])
         
@@ -382,8 +358,33 @@ server <- function(input, output,session) {
         as.data.frame(lapply(data$gtex_genes_table0,function(x) fromJSON(x, flatten=T)))
     })
 
-    observe({updateSelectInput(session,"mapping_selector",label="Mappings",choices=unlist(lapply(lapply(json_data()[,grepl("variant_table",colnames(json_data()))==T],function(x) fromJSON(x, flatten=T)),function(x) {z<-as.data.frame(x);z[z["Key"]=="Location","Value"]}),use.names=F))})
+# ====================================================== MAPPING SELECTOR =========================================================
+    
+    observe({        
+        fname<-input$file1
+        if (is.null(fname))
+            return(NULL)
 
+        updateSelectInput(session,"mapping_selector",label="Mappings",choices=as.character(mapping_lookup()$mapping))
+    })
+
+    observeEvent(input$mapping_selector,{
+        mapping <- input$mapping_selector
+        sfx <- unlist(mapping_lookup()[mapping_lookup()["mapping"]==mapping,]["suffix"],use.names=F)
+        print(paste(mapping,sfx,sep=" "))
+
+        for (tname in c("regulation","gnomad","gwas","vep","population","pubmed","phenotype","gene","gtex")){
+            tname2 <- paste(tname,"_table",sfx)
+            btn_name <- paste(tname,"_btn")
+            
+            if (nrow(as.data.frame(lapply(data[tname2],function(x) fromJSON(x, flatten=T))))==0){
+                disable(btn_name)
+            }
+            else{
+                enable(btn_name)
+            }
+        }
+    })
 # ======================================================== GENE SELECTOR ==========================================================
     
     observeEvent(input$gene_selector,{
@@ -422,3 +423,4 @@ server <- function(input, output,session) {
 }
 
 shinyApp(ui, server)
+
