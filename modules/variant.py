@@ -94,7 +94,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
     for L in utils.chunks(rsIDs,config.BATCHSIZE):
         r=query.restQuery(query.makeRSPhenotypeQueryURL(build=build),data=utils.list2string(L),qtype="post")
         if r:
-            #print(json.dumps(r,indent=4,sort_keys=True))
+            print(json.dumps(r,indent=4,sort_keys=True))
             for rsID in r:
                 for phenotype in r[rsID]["phenotypes"]:
                     m=re.search("phenotype\s+not\s+specified",phenotype["trait"])

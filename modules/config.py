@@ -44,7 +44,7 @@ GXA_URL_SUFFIX  = "?bs=%7B%22homo%20sapiens%22%3A%5B%22ORGANISM_PART%22%5D%7D&ds
 PUBMED_URL_VAR  = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%%22%s%%22%%5BAll%%20Fields%%5D&retmode=json&retmax=1000'
 PUBMED_URL_PMID = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&rettype=abstract&id=%s'
 
-PUBMED_URL="http://www.ncbi.nlm.nih.gov/pubmed/"
+PUBMED_URL="https://pubmed.ncbi.nlm.nih.gov/"
 
 ##
 ## Anchor tags for Ensembl and other sources:

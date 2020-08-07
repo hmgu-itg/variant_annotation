@@ -324,7 +324,7 @@ server <- function(input, output,session) {
         df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
         colnames(df)<-lapply(colnames(df),function(x) substring(x,13))
         df
-    })
+    }, sanitize.text.function = function(x) x)
 
     output$pubmed<-renderTable({
         fname<-input$file1
@@ -403,8 +403,13 @@ server <- function(input, output,session) {
 
         mapping <- input$mapping_selector
         sfx <- unlist(mapping_lookup()[mapping_lookup()["mapping"]==mapping,]["suffix"],use.names=F)
-        print(paste(mapping,sfx))
+        ##print(paste(mapping,sfx))
 
+        for (tname in c("variant","regulation","gnomad","gwas","vep","population","pubmed","phenotype","gene","gtex_genes")){
+            dname <- paste0(tname,"_div")
+            hide(dname)
+        }
+        
         for (tname in c("variant","regulation","gnomad","gwas","vep","population","pubmed","phenotype","gene","gtex_genes")){
             tname2 <- paste0(tname,"_table",sfx)
             btn_name <- paste0(tname,"_btn")
@@ -420,6 +425,11 @@ server <- function(input, output,session) {
 # ======================================================== GENE SELECTOR ==========================================================
     
     observeEvent(input$gene_selector,{
+        for (tname in c("gene2","uniprot","gwas2","gtex_variants","mouse","go","gxa")){
+            dname <- paste0(tname,"_div")
+            hide(dname)
+        }
+                
         if (nrow(as.data.frame(lapply(json_data()[,colnames(json_data()) %in% c(paste("uniprot_table_",input$gene_selector,sep=""))],function(x) fromJSON(x, flatten=T))))==0)
             disable("uniprot_btn")
         else
