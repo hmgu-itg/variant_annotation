@@ -7,46 +7,45 @@ ui <- fluidPage(
     useShinyjs(),
     tabsetPanel(type="tabs",
                 tabPanel("Variant",
-                         sidebarLayout(
-                             sidebarPanel(
-                                 fileInput("file1", "Choose json.gz file",accept = c("application/gzip",".json.gz")),
-                                 selectInput("mapping_selector","Mappings", choices=c()),
-                                 width=3
-                             ),
-                             mainPanel(
-                                 tags$div(id="main_div",width="100%",
-                                          actionButton("variant_btn", "Variant info",width="100%"),
-                                          hidden(tags$div(id="variant_div",align="center",tableOutput("variant"))),
+                         fluidRow(style = "border-style: solid;border-width:  1px; border-color: lightblue;",
+                             column(3,
+                                    fileInput("file1", "Choose json.gz file",accept = c("application/gzip",".json.gz"))
+                                    ),
+                             column(3, offset = 1,
+                                    selectInput("mapping_selector","Mappings", choices=c())
+                                    )
+                         ),                         
+                         tags$div(id="main_div",width="100%",
+                                  actionButton("variant_btn", "Variant info",width="100%"),
+                                  hidden(tags$div(id="variant_div",align="center",tableOutput("variant"))),
 
-                                          actionButton("gnomad_btn", "GnomAD",width="100%"),
-                                          hidden(tags$div(id="gnomad_div",align="center",plotlyOutput("gnomad"))),
-                                          
-                                          actionButton("regulation_btn","ENSEMBL Regulation",width="100%"),
-                                          hidden(tags$div(id="regulation_div",align="center",tableOutput("regulation"))),
-                                          
-                                          actionButton("gwas_btn","GWAS signals nearby",width="100%"),
-                                          hidden(tags$div(id="gwas_div",align="center",tableOutput("gwas"))),
-                                          
-                                          actionButton("vep_btn","VEP annotation",width="100%"),
-                                          hidden(tags$div(id="vep_div",align="center",tableOutput("vep"))),
-                                          
-                                          actionButton("population_btn","1KG",width="100%"),
-                                          hidden(tags$div(id="population_div",align="center",plotlyOutput("population"))),
-                                          
-                                          actionButton("pubmed_btn","PubMed",width="100%"),
-                                          hidden(tags$div(id="pubmed_div",align="center",tableOutput("pubmed"))),
+                                  actionButton("gnomad_btn", "GnomAD",width="100%"),
+                                  hidden(tags$div(id="gnomad_div",align="center",plotlyOutput("gnomad"))),
+                                  
+                                  actionButton("regulation_btn","ENSEMBL Regulation",width="100%"),
+                                  hidden(tags$div(id="regulation_div",align="center",tableOutput("regulation"))),
+                                  
+                                  actionButton("gwas_btn","GWAS signals nearby",width="100%"),
+                                  hidden(tags$div(id="gwas_div",align="center",tableOutput("gwas"))),
+                                  
+                                  actionButton("vep_btn","VEP annotation",width="100%"),
+                                  hidden(tags$div(id="vep_div",align="center",tableOutput("vep"))),
+                                  
+                                  actionButton("population_btn","1KG",width="100%"),
+                                  hidden(tags$div(id="population_div",align="center",plotlyOutput("population"))),
+                                  
+                                  actionButton("pubmed_btn","PubMed",width="100%"),
+                                  hidden(tags$div(id="pubmed_div",align="center",tableOutput("pubmed"))),
 
-                                          actionButton("phenotype_btn","Variants with phenotypes",width="100%"),
-                                          hidden(tags$div(id="phenotype_div",align="center",tableOutput("phenotype"))),
+                                  actionButton("phenotype_btn","Nearby variants with phenotypes",width="100%"),
+                                  hidden(tags$div(id="phenotype_div",align="center",tableOutput("phenotype"))),
 
-                                          actionButton("gene_btn","Nearby genes",width="100%"),
-                                          hidden(tags$div(id="gene_div",align="center",tableOutput("gene"))),
+                                  actionButton("gene_btn","Nearby genes",width="100%"),
+                                  hidden(tags$div(id="gene_div",align="center",tableOutput("gene"))),
 
-                                          actionButton("gtex_genes_btn","GTEx",width="100%"),
-                                          hidden(tags$div(id="gtex_genes_div",align="center",tableOutput("gtex_genes")))
-                                          )
-                             )
-                         )
+                                  actionButton("gtex_genes_btn","GTEx",width="100%"),
+                                  hidden(tags$div(id="gtex_genes_div",align="center",tableOutput("gtex_genes")))
+                                  )
                          ),
                 tabPanel("Genes",
                          sidebarPanel(
@@ -89,7 +88,7 @@ server <- function(input, output,session) {
             return(NULL)
 
         L2<-unlist(lapply(lapply(json_data()[,grepl("variant_table",colnames(json_data()))==T],function (x) fromJSON(x,flatten=T)),function(x) x[x$Key %in% c("Location"),]["Value"]),use.names=F)
-        L1<-unlist(lapply(colnames(json_data()[,grepl("variant_table",colnames(json_data()))==T]),function (x) substring(x,14)),use.names=F)
+        L1<-unlist(lapply(colnames(json_data())[grepl("variant_table",colnames(json_data()))],function(x) substring(x,14)),use.names=F)
         mapping_lookup <- data.frame(as.character(L2),as.character(L1))
         colnames(mapping_lookup) <- c("mapping","suffix")
 
@@ -286,6 +285,7 @@ server <- function(input, output,session) {
         sfx <- unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F)
         tname <- paste0("gnomad_table",sfx)
         df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
+        colnames(df)<-lapply(colnames(df),function(x) substring(x,15))
         df[,!names(df) %in% c("Population")]<-sapply(df[,!names(df) %in% c("Population")],as.numeric)
         plot_ly(x=df$Population,y=df[,2],type ='bar',name=names(df)[2],marker=list(color='red')) %>% add_trace(y = df[,3],name=names(df)[3],marker=list(color='blue')) %>% layout(barmode='stack',yaxis = list(title='AF'),xaxis=list(title="Population",showticklabels=T))
     })
@@ -299,6 +299,7 @@ server <- function(input, output,session) {
         sfx <- unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F)
         tname <- paste0("population_table",sfx)        
         df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
+        colnames(df)<-lapply(colnames(df),function(x) substring(x,19))
         df[,!names(df) %in% c("Population")]<-sapply(df[,!names(df) %in% c("Population")],as.numeric)
         plot_ly(x=df$Population,y=df[,2],type ='bar',name=names(df)[2],marker=list(color='red')) %>% add_trace(y = df[,3],name=names(df)[3],marker=list(color='blue')) %>% layout(barmode='stack',yaxis = list(title='AF'),xaxis=list(title="Population",showticklabels=T))
     })

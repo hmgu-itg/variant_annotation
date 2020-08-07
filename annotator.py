@@ -2,10 +2,9 @@
 
 import argparse
 import logging
-import json
+#import json
 import os
 import sys
-import jinja2
 import gzip
 
 from modules import config
@@ -33,8 +32,8 @@ verbosity=logging.INFO
 # Parsing command line arguments:
 parser = argparse.ArgumentParser()
 input_options = parser.add_argument_group('Input options')
-input_options.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38")
-input_options.add_argument("--id", "-i", help="Required: input variation, rsID or SNP ID + alleles: \"14_94844947_C_T\"", required=True)
+input_options.add_argument('--build','-b', action="store",help="Optional: genome build; default: 38", default="38")
+input_options.add_argument("--id", "-i", help="Required: input variation, rsID or variant ID: \"14_94844947_C_T\"", required=True)
 input_options.add_argument("--data", "-d", help="Required: directory with GTEx, GWAS and Ensembl Regulation data", required=True)
 input_options.add_argument('--output','-o', action="store",help="Optional: output directory; defaults to variant ID in the current directory")
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
@@ -106,26 +105,29 @@ logging.getLogger("mouse").setLevel(verbosity)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
+if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED]):
+    LOGGER.error("Some of the data files don't exist")
+    sys.exit(1)
+
+
 if not utils.createDir(outdir):
     LOGGER.error("Could not create output dir %s" % outdir)
     sys.exit(1)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
-LOGGER.info("Retrieving variant data from Ensembl")
+LOGGER.info("Retrieving variant data from ENSEMBL")
 variant_data=variant.getVariantInfo(VAR_ID,build)
 
 if GWAVA is not None:
+    LOGGER.info("Getting GWAVA scores")
     variant.getGwavaScore(variant_data)
 
 chrpos=variant.getChrPosList(variant_data["mappings"])
 
-LOGGER.info("Found %d chr:pos mapping(s)\n" %(len(chrpos)))
-#print(json.dumps(variant_data,indent=4,sort_keys=True))
-
 all_genes=list()
 mapping_names=list()
-D=dict()
+#D=dict()
 D1=dict()
 for i in range(0,len(chrpos)):
     mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
@@ -225,7 +227,7 @@ for i in range(0,len(chrpos)):
 
 # # ----------------------------------------------------------------------------
 
-D.clear()
+#D.clear()
 gene_names=list()
 LOGGER.info("Total genes: %d" % len(all_genes))
 for i in range(0,len(all_genes)):

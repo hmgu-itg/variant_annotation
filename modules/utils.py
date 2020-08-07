@@ -67,8 +67,12 @@ def chunks(L,n):
 
 # ======================================================================================================================
 
-# VEP-style string
 def getLocationString(chrom,pos,ref,alt):
+    '''
+    Input: chrom, pos, ref, alt
+    Output: VEP-style string
+    '''
+
     if len(ref)>1 and len(alt)==1:
         start=pos+1
         end=pos+len(ref)-1
@@ -102,6 +106,20 @@ def generateHTML(templateFile, data):
     templateEnv = jinja2.Environment(loader=templateLoader)
     template = templateEnv.get_template(templateFile)
     return template.render(data)
+
+# ======================================================================================================================
+
+def checkFiles(files):
+    '''
+    Input: list of file names
+    Output: True if files exist, False otherwise
+    '''
+    
+    for f in files:
+        if not os.path.isfile(f):
+            return False
+
+    return True
 
 # ======================================================================================================================
 
