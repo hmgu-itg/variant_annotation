@@ -93,7 +93,7 @@ def gwas2df(gwas_data):
     df=pd.DataFrame(columns=["rsID","ID","Distance","Trait","P-value","PMID"])
     i=0
     for x in gwas_data:
-        df.loc[i]=[x["rsID"],x["SNPID"],x["distance"],x["trait"],x["p-value"],x["PMID"]]
+        df.loc[i]=[x["rsID"],x["SNPID"],x["distance"],x["trait"],x["p-value"],"<a href='https://"+x["PMID"]+"'>"+x["PMID"]+"</a>"]
         i+=1
 
     return df

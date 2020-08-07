@@ -7,7 +7,7 @@ ui <- fluidPage(
     useShinyjs(),
     tabsetPanel(type="tabs",
                 tabPanel("Variant",
-                         fluidRow(style = "border-style: solid;border-width:  1px; border-color: lightblue;",
+                         fluidRow(
                              column(3,
                                     fileInput("file1", "Choose json.gz file",accept = c("application/gzip",".json.gz"))
                                     ),
@@ -336,7 +336,7 @@ server <- function(input, output,session) {
         df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
         colnames(df)<-lapply(colnames(df),function(x) substring(x,15))
         df
-    })
+    }, sanitize.text.function = function(x) x)
 
     output$vep<-renderTable({
         fname<-input$file1
