@@ -16,6 +16,14 @@ LOGGER.addHandler(ch)
 
 # ======================================================================================================================
 
+def makeLink(url,text):
+    '''
+    Create an HTML liink
+    '''
+    return "<a href='"+url+"'>"+text+"</a>"
+
+# ======================================================================================================================
+
 def checkGnomadID(var):
     '''
     Checks if provided ID conforms to GnomeAD rules (12-1234567-ACT-A)

@@ -90,35 +90,28 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
 
     output=[]
     i=0
-    df = pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Distance"])
+    df = pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Link"])
     for L in utils.chunks(rsIDs,config.BATCHSIZE):
         r=query.restQuery(query.makeRSPhenotypeQueryURL(build=build),data=utils.list2string(L),qtype="post")
         if r:
-            print(json.dumps(r,indent=4,sort_keys=True))
+            #print(json.dumps(r,indent=4,sort_keys=True))
             for rsID in r:
                 for phenotype in r[rsID]["phenotypes"]:
                     m=re.search("phenotype\s+not\s+specified",phenotype["trait"])
                     if m:
                         continue
+
                     x=next((m for m in r[rsID]["mappings"] if m["seq_region_name"]==chrom),None)
                     if not x:
                         continue
-                    df.loc[i]=[rsID,r[rsID]["most_severe_consequence"].replace("_"," "),chrom+":"+str(x["start"]),phenotype["trait"],phenotype["source"],str(abs(pos - int(x["start"])))]
-                    i+=1
-            # # TODO: check all possible sources
-            # # Generate phenotype link based on source:
-            # if phenotype["source"] == "ClinVar":
-            #     link = "https://www.ncbi.nlm.nih.gov/clinvar/?term="+rsID
-            # elif phenotype["source"] == "HGMD-PUBLIC":
-            #     link = "http://www.hgmd.cf.ac.uk/ac/gene.php?gene="+phenotype["genes"]
-            # elif "NHGRI-EBI" in phenotype["source"]:
-            #     link = "https://www.ebi.ac.uk/gwas/search?query="+rsID
-            # elif phenotype["source"] == "OMIM":
-            #     link = "https://www.omim.org/entry/"+phenotype["study"][4:]
-            # else:
-            #     link = "http://"+buildstr+"ensembl.org/Homo_sapiens/Variation/Phenotype?db=core;v=CM106680;vdb=variation"
 
-            # TODO: check key availability
+                    link=utils.makeLink(config.ENSEMBL_PHENO_URL %rsID,"ENSEMBL")
+                    if phenotype["source"] == "ClinVar":
+                        link=utils.makeLink(config.CLINVAR_URL+rsID,"ClinVar")
+                    elif phenotype["source"]=="NHGRI-EBI GWAS catalog":
+                        link=utils.makeLink(config.NHGRI_URL+rsID,"NHGRI-EBI")
+                    df.loc[i]=[rsID,r[rsID]["most_severe_consequence"].replace("_"," "),chrom+":"+str(x["start"]),phenotype["trait"],phenotype["source"],link]
+                    i+=1
 
     return df
 
@@ -251,7 +244,8 @@ def getVariantInfo(rs,build="38"):
 
     scores=dict()
     for m in mappings:
-        scores[m["chr"]+":"+str(m["pos"])]={"avg_gerp":"NA","gerp":"NA","gwava":"NA"}
+        #scores[m["chr"]+":"+str(m["pos"])]={"avg_gerp":"NA","gerp":"NA","gwava":"NA"}
+        scores[m["chr"]+":"+str(m["pos"])]={"gwava":"NA"}
 
 #-----------------------------------------------------
 
@@ -330,7 +324,7 @@ def id2rs(varid,build="38"):
 
 def getGwavaScore(variant_data):
     '''
-    Annotate variant data (output of getVariantInfo) with average GERP, GERP and GWAVA scores
+    Annotate variant data (output of getVariantInfo) with average GWAVA score
 
     Input: variant data
     '''
@@ -392,8 +386,8 @@ def getGwavaScore(variant_data):
         for line in open(gwava_fname, 'r'):
             gwava = line.strip().split("\t")[4]
 
-        variant_data["scores"][keystr]["avg_gerp"]=avg_gerp
-        variant_data["scores"][keystr]["gerp"]=gerp
+        #variant_data["scores"][keystr]["avg_gerp"]=avg_gerp
+        #variant_data["scores"][keystr]["gerp"]=gerp
         variant_data["scores"][keystr]["gwava"]=gwava
 
         LOGGER.info("avg_gerp: %s: gerp: %s; gwava: %s" % (avg_gerp,gerp,gwava))
@@ -438,8 +432,8 @@ def variant2df(var_data,mappings):
     # df.loc["PolyPhen score"]=[mapping["polyphen_score"]]
     # df.loc["PolyPhen prediction"]=[mapping["polyphen_prediction"]]
 
-    df.loc["Average GERP score"]=["Average GERP score",var_data["scores"][keystr]["avg_gerp"]]
-    df.loc["GERP score"]=["GERP score",var_data["scores"][keystr]["gerp"]]
+    #df.loc["Average GERP score"]=["Average GERP score",var_data["scores"][keystr]["avg_gerp"]]
+    #df.loc["GERP score"]=["GERP score",var_data["scores"][keystr]["gerp"]]
     df.loc["GWAVA score"]=["GWAVA score",var_data["scores"][keystr]["gwava"]]
     df.loc["MAF"]=["MAF",var_data["MAF"]]
     df.loc["Consequence"]=["Consequence",var_data["consequence"]]
@@ -461,11 +455,11 @@ def variant2df(var_data,mappings):
     
 # ==============================================================================================================================
 
-def population2df(pop_data):
+def population2df(pop_data,ref):
     '''
     Transform variant's population data into a dataframe
 
-    Input: population data: "population_data" dictionary of variant data (output of getVariantInfo)
+    Input: population data: "population_data" dictionary of variant data (output of getVariantInfo), REF allele
     Output: dataframe
     '''
 
@@ -477,8 +471,21 @@ def population2df(pop_data):
     A=list(all_alleles)
     A.sort()
 
+    # first element should be REF
+    try:
+        i=A.index(ref)
+        tmp=A[0]
+        A[0]=ref
+        A[i]=tmp
+    except:
+        LOGGER.error("Could not find %s in alleles" % ref)
+        C=["Population"]
+        for a in A:
+            C.append("%s" %a)
+        df=pd.DataFrame(columns=C)
+        return df
+        
     C=["Population"]
-    #for i in range(1,len(all_alleles)+1):
     for a in A:
         C.append("%s" %a)
 
@@ -594,64 +601,3 @@ def population2df(pop_data):
 #     return OMIM_data
 
 
-# ==============================================================================================================================
-
-# def annotateVariant(var,gwava=False):
-#     LOGGER.info("Retrieving variant data from Ensembl")
-#     variant_data=variant.getVariantInfo(var,build)
-
-#     if gwava:
-#         variant.getGwavaScore(variant_data)
-
-#     chrpos=variant.getChrPosList(variant_data["mappings"])
-
-#     LOGGER.info("Found %d chr:pos mapping(s)\n" %(len(chrpos)))
-#     #print(json.dumps(variant_data,indent=4,sort_keys=True))
-
-#         all_genes=list()
-#         mapping_names=list()
-#         D=dict()
-#         for i in range(0,len(chrpos)):
-#             mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
-#             LOGGER.info("Current mapping: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
-
-#             LOGGER.info("Creating variant dataframe")
-#             variantDF=variant.variant2df(variant_data,mappings)
-    
-#             LOGGER.info("Retreiving nearby variants with phenotype annotation")
-#             phenotypeDF=variant.getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
-    
-#             LOGGER.info("Retrieving overlapping regulatory features")
-#             reg=regulation.getRegulation(chrpos[i][0],chrpos[i][1])
-#             LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(reg)))
-#             LOGGER.info("Creating regulatory dataframe")
-#             regulationDF=regulation.regulation2df(reg)
-    
-#             LOGGER.info("Looking for GWAS hits around the variant")
-#             gwas_hits=gwas.getGwasHits(chrpos[i][0],chrpos[i][1])
-#             LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
-#             LOGGER.info("Creating GWAS dataframe")
-#             gwasDF=gwas.gwas2df(gwas_hits)
-    
-#             LOGGER.info("Creating VEP dataframe")
-#             vepDF=vep.getVepDF(mappings)["transcript"]
-    
-#             LOGGER.info("Creating populations dataframe")
-#             populationDF=variant.population2df(variant_data["population_data"])
-
-#             LOGGER.info("Creating PubMed dataframe")
-#             pubmedDF=pubmed.getPubmedDF(var,variant_data["synonyms"])
-
-#             LOGGER.info("Retrieving genes around the variant")
-#             gene_list=gene.getGeneList(chrpos[i][0],chrpos[i][1],build=build)
-#             all_genes.extend(gene_list)
-#             LOGGER.info("Got %d gene(s)\n" %(len(gene_list)))
-#             LOGGER.info("Creating gene dataframe")
-#             geneDF=gene.geneList2df(gene_list)
-    
-#             LOGGER.info("Creating gnomAD dataframe")
-#             gnomadDF=gnomad.getPopulationAF(var)
-    
-#             LOGGER.info("Creating GTEx dataframe")
-#             GTEx_genesDF=gtex.getGTExDF(mappings)    
-#             LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))

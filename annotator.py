@@ -157,7 +157,7 @@ for i in range(0,len(chrpos)):
     vepDF=vep.getVepDF(mappings)["transcript"]
     
     LOGGER.info("Creating populations dataframe")
-    populationDF=variant.population2df(variant_data["population_data"])
+    populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
 
     LOGGER.info("Creating PubMed dataframe")
     pubmedDF=pubmed.getPubmedDF(VAR_ID,variant_data["synonyms"])

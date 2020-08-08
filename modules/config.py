@@ -46,6 +46,10 @@ PUBMED_URL_PMID = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db
 
 PUBMED_URL="https://pubmed.ncbi.nlm.nih.gov/"
 
+CLINVAR_URL="https://www.ncbi.nlm.nih.gov/clinvar/?term="
+NHGRI_URL="https://www.ebi.ac.uk/gwas/search?query="
+ENSEMBL_PHENO_URL="http://ensembl.org/Homo_sapiens/Variation/Phenotype?db=core;v=%s;vdb=variation"
+
 ##
 ## Anchor tags for Ensembl and other sources:
 ##

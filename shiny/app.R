@@ -43,7 +43,7 @@ ui <- fluidPage(
                                   actionButton("gene_btn","Nearby genes",width="100%"),
                                   hidden(tags$div(id="gene_div",align="center",tableOutput("gene"))),
 
-                                  actionButton("gtex_genes_btn","GTEx",width="100%"),
+                                  actionButton("gtex_genes_btn","GTEx eQTLs",width="100%"),
                                   hidden(tags$div(id="gtex_genes_div",align="center",tableOutput("gtex_genes")))
                                   )
                          ),
@@ -81,7 +81,6 @@ ui <- fluidPage(
 )
 
 server <- function(input, output,session) {
-
     mapping_lookup <- reactive({
         fname<-input$file1
         if (is.null(fname))
@@ -360,7 +359,7 @@ server <- function(input, output,session) {
         df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
         colnames(df)<-lapply(colnames(df),function(x) substring(x,18))
         df
-    })
+    }, sanitize.text.function = function(x) x)
 
     output$gene<-renderTable({
         fname<-input$file1
