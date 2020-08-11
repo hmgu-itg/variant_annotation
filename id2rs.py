@@ -32,17 +32,15 @@ if args.build!=None:
     build=args.build
 
 varID=args.id
-# m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varID)
-# chrom=m.group(1)
-# pos=int(m.group(2))
-# a1=m.group(3)
-# a2=m.group(4)
 
 logging.getLogger("variant").setLevel(logging.DEBUG)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
-for x in variant.id2rs(varID,build):
-    print(x,varID,sep="\t",file=sys.stdout)
-
-#print(query.getRefSeq("8",9325847,9325849,build=build))
+rsIDs=variant.id2rs(varID,build)
+if len(rsIDs)==0:
+    print(varID,"NA",sep="\t",file=sys.stdout)
+elif len(rsIDs)==1:
+    print(varID,rsIDs[0],sep="\t",file=sys.stdout)
+else:
+    LOGGER.warning("Several rsIDs for %s" % varID)
