@@ -128,7 +128,7 @@ def parseSPDI(string,alleles=False,build="38"):
                     alt2=alt[0:len(alt)-len(ref)]
                     return {"chr":c,"pos":pos,"ref":base,"alt":base+alt2}
                 else:
-                    LOGGER.warning("parseSPDI: insertion: (%s %d %s %s) DEL is not prefix of INS" %(c,pos,ref,alt))
+                    LOGGER.warning("parseSPDI: insertion: (%s %d %s %s) DEL is not suffix of INS" %(c,pos,ref,alt))
                     return {"chr":c,"pos":pos,"ref":base+delseq,"alt":base+alt}
             # indel
             else:

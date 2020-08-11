@@ -4,6 +4,7 @@ import sys
 import os
 import argparse
 import re
+import logging
 
 from modules import variant
 from modules import query
@@ -30,16 +31,18 @@ except:
 if args.build!=None:
     build=args.build
 
-varID=args.id
-# m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varID)
-# chrom=m.group(1)
-# pos=int(m.group(2))
-# a1=m.group(3)
-# a2=m.group(4)
+rs=args.id
+logging.getLogger("variant").setLevel(logging.DEBUG)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
-for x in variant.id2rs(varID,build):
-    print(x,varID,sep="\t",file=sys.stdout)
+data=query.restQuery(query.makeRsPhenotypeQuery2URL(rs,build))
 
-#print(query.getRefSeq("8",9325847,9325849,build=build))
+L=["NA"]
+if data:
+    if "synonyms" in data:
+        L=list(filter(lambda x:x!=rs,data["synonyms"]))
+        if len(L)==0:
+            L=["NA"]
+
+print(rs,",".join(L),sep="\t")

@@ -308,6 +308,8 @@ def id2rs(varid,build="38"):
                     alt=h["alt"]
                     p=h["pos"]
                     c=h["chr"]
+                    print(spdi)
+                    print(c,p,ref,alt,sep="\t")
 
                     if p!=pos:
                         continue
