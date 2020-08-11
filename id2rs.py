@@ -36,7 +36,7 @@ varID=args.id
 LOGGER=logging.getLogger("id2rs")
 LOGGER.setLevel(logging.DEBUG)
 ch=logging.StreamHandler()
-ch.setLevel(verbosity)
+ch.setLevel(logging.DEBUG)
 formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
