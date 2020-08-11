@@ -52,3 +52,5 @@ elif len(rsIDs)==1:
     print(varID,rsIDs[0],sep="\t",file=sys.stdout)
 else:
     LOGGER.warning("Several rsIDs for %s" % varID)
+    for x in rsIDs:
+        print(varID,x,sep="\t",file=sys.stdout)
