@@ -16,7 +16,6 @@ LOGGER.addHandler(ch)
 
 # ==============================================================================================================================
 
-# Download gene information from the Ensembl:
 def getGeneInfo (ID,build="38"):
     '''
     This function retrieves gene related information
@@ -159,6 +158,8 @@ def geneInfo2df(gene_info):
 
 def goterms2df(xrefs):
     df=pd.DataFrame(columns=["GO term ID","Description"])
+    if xrefs is None:
+        return df
     i=0
     for x in xrefs["GO"]:
         df.loc[i]=[x[0],x[1]]

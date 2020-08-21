@@ -195,6 +195,9 @@ def getVariantInfo(rs,build="38"):
     mappings=list()
 
     z=query.restQuery(query.makeRSQueryURL(rs,build=build))
+    if z is None:
+        return None
+
     for x in z:
         spdis=x["spdi"]
         for spdi in spdis:

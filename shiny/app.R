@@ -28,8 +28,11 @@ ui <- fluidPage(
                                   actionButton("gwas_btn","GWAS signals nearby",width="100%"),
                                   hidden(tags$div(id="gwas_div",align="center",tableOutput("gwas"))),
                                   
-                                  actionButton("vep_btn","VEP annotation",width="100%"),
+                                  actionButton("vep_btn","Transcript VEP annotation",width="100%"),
                                   hidden(tags$div(id="vep_div",align="center",tableOutput("vep"))),
+                                  
+                                  actionButton("vepreg_btn","Regulation VEP annotation",width="100%"),
+                                  hidden(tags$div(id="vepreg_div",align="center",tableOutput("vepreg"))),
                                   
                                   actionButton("population_btn","1KG",width="100%"),
                                   hidden(tags$div(id="population_div",align="center",plotlyOutput("population"))),
@@ -160,6 +163,10 @@ server <- function(input, output,session) {
     
     observeEvent(input$vep_btn,{
         toggle("vep_div")
+    })
+    
+    observeEvent(input$vepreg_btn,{
+        toggle("vepreg_div")
     })
     
     observeEvent(input$pubmed_btn,{
@@ -349,6 +356,18 @@ server <- function(input, output,session) {
         df
     })
 
+    output$vepreg<-renderTable({
+        fname<-input$file1
+        if (is.null(fname))
+            return(NULL)
+
+        data <- json_data()
+        tname <- paste0("vepreg_table",unlist(mapping_lookup()[mapping_lookup()["mapping"]==input$mapping_selector,]["suffix"],use.names=F))
+        df <- as.data.frame(lapply(data[tname],function(x) fromJSON(x, flatten=T)))
+        colnames(df)<-lapply(colnames(df),function(x) substring(x,15))
+        df
+    })
+
     output$phenotype<-renderTable({
         fname<-input$file1
         if (is.null(fname))
@@ -404,12 +423,12 @@ server <- function(input, output,session) {
         sfx <- unlist(mapping_lookup()[mapping_lookup()["mapping"]==mapping,]["suffix"],use.names=F)
         ##print(paste(mapping,sfx))
 
-        for (tname in c("variant","regulation","gnomad","gwas","vep","population","pubmed","phenotype","gene","gtex_genes")){
+        for (tname in c("variant","regulation","gnomad","gwas","vep","vepreg","population","pubmed","phenotype","gene","gtex_genes")){
             dname <- paste0(tname,"_div")
             hide(dname)
         }
         
-        for (tname in c("variant","regulation","gnomad","gwas","vep","population","pubmed","phenotype","gene","gtex_genes")){
+        for (tname in c("variant","regulation","gnomad","gwas","vep","vepreg","population","pubmed","phenotype","gene","gtex_genes")){
             tname2 <- paste0(tname,"_table",sfx)
             btn_name <- paste0(tname,"_btn")
             print(tname2)

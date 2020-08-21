@@ -32,19 +32,21 @@ verbosity=logging.INFO
 # Parsing command line arguments:
 parser = argparse.ArgumentParser()
 input_options = parser.add_argument_group('Input options')
-input_options.add_argument('--build','-b', action="store",help="Optional: genome build; default: 38", default="38")
-input_options.add_argument("--id", "-i", help="Required: input variation, rsID or variant ID: \"14_94844947_C_T\"", required=True)
-input_options.add_argument("--data", "-d", help="Required: directory with GTEx, GWAS and Ensembl Regulation data", required=True)
-input_options.add_argument('--output','-o', action="store",help="Optional: output directory; defaults to variant ID in the current directory")
+input_options.add_argument('--build','-b', action="store",help="Optional: genome build; default: 38", default="38",required=False)
+input_options.add_argument("--id", "-i", help="Required: input variation, rsID or variant ID: \"14_94844947_C_T\"",required=True)
+input_options.add_argument("--data", "-d", help="Required: directory with GTEx, GWAS and Ensembl Regulation data",required=True)
+input_options.add_argument('--output','-o', action="store",help="Optional: output directory; defaults to variant ID in the current directory",required=False)
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 input_options.add_argument("--gwava", "-g", help="Optional: path to GWAVA directory", required=False, action='store')
+input_options.add_argument("--html", "-html", help="Optional: output HTML instead of default JSON.GZ", required=False, action='store_true')
 
 # ------------------------------------------------------------------------------------------------------------------------
 
 # Extracting command line parameters:
-args = parser.parse_args()
-VAR_ID = args.id
-GWAVA = args.gwava
+args=parser.parse_args()
+VAR_ID=args.id
+GWAVA=args.gwava
+out_html=args.html
 datadir=args.data
 
 if datadir.endswith("/"):
@@ -118,6 +120,9 @@ if not utils.createDir(outdir):
 
 LOGGER.info("Retrieving variant data from ENSEMBL")
 variant_data=variant.getVariantInfo(VAR_ID,build)
+if variant_data is None:
+    LOGGER.error("Variant data could not be retreived")
+    sys.exit(1)
 
 if GWAVA is not None:
     LOGGER.info("Getting GWAVA scores")
@@ -127,7 +132,7 @@ chrpos=variant.getChrPosList(variant_data["mappings"])
 
 all_genes=list()
 mapping_names=list()
-#D=dict()
+D=dict()
 D1=dict()
 for i in range(0,len(chrpos)):
     mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
@@ -154,7 +159,9 @@ for i in range(0,len(chrpos)):
     gwasDF=gwas.gwas2df(gwas_hits)
     
     LOGGER.info("Creating VEP dataframe")
-    vepDF=vep.getVepDF(mappings)["transcript"]
+    temp=vep.getVepDF(mappings)
+    vepDFtr=temp["transcript"]
+    vepDFreg=temp["regulatory"]
     
     LOGGER.info("Creating populations dataframe")
     populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
@@ -177,57 +184,56 @@ for i in range(0,len(chrpos)):
     GTEx_genesDF=gtex.getGTExDF(mappings)    
     LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
 
-
 # ----------------------------------------------------------------------------
 
-    # "records"
-    D1["variant_table%d" %i]=variantDF.to_json(orient="records")
-    D1["gnomad_table%d" %i]=gnomadDF.to_json(orient="records")
-    D1["regulation_table%d" %i]=regulationDF.to_json(orient="records")
-    D1["gwas_table%d" %i]=gwasDF.to_json(orient="records")
-    D1["vep_table%d" %i]=vepDF.to_json(orient="records")
-    D1["population_table%d" %i]=populationDF.to_json(orient="records")
-    D1["pubmed_table%d" %i]=pubmedDF.to_json(orient="records")
-    D1["phenotype_table%d" %i]=phenotypeDF.to_json(orient="records")
-    D1["gene_table%d" %i]=geneDF.to_json(orient="records")
-    D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json(orient="records")
-
-# ----------------------------------------------------------------------------
-
-#     if len(variantDF)>0:
-#         D["variant_table%d" %i]=variantDF.to_html(index=True,classes='utf8',table_id="common")
-#     if len(gnomadDF)>0:
-#         D["gnomad_table%d" %i]=gnomadDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(regulationDF)>0:
-#         D["regulation_table%d" %i]=regulationDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(gwasDF)>0:
-#         D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(vepDF)>0:
-#         D["vep_table%d" %i]=vepDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(populationDF)>0:
-#         D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(pubmedDF)>0:
-#         D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-#     if len(phenotypeDF)>0:
-#         D["phenotype_table%d" %i]=phenotypeDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(geneDF)>0:
-#         D["gene_table%d" %i]=geneDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(GTEx_genesDF)>0:
-#         D["gtex_genes_table%d" %i]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
+    if out_html:
+        if len(variantDF)>0:
+            D["variant_table%d" %i]=variantDF.to_html(index=True,classes='utf8',table_id="common")
+        if len(gnomadDF)>0:
+            D["gnomad_table%d" %i]=gnomadDF.to_html(index=False,classes='utf8',table_id="common")
+        if len(regulationDF)>0:
+            D["regulation_table%d" %i]=regulationDF.to_html(index=False,classes='utf8',table_id="common")
+        if len(gwasDF)>0:
+            D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+        if len(vepDFtr)>0:
+            D["vep_table%d" %i]=vepDFtr.to_html(index=False,classes='utf8',table_id="common")
+        if len(vepDFreg)>0:
+            D["vepreg_table%d" %i]=vepDFreg.to_html(index=False,classes='utf8',table_id="common")
+        if len(populationDF)>0:
+            D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
+        if len(pubmedDF)>0:
+            D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+        if len(phenotypeDF)>0:
+            D["phenotype_table%d" %i]=phenotypeDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+        if len(geneDF)>0:
+            D["gene_table%d" %i]=geneDF.to_html(index=False,classes='utf8',table_id="common")
+        if len(GTEx_genesDF)>0:
+            D["gtex_genes_table%d" %i]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
     
-#     mapping_names.append(chrpos[i][0]+":"+str(chrpos[i][1]))
+        mapping_names.append(chrpos[i][0]+":"+str(chrpos[i][1]))
+    else:
+        D1["variant_table%d" %i]=variantDF.to_json(orient="records")
+        D1["gnomad_table%d" %i]=gnomadDF.to_json(orient="records")
+        D1["regulation_table%d" %i]=regulationDF.to_json(orient="records")
+        D1["gwas_table%d" %i]=gwasDF.to_json(orient="records")
+        D1["vep_table%d" %i]=vepDFtr.to_json(orient="records")
+        D1["vepreg_table%d" %i]=vepDFreg.to_json(orient="records")
+        D1["population_table%d" %i]=populationDF.to_json(orient="records")
+        D1["pubmed_table%d" %i]=pubmedDF.to_json(orient="records")
+        D1["phenotype_table%d" %i]=phenotypeDF.to_json(orient="records")
+        D1["gene_table%d" %i]=geneDF.to_json(orient="records")
+        D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json(orient="records")
 
 # # ----------------------------------------------------------------------------
 
-# template_fname=config.OUTPUT_DIR+"/template_var.html"
-# utils.generateVarTemplate(mapping_names,template_fname)
-# f=open(config.OUTPUT_DIR+"/%s.html" %VAR_ID,"w")
-# f.write(utils.generateHTML(template_fname,D))
-# f.close()
+if out_html:
+    template_fname=config.OUTPUT_DIR+"/template_var.html"
+    utils.generateVarTemplate(mapping_names,template_fname)
+    f=open(config.OUTPUT_DIR+"/%s.html" %VAR_ID,"w")
+    f.write(utils.generateHTML(template_fname,D))
+    f.close()
 
-# # ----------------------------------------------------------------------------
-
-#D.clear()
+D.clear()
 gene_names=list()
 LOGGER.info("Total genes: %d" % len(all_genes))
 for i in range(0,len(all_genes)):
@@ -240,12 +246,14 @@ for i in range(0,len(all_genes)):
 
     LOGGER.info("Retreiveing cross-references")
     xrefs=gene.getGeneXrefs(gene_ID)
-
-    LOGGER.info("Retreiving UniProt data")
-    if len(xrefs["UniProtKB/Swiss-Prot"])>0:
-        up=uniprot.getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
-    else:
+    if xrefs is None:
         up=None
+    else:
+        LOGGER.info("Retreiving UniProt data")
+        if len(xrefs["UniProtKB/Swiss-Prot"])>0:
+            up=uniprot.getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
+        else:
+            up=None
 
     LOGGER.info("Retreiving GWAS data")
     gw=gwas.gene2gwas(info["name"])
@@ -278,44 +286,38 @@ for i in range(0,len(all_genes)):
 
 # ----------------------------------------------------------------------------
 
-    # "records"
-    D1["gene2_table_%s" %gene_ID]=infoDF.to_json(orient="records")
-    D1["uniprot_table_%s" %gene_ID]=uniprotDF.to_json(orient="records")
-    D1["gwas2_table_%s" %gene_ID]=gwasDF.to_json(orient="records")
-    D1["gxa_table_%s" %gene_ID]=gxaDF.to_json(orient="records")
-    D1["gtex_variants_table_%s" %gene_ID]=gtexDF.to_json(orient="records")
-    D1["mouse_table_%s" %gene_ID]=mouseDF.to_json(orient="records")
-    D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
+    if out_html:
+        if len(infoDF)>0:
+            D["gene_table%d" %i]=infoDF.to_html(index=False,classes='utf8',table_id="common")
+        if len(goDF):
+            D["go_table%d" %i]=goDF.to_html(index=False,classes='utf8',table_id="common")
+        if len(uniprotDF)>0:
+            D["uniprot_table%d" %i]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
+        if len(gwasDF)>0:
+            D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+        #if gxaDF is not None and len(gxaDF)>0:
+        #D["gxa_table%d" %i]=gxaDF.to_html(index=True,classes='utf8',table_id="common",render_links=True,escape=False)
+        D["gxa_heatmap%d" %i]=gxaHeatmap
+        if len(gtexDF)>0:
+            D["gtexVariants_table%d" %i]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
+        if len(mouseDF)>0:
+            D["mouse_table%d" %i]=mouseDF.to_html(index=False,classes='utf8',table_id="common")
+    else:
+        D1["gene2_table_%s" %gene_ID]=infoDF.to_json(orient="records")
+        D1["uniprot_table_%s" %gene_ID]=uniprotDF.to_json(orient="records")
+        D1["gwas2_table_%s" %gene_ID]=gwasDF.to_json(orient="records")
+        D1["gxa_table_%s" %gene_ID]=gxaDF.to_json(orient="records")
+        D1["gtex_variants_table_%s" %gene_ID]=gtexDF.to_json(orient="records")
+        D1["mouse_table_%s" %gene_ID]=mouseDF.to_json(orient="records")
+        D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
 
-# ----------------------------------------------------------------------------
-
-#     if len(infoDF)>0:
-#         D["gene_table%d" %i]=infoDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(goDF):
-#         D["go_table%d" %i]=goDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(uniprotDF)>0:
-#         D["uniprot_table%d" %i]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(gwasDF)>0:
-#         D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-#     #if gxaDF is not None and len(gxaDF)>0:
-#         #D["gxa_table%d" %i]=gxaDF.to_html(index=True,classes='utf8',table_id="common",render_links=True,escape=False)
-#     D["gxa_heatmap%d" %i]=gxaHeatmap
-#     if len(gtexDF)>0:
-#         D["gtexVariants_table%d" %i]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
-#     if len(mouseDF)>0:
-#         D["mouse_table%d" %i]=mouseDF.to_html(index=False,classes='utf8',table_id="common")
-
-# # ----------------------------------------------------------------------------
-
-# template_fname=config.OUTPUT_DIR+"/template_gene.html"
-# utils.generateGeneTemplate(gene_names,template_fname)
-# f = open(config.OUTPUT_DIR+"/%s_genes.html" %VAR_ID,"w")
-# f.write(utils.generateHTML(template_fname,D))
-# f.close()
-
-# ----------------------------------------------------------------------------
-
-LOGGER.info("Saving JSON data\n")
-with gzip.GzipFile(config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID,"w") as fout:
-    fout.write(json.dumps(D1).encode('utf-8'))
-
+if out_html:
+    template_fname=config.OUTPUT_DIR+"/template_gene.html"
+    utils.generateGeneTemplate(gene_names,template_fname)
+    f = open(config.OUTPUT_DIR+"/%s_genes.html" %VAR_ID,"w")
+    f.write(utils.generateHTML(template_fname,D))
+    f.close()
+else:
+    LOGGER.info("Saving JSON data\n")
+    with gzip.GzipFile(config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID,"w") as fout:
+        fout.write(json.dumps(D1).encode('utf-8'))

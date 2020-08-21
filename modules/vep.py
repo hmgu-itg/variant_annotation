@@ -1,6 +1,7 @@
 import logging
 import pandas as pd
 import requests
+import json
 
 from . import query
 
@@ -59,17 +60,17 @@ def getApprisInfo(gene_ID):
 def getVepDF(mappings):
     '''
     For a given list of variant mappings (containing chr/pos/ref/alt information), 
-    return two merged dataframes
+    returns two merged dataframes
     
     Input  : list of mappings
     Output : dictionary ("regulatory": regulatory DataFrame,"transcript": transcript DataFrame)
     '''
 
-    LOGGER.debug("Input: %d mappings" %  len(mappings))
+    LOGGER.debug("Input: %d mapping(s)" %  len(mappings))
 
     output=dict()
     tr_data=pd.DataFrame(columns=["Gene ID","Transcript ID","Impact","Consequence","Isoform"])
-    reg_data=pd.DataFrame(columns=["Biotype","Regulatory feature ID","Impact","Consequence"])
+    reg_data=pd.DataFrame(columns=["Regulatory feature ID","Impact","Consequence"])
     for m in mappings:
         data=getVepData(m)
         tr_data=pd.concat([tr_data,vepTranscript2df(data)]).drop_duplicates().reset_index(drop=True)
@@ -92,7 +93,7 @@ def getVepData(mapping_data):
 
     Output: dictionary with keys "transcript", "regulatory"
     "transcript" : list of dictionaries with keys "ID", "impact", "gene_symbol", "gene_id", "consequence", "principal"
-    "regulatory" : list of dictionaries with keys "impact", "biotype", "ID", "consequence"    
+    "regulatory" : list of dictionaries with keys "impact", "ID", "consequence"    
     '''
 
     chrom = mapping_data["chr"]
@@ -120,17 +121,20 @@ def getVepData(mapping_data):
         LOGGER.error("Wrong allele encoding ref=%s, alt=%s" %(ref,alt),file=sys.stderr)
         return None
 
+    VEP_data=dict()
+    VEP_data["transcript"]=[]
+    VEP_data["regulatory"]=[]
+
     VEP=query.restQuery(query.makeVepQueryURL(chrom,start,end,allele))
-    #return data
+    if VEP is None:
+        return VEP_data
+
+    #print(json.dumps(VEP,indent=4,sort_keys=True))
 
     sift_score=None
     polyphen_score=None
     sift_prediction=""
     polyphen_prediction=""
-
-    VEP_data=dict()
-    VEP_data["transcript"]=[]
-    VEP_data["regulatory"]=[]
 
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -170,7 +174,7 @@ def getVepData(mapping_data):
 
     if "regulatory_feature_consequences" in VEP[0]:
         for r in VEP[0]['regulatory_feature_consequences']:
-            VEP_data["regulatory"].append({"impact":r["impact"],"biotype":r["biotype"],"ID":r["regulatory_feature_id"],"consequence":r["consequence_terms"]})
+            VEP_data["regulatory"].append({"impact":r["impact"],"ID":r["regulatory_feature_id"],"consequence":r["consequence_terms"]})
 
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -204,10 +208,10 @@ def vepTranscript2df(vep_data):
 # =======================================================================================================================
 
 def vepRegulatory2df(vep_data):
-    df=pd.DataFrame(columns=["Biotype","Regulatory feature ID","Impact","Consequence"])
+    df=pd.DataFrame(columns=["Regulatory feature ID","Impact","Consequence"])
     i=0
     for x in vep_data["regulatory"]:
-        df.loc[i]=[x["biotype"],x["ID"],x["impact"],",".join(x["consequence"])]
+        df.loc[i]=[x["ID"],x["impact"],",".join(x["consequence"])]
         i+=1
 
     return df

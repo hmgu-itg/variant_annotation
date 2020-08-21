@@ -28,7 +28,11 @@ def getUniprotData(ID):
     URL += "comment%28DISEASE%29%2C" # Disease
     URL += "entry%20name&format=tab" # tab delimited format returned
 
-    r=requests.get(URL)
+    try:
+        r=requests.get(URL)
+    except Exception as e:
+        LOGGER.error(type(e).__name__)
+        return None
 
     data=pd.read_csv(StringIO(r.content.decode("utf-8")),sep="\t",header=0,keep_default_na=False)
 
