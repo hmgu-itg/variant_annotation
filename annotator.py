@@ -164,6 +164,7 @@ for i in range(0,len(chrpos)):
     
     LOGGER.info("Creating populations dataframe")
     populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
+    populationFig=variant.df2barchart(populationDF)
 
     LOGGER.info("Creating PubMed dataframe")
     pubmedDF=pubmed.getPubmedDF(VAR_ID,variant_data["synonyms"])
@@ -200,7 +201,8 @@ for i in range(0,len(chrpos)):
         if len(vepDFreg)>0:
             D["vepreg_table%d" %i]=vepDFreg.to_html(index=False,classes='utf8',table_id="common")
         if len(populationDF)>0:
-            D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
+            #D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
+            D["population_table%d" %i]=populationFig
         if len(pubmedDF)>0:
             D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
         if len(phenotypeDF)>0:
@@ -218,7 +220,7 @@ for i in range(0,len(chrpos)):
         D1["gwas_table%d" %i]=gwasDF.to_json(orient="records")
         D1["vep_table%d" %i]=vepDFtr.to_json(orient="records")
         D1["vepreg_table%d" %i]=vepDFreg.to_json(orient="records")
-        D1["population_table%d" %i]=populationDF.to_json(orient="records")
+        D1["population_table%d" %i]=populationDF.to_json(orient="records") # <-- TODO: add barchart
         D1["pubmed_table%d" %i]=pubmedDF.to_json(orient="records")
         D1["phenotype_table%d" %i]=phenotypeDF.to_json(orient="records")
         D1["gene_table%d" %i]=geneDF.to_json(orient="records")
