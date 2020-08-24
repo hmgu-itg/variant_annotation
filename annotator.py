@@ -164,7 +164,7 @@ for i in range(0,len(chrpos)):
     
     LOGGER.info("Creating populations dataframe")
     populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
-    populationFig=variant.df2barchart(populationDF)
+    populationFig=utils.df2barchart(populationDF)
 
     LOGGER.info("Creating PubMed dataframe")
     pubmedDF=pubmed.getPubmedDF(VAR_ID,variant_data["synonyms"])
@@ -180,6 +180,7 @@ for i in range(0,len(chrpos)):
     
     LOGGER.info("Creating gnomAD dataframe")
     gnomadDF=gnomad.getPopulationAF(VAR_ID)
+    gnomadFig=utils.df2barchart(gnomadDF)
     
     LOGGER.info("Creating GTEx dataframe")
     GTEx_genesDF=gtex.getGTExDF(mappings)    
@@ -190,8 +191,8 @@ for i in range(0,len(chrpos)):
     if out_html:
         if len(variantDF)>0:
             D["variant_table%d" %i]=variantDF.to_html(index=True,classes='utf8',table_id="common")
-        if len(gnomadDF)>0:
-            D["gnomad_table%d" %i]=gnomadDF.to_html(index=False,classes='utf8',table_id="common")
+        # if len(gnomadDF)>0:
+        #     D["gnomad_table%d" %i]=gnomadDF.to_html(index=False,classes='utf8',table_id="common")
         if len(regulationDF)>0:
             D["regulation_table%d" %i]=regulationDF.to_html(index=False,classes='utf8',table_id="common")
         if len(gwasDF)>0:
@@ -200,8 +201,11 @@ for i in range(0,len(chrpos)):
             D["vep_table%d" %i]=vepDFtr.to_html(index=False,classes='utf8',table_id="common")
         if len(vepDFreg)>0:
             D["vepreg_table%d" %i]=vepDFreg.to_html(index=False,classes='utf8',table_id="common")
-        if len(populationDF)>0:
-            #D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
+        # if len(populationDF)>0:
+        #     D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
+        if gnomadFig is not None:
+            D["gnomad_table%d" %i]=gnomadFig
+        if populationFig is not None:
             D["population_table%d" %i]=populationFig
         if len(pubmedDF)>0:
             D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)

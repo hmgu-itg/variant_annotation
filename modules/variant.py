@@ -5,7 +5,6 @@ import re
 import os
 import tempfile as tf
 import subprocess
-import plotly.graph_objects as go
 
 from . import config
 from . import query
@@ -18,7 +17,6 @@ ch.setLevel(logging.DEBUG)
 formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
-
 
 # ==============================================================================================================================
 
@@ -520,30 +518,6 @@ def population2df(pop_data,ref):
         i+=1
 
     return df
-
-# ==============================================================================================================================
-
-def df2barchart(df):
-    if len(df)==0:
-        return None
-
-    data=list()
-    pops=list(df["Populations"])
-    for i in range(1,len(df.columns)):
-        data.append(go.Bar(name=df.columns[i],x=pops,y=df.iloc[:,i]))
-    
-    fig=go.Figure(data=data)
-    fig.update_layout(barmode='stack')
-    out=tf.NamedTemporaryFile(delete=False,mode="w")
-    fig.write_html(out.name,full_html=False)
-    out.close()
-    with open (out.name, "r") as f:
-        data=f.readlines()
-    f.close()
-    if os.path.isfile(out.name):
-        os.remove(out.name)
-
-    return "".join(data)
 
 # ==============================================================================================================================
 
