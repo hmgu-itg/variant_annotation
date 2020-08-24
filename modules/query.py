@@ -163,7 +163,7 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
             r = func(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},data=data,timeout=timeout)
 
         if not r.ok:
-            LOGGER.error("Error %s occured (input: %s)" %(str(r.status_code),URL))
+            LOGGER.error("Error %s occured (input: %s) returning None" %(str(r.status_code),URL))
             return None
 
         try:

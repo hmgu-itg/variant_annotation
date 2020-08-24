@@ -48,7 +48,7 @@ def gene2gwas(gene_name):
         })
 
     if len(gwas_data)==0:
-        LOGGER.info("No GWAS signas associated with %s have been found" %(gene_name))
+        LOGGER.info("No GWAS signals associated with %s have been found" %(gene_name))
 
     return gwas_data
 

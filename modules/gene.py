@@ -24,6 +24,8 @@ def getGeneInfo (ID,build="38"):
     Output: dictionary with retrieved information
     '''
     response=query.restQuery(query.makeGeneQueryURL(ID,build=build))
+    if response is None:
+        return None
 
     #print(json.dumps(response,indent=4,sort_keys=True))
 
@@ -46,7 +48,6 @@ def getGeneInfo (ID,build="38"):
 
 # ==============================================================================================================================
 
-# Download cross references to a gene based on Ensembl annotation:
 def getGeneXrefs (ID,build="38"):
     '''
     This function retrieves cross-references from Ensembl
@@ -103,6 +104,8 @@ def getGeneList(chrom,pos,window=config.GENE_WINDOW,build="38"):
 
     overlapping_genes=query.restQuery(query.makeGeneOverlapQueryURL(chrom,start,end,build=build))
     gene_list=list()
+    if overlapping_genes is None:
+        return None
 
     for gene in overlapping_genes:
         d_from_start=abs(pos-int(gene["start"]))
@@ -135,10 +138,12 @@ def getGeneList(chrom,pos,window=config.GENE_WINDOW,build="38"):
 
     return gene_list
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ======================================================================================================================
 
 def geneList2df(gene_data):
     df=pd.DataFrame(columns=["Gene name","Gene ID","Biotype","Distance","Orientation"])
+    if gene_data is None:
+        return df
     i=0
     for x in gene_data:
         df.loc[i]=[x["name"],x["ID"],x["biotype"],x["distance"],x["orientation"]]
@@ -146,15 +151,17 @@ def geneList2df(gene_data):
 
     return df
 
-# =================================== CONVERTING GENE RELATED DATA STRUCTURES TO DATAFRAMES =============================
+# ======================================================================================================================
 
 def geneInfo2df(gene_info):
     df=pd.DataFrame(columns=["Gene name","Description","ID","Coordinates","Strand","Type"])
+    if gene_info is None:
+        return df
     df.loc[0]=[gene_info["name"],gene_info["description"],gene_info["id"],gene_info["chromosome"]+":"+str(gene_info["start"])+"-"+str(gene_info["end"]),gene_info["strand"],gene_info["type"],]
 
     return df
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ======================================================================================================================
 
 def goterms2df(xrefs):
     df=pd.DataFrame(columns=["GO term ID","Description"])

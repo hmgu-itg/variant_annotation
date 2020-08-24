@@ -18,6 +18,8 @@ def getMouseID(human_ID,build="38"):
     '''Looking up mouse gene ID of a given human gene ID'''
 
     data=query.restQuery(query.makeHomologyURL(human_ID,build=build,species="mouse"))
+    if data is None:
+        return None
     #print(json.dumps(data,indent=4,sort_keys=True))
 
     mouse_IDs = {}
@@ -44,6 +46,8 @@ def getMgiID(mouse_ID,build="38"):
     '''Looking up MGI cross reference for a given mouse gene ID'''
 
     data=query.restQuery(query.makeGeneXQueryURL2(mouse_ID,build=build))
+    if data is None:
+        return None
     #print(json.dumps(data,indent=4,sort_keys=True))
 
     # Now from the returned data we have to pick all possible homolgue IDs:
@@ -81,6 +85,9 @@ def getMousePhenotypes(geneID,build="38"):
     #print(mouse_gene_IDs)
 
     full_dataframe=pd.DataFrame(columns=["Allele ID", "Allele name", "Allele type","Phenotypes","Human disease","mouse gene ID","MGI ID","mouse gene name","mouse gene description"])
+
+    if mouse_gene_IDs is None:
+        return full_dataframe
 
     if len(mouse_gene_IDs)==0:
         return full_dataframe

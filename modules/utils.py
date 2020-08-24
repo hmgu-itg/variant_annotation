@@ -150,7 +150,7 @@ def getGxaURL(ID):
 
 # ======================================================================================================================
 
-def generateVarTemplate(mapping_names,fname):
+def generateTemplate(mapping_names,gene_names,fname):
     f = open(fname,"w")
     f.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<html>\n<head>\n")
     f.write("<style>\n\nth{ text-align: left; }\n")
@@ -158,7 +158,177 @@ def generateVarTemplate(mapping_names,fname):
     f.write("div.general {\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 20px;\nmargin:  10px 10px 5px 10px\n}\n")
     f.write("h1 {\nbackground-color: #8b9bc1;\nmargin: 0;\npadding: 4px 8px 2px 24px;\n-webkit-border-radius: 8px 0 8px 0;\nline-height: 1em;\ndisplay: block;\n-webkit-margin-before: 0px;\n-webkit-margin-after: 0px;-webkit-margin-start: 0px;\n-webkit-margin-end: 0px;\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 25px;\nfont-weight: bold;\n}\n\n")
     f.write("div.big_box {\nbackground-color: white;\nwidth: 98%;\nborder: 1px solid navy;\ndisplay: block;\n\nbackground-color: #fff;\npadding: 0;\nmargin: 0;\n\n/* Margins */\nmargin: 0 auto 1em;\n\n/* Rounded edges */\nborder-bottom-right-radius: 8px;\nborder-top-left-radius: 8px;\n\n/* Shadows around boxes*/\nbox-shadow: 4px 4px 10px #BCBCCC;\n\n/* Setting fonts */\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 20px;\n}\n\n")
-    f.write(".tab {\noverflow: hidden;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\n}")
+
+    f.write(".tab {\noverflow: hidden;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\n}\n")
+    f.write(".tab button {\nbackground-color: inherit;\nfloat: left;\nborder: none;\noutline: none;\ncursor: pointer;\npadding: 14px 16px;\ntransition: 0.3s;\n}\n")
+    f.write(".tab button:hover {\nbackground-color: #ddd;\n}\n")
+    f.write(".tab button.active {\nbackground-color: #ccc;\n}\n")
+    #f.write(".genetab {\nfloat: left;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\nwidth: 15%;\nheight: 200px;\n}\n")
+#    f.write(".genetab {\noverflow: hidden;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\n}\n")
+#    f.write(".genetab button {\nbackground-color: inherit;\nfloat: left;\nborder: none;\noutline: none;\ncursor: pointer;\npadding: 14px 16px;\ntransition: 0.3s;\n}\n")
+#    f.write(".genetab button:hover {\nbackground-color: #ddd;\n}\n")
+#    f.write(".genetab button.active {\nbackground-color: #ccc;\n}\n")
+
+#    f.write(".genetab2 {\nfloat: right;\nborder: 1px solid #ccc;\nbackground-color: #0101f1;\nwidth: 80%;\n}\n")
+    f.write(".tabcontent {\ndisplay: none;\npadding: 6px 12px;\nborder: 1px solid #ccc;\nborder-top: none;\n}\n")
+#    f.write(".tabcontent2 {\ndisplay: none;\npadding: 6px 12px;\nborder: 1px solid #ccc;\nborder-top: none;\n}\n")
+    f.write(".genetabcontent {\ndisplay: none;\nfloat: left;\npadding: 0px 12px;\nborder: 1px solid #ccc;\nwidth: 98%;\nheight: 98%;\n}\n")
+
+    # collapsible styles
+    f.write(".collapsible {\nbackground-color: #33b2ff;\ncolor: white;\ncursor: pointer;\npadding: 18px;\nwidth: 100%;\nborder: none;\ntext-align: center;\noutline: none;\nfont-size: 15px;\nborder-radius: 12px;\n}\n\n")
+    f.write(".active, .collapsible:hover {\nbackground-color: #3399ff;\n}\n\n")
+    f.write(".content {\npadding: 0 18px;\ndisplay: none;\ntext-align: center;\noverflow: hidden;\nbackground-color: #f1f1f1;\n}\n\n")
+    # ------------------
+
+    f.write("#space\n{width: 100%;\n height: 5px;\n margin: 0px;\n padding: 0px;\n border: 0px;\nbackground: #FFFFFF;\nclear:both;\n}\n\n") 
+
+    f.write("</style>\n\n")
+
+    f.write("</head>\n<body bgcolor=\"#E6E6FA\" class=body>\n\n")
+
+    f.write("<div class=\"tab\">\n")
+    f.write("<button class=\"tablinks2\" onclick=\"openTab2(event, 'Variant')\" id=\"defaultTabOpen\">Variant</button>\n")
+    #f.write("<button class=\"tablinks2\" onclick=\"openTab2(event, 'Variant')\">Variant</button>\n")
+    f.write("<button class=\"tablinks2\" onclick=\"openTab2(event, 'Genes')\">Genes</button>\n")
+    f.write("</div>\n\n")
+
+    # Variant tab
+    f.write("\n<div id=\"Variant\" class=\"tabcontent2\">\n")
+
+    # Mappings
+    f.write("<div class=\"tab\">")
+    for i in range(0,len(mapping_names)):
+        if i==0:
+            f.write("<button class=\"tablinks\" onclick=\"openTab(event, '%s')\" id=\"defaultOpen\">%s</button>" % (mapping_names[i],mapping_names[i]))
+        else:
+            f.write("<button class=\"tablinks\" onclick=\"openTab(event, '%s')\">%s</button>" % (mapping_names[i],mapping_names[i]))
+    f.write("</div>\n")
+
+    # Mapping details
+    for i in range(0,len(mapping_names)):
+        f.write("<div id=\"%s\" class=\"tabcontent\">\n" % mapping_names[i])
+
+        f.write("<button type=\"button\" class=\"collapsible\">Variant Details</button>\n")
+        f.write("<div class=\"content\">\n{{ variant_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Nearby variants associated with phenotypes</button>\n")
+        f.write("<div class=\"content\">\n{{ phenotype_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Nearby GWAS signals</button>\n")
+        f.write("<div class=\"content\">\n{{ gwas_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Predicted consequences</button>\n")
+        f.write("<div class=\"content\">\n{{ vep_table%d  }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">1kG allele frequencies</button>\n")
+        f.write("<div class=\"content\">\n{{ population_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">gnomAD allele frequencies</button>\n")
+        f.write("<div class=\"content\">\n{{ gnomad_table%d  }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">ENSEMBL Regulation</button>\n")
+        f.write("<div class=\"content\">\n{{ regulation_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">GTEx eQTLs</button>\n")
+        f.write("<div class=\"content\">\n{{ gtex_genes_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Nearby genes</button>\n")
+        f.write("<div class=\"content\">\n{{ gene_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Pubmed entries</button>\n")
+        f.write("<div class=\"content\">\n{{ pubmed_table%d }}\n</div>\n" %i)
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("</div>\n")
+
+    # Variant div
+    f.write("\n</div>\n\n")
+
+    # # Genes
+    f.write("<div id=\"Genes\" class=\"tabcontent2\">\n")
+
+    # Gene buttons
+    f.write("<div class=\"genetab\">\n")
+    f.write("<select id=\"geneCombo\" onchange=\"showGene(this)\">\n")
+    f.write("<option value=\"\">Select gene</option>\n")
+    for i in range(0,len(gene_names)):
+        f.write("<option value=\"%s\">%s</option>\n" %(gene_names[i],gene_names[i]))
+    f.write("</select>\n")
+    f.write("</div>\n\n")
+    f.write("<div id=\"space\"></div>\n")
+
+    # Gene details
+    #f.write("<div class=\"genetab2\">\n")
+    for i in range(0,len(gene_names)):
+        f.write("<div id=\"%s\" class=\"genetabcontent\">\n" % gene_names[i])
+
+        f.write("<button type=\"button\" class=\"collapsible\">Gene details</button>\n")
+        f.write("<div class=\"content\">\n{{gene_table_%s }}\n</div>\n" % gene_names[i])
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Gene Onthology Annotation</button>\n")
+        f.write("<div class=\"content\">\n{{go_table_%s }}\n</div>\n" % gene_names[i])
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">UniProt Annotations</button>\n")
+        f.write("<div class=\"content\">\n{{uniprot_table_%s }}\n</div>\n" % gene_names[i])
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">GWAS Associations</button>\n")
+        f.write("<div class=\"content\">\n{{gwas_table_%s }}\n</div>\n" % gene_names[i])
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">eQTLs</button>\n")
+        f.write("<div class=\"content\">\n{{gtexVariants_table_%s }}\n</div>\n" % gene_names[i])
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">GXA</button>\n")
+        f.write("<div class=\"content\">\n{{gxa_heatmap_%s }}\n</div>\n" % gene_names[i])
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("<button type=\"button\" class=\"collapsible\">Mouse Models</button>\n")
+        f.write("<div class=\"content\">\n{{mouse_table_%s }}\n</div>\n" % gene_names[i])
+        f.write("<div id=\"space\"></div>\n")
+
+        f.write("</div>\n\n")
+
+    f.write("</div>\n")
+
+    f.write("</body>\n\n")
+
+    f.write("<script>\n")
+    f.write("function openTab2(evt, tabName) {\nvar i, tabcontent, tablinks;\ntabcontent = document.getElementsByClassName(\"tabcontent2\");\nfor (i = 0; i < tabcontent.length; i++) {\ntabcontent[i].style.display = \"none\";\n}\ntablinks = document.getElementsByClassName(\"tablinks2\");\nfor (i = 0; i < tablinks.length; i++) {\ntablinks[i].className = tablinks[i].className.replace(\" active\", \"\");\n}\ndocument.getElementById(tabName).style.display = \"block\";\nevt.currentTarget.className += \" active\";\n}\ndocument.getElementById(\"defaultTabOpen\").click();\n")
+
+    f.write("function showGene(obj) {\nvar i, tabcontent, tablinks;\ntabcontent = document.getElementsByClassName(\"genetabcontent\");\nfor (i = 0; i < tabcontent.length; i++) {\ntabcontent[i].style.display = \"none\";\n}\ndocument.getElementById(obj.value).style.display = \"block\";\n}\n")
+
+    f.write("function openTab(evt, tabName) {\nvar i, tabcontent, tablinks;\ntabcontent = document.getElementsByClassName(\"tabcontent\");\nfor (i = 0; i < tabcontent.length; i++) {\ntabcontent[i].style.display = \"none\";\n}\ntablinks = document.getElementsByClassName(\"tablinks\");\nfor (i = 0; i < tablinks.length; i++) {\ntablinks[i].className = tablinks[i].className.replace(\" active\", \"\");\n}\ndocument.getElementById(tabName).style.display = \"block\";\nevt.currentTarget.className += \" active\";\n}\n")
+
+    f.write("var coll = document.getElementsByClassName(\"collapsible\");\nvar i;\n\n")
+    f.write("for (i = 0; i < coll.length; i++) {\ncoll[i].addEventListener(\"click\", function() {\nthis.classList.toggle(\"active\");\nvar content = this.nextElementSibling;\nif (content.style.display === \"block\") {\ncontent.style.display = \"none\";\n} else {\ncontent.style.display = \"block\";\n}\n});\n}\n\n")
+
+    f.write("</script>\n</html>\n")
+
+    f.close()
+
+# ======================================================================================================================
+def generateVarTemplate_orig(mapping_names,fname):
+    f = open(fname,"w")
+    f.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<html>\n<head>\n")
+    f.write("<style>\n\nth{ text-align: left; }\n")
+    f.write("#common {\nborder-collapse: collapse;\nwidth: 100%;\ncolumn-width=auto;\ncolor: black;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 15px;\n}\n\n")
+    f.write("div.general {\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 20px;\nmargin:  10px 10px 5px 10px\n}\n")
+    f.write("h1 {\nbackground-color: #8b9bc1;\nmargin: 0;\npadding: 4px 8px 2px 24px;\n-webkit-border-radius: 8px 0 8px 0;\nline-height: 1em;\ndisplay: block;\n-webkit-margin-before: 0px;\n-webkit-margin-after: 0px;-webkit-margin-start: 0px;\n-webkit-margin-end: 0px;\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 25px;\nfont-weight: bold;\n}\n\n")
+    f.write("div.big_box {\nbackground-color: white;\nwidth: 98%;\nborder: 1px solid navy;\ndisplay: block;\n\nbackground-color: #fff;\npadding: 0;\nmargin: 0;\n\n/* Margins */\nmargin: 0 auto 1em;\n\n/* Rounded edges */\nborder-bottom-right-radius: 8px;\nborder-top-left-radius: 8px;\n\n/* Shadows around boxes*/\nbox-shadow: 4px 4px 10px #BCBCCC;\n\n/* Setting fonts */\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 20px;\n}\n\n")
+    f.write(".tab {\noverflow: hidden;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\n}\n")
     f.write(".tab button {\nbackground-color: inherit;\nfloat: left;\nborder: none;\noutline: none;\ncursor: pointer;\npadding: 14px 16px;\ntransition: 0.3s;\n}\n")
     f.write(".tab button:hover {\nbackground-color: #ddd;\n}\n")
     f.write(".tab button.active {\nbackground-color: #ccc;\n}\n")
