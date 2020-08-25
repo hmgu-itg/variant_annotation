@@ -269,10 +269,16 @@ def id2rs(varid,build="38"):
     Input: variant ID, build (default: 38)
     Output: set of rs IDs
     '''
+    S=set()
+
     if varid.startswith("rs"):
         return varid
 
     m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",varid)
+    if not m:
+        LOGGER.error("%s is malformed" % varid)
+        return S
+
     chrom=m.group(1)
     pos=int(m.group(2))
     a1=m.group(3)
@@ -280,7 +286,6 @@ def id2rs(varid,build="38"):
 
     batchsize=100
 
-    S=set()
     if len(a1)==1 and len(a2)==1: 
         # SNP
         r=query.restQuery(query.makeOverlapVarQueryURL(chrom,pos,pos,build=build))
