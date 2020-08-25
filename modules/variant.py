@@ -278,13 +278,11 @@ def id2rs(varid,build="38"):
     a1=m.group(3)
     a2=m.group(4)
 
-    # in case of indels, pull all variants around the given variant
-    window=5
-
     batchsize=100
 
     S=set()
-    if len(a1)==1 and len(a2)==1: # SNP
+    if len(a1)==1 and len(a2)==1: 
+        # SNP
         r=query.restQuery(query.makeOverlapVarQueryURL(chrom,pos,pos,build=build))
         if not r:
             return S
@@ -293,6 +291,9 @@ def id2rs(varid,build="38"):
             if a1 in v["alleles"] and a2 in v["alleles"]:
                 S.add(v["id"])
     else:
+        # in case of indels, pull all variants around the variant's position
+        window=max(len(a1),len(a2))
+
         r=query.restQuery(query.makeOverlapVarQueryURL(chrom,pos-window,pos+window,build=build))
         if not r:
             return S
