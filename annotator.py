@@ -33,7 +33,7 @@ verbosity=logging.INFO
 parser = argparse.ArgumentParser()
 input_options = parser.add_argument_group('Input options')
 input_options.add_argument('--build','-b', action="store",help="Optional: genome build; default: 38", default="38",required=False)
-input_options.add_argument("--id", "-i", help="Required: input variation, rsID or variant ID: \"14_94844947_C_T\"",required=True)
+input_options.add_argument("--id", "-i", help="Required: input variation, rsID or variant ID: 14_94844947_C_T",required=True)
 input_options.add_argument("--data", "-d", help="Required: directory with GTEx, GWAS and Ensembl Regulation data",required=True)
 input_options.add_argument('--output','-o', action="store",help="Optional: output directory; defaults to variant ID in the current directory",required=False)
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
