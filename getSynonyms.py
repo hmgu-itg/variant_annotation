@@ -43,4 +43,5 @@ if data:
     if "synonyms" in data:
         L=list(filter(lambda x:x!=rs,data["synonyms"]))
 
-print("\n".join(L))
+for x in L:
+    print(x)
