@@ -38,11 +38,9 @@ logging.getLogger("variant").setLevel(logging.DEBUG)
 
 data=query.restQuery(query.makeRsPhenotypeQuery2URL(rs,build))
 
-L=["NA"]
+L=list()
 if data:
     if "synonyms" in data:
         L=list(filter(lambda x:x!=rs,data["synonyms"]))
-        if len(L)==0:
-            L=["NA"]
 
-print(rs,",".join(L),sep="\t")
+print("\n".join(L))
