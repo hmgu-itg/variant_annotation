@@ -2,7 +2,7 @@
 
 function usage {
     echo ""
-    echo "Usage: $0 -o <output dir> { -g -x -r }"
+    echo "Usage:" $(basename $0) "-o <output dir> { -g -x -r }"
     echo " -g -x -r are optional, for selecting which data to prepare (GWAS, GTEx or Regulation)"
 }
 
@@ -12,12 +12,13 @@ prepgwas=0
 prepgtex=0
 prepreg=0
 
-while getopts "gxro:" optname; do
+while getopts "gxro:h" optname; do
     case "$optname" in
         "g" ) prepgwas=1;;
         "x" ) prepgtex=1;;
         "r" ) prepreg=1;;
         "o" ) out="${OPTARG}";;
+        "h" ) usage ;;
         "?" ) usage ;;
         *) usage ;;
     esac;
