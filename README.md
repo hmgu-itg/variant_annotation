@@ -30,7 +30,7 @@ where ```command``` is one of:
 2. ```annotate```
 
 ### Workflow
-1. Download GWAVA scipt and necessary data from ftp://ftp.sanger.ac.uk/pub/resources/software/gwava/
+1. Download GWAVA scipt and necessary data from [ftp://ftp.sanger.ac.uk/pub/resources/software/gwava/](ftp://ftp.sanger.ac.uk/pub/resources/software/gwava/)
 1. Download and process data from ENSEMBL Regulation, GWAS Catalog and GTEx using ```prepareData``` command. 
 On AK prepared data are in ```/storage/hmgu/referenceData/variant_annotator_data/```
 2. Perform variant annotation using ```annotate``` command.
