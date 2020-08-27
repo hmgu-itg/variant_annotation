@@ -32,7 +32,7 @@ where ```command``` is one of:
 
 ### Workflow
 
-1. Download GWAVA scipt and necessary data from [Sanger](https://www.sanger.ac.uk/sanger/StatGen_Gwava). **On AK GWAVA is installed in ```/storage/hmgu/software/gwava/```**
+1. Download GWAVA script from [Sanger](https://www.sanger.ac.uk/sanger/StatGen_Gwava). **On AK GWAVA is installed in ```/storage/hmgu/software/gwava/```**
 
 1. Download and process data from ENSEMBL Regulation, GWAS Catalog and GTEx using ```prepareData``` command. **On AK prepared data are in ```/storage/hmgu/referenceData/variant_annotator_data/```**
 
