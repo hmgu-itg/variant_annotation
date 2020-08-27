@@ -26,8 +26,8 @@ singularity /storage/hmgu/containers/worker_2.5 <command> -h
 ```
 
 where command is one of:
-1. prepareData
-2. annotate
+1. ```prepareData```
+2. ```annotate```
 
 ### Usage
 1. Download and process data from ENSEMBL Regulation, GWAS Catalog and GTEx
