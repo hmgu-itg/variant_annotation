@@ -39,6 +39,6 @@ where ```command``` is one of:
 2. Perform variant annotation using ```annotate``` command.
 
 Example: 
-```_singularity exec -B /tmp -B ~ -B /storage/hmgu/ /storage/hmgu/containers/worker_2.5 annotate -v debug -i rs12570947 -o ~/output -d /storage/hmgu/referenceData/variant_annotator_data/ --html -g /storage/hmgu/software/gwava/```
+```singularity exec -B /tmp -B ~ -B /storage/hmgu/ /storage/hmgu/containers/worker_2.5 annotate -v debug -i rs12570947 -o ~/output -d /storage/hmgu/referenceData/variant_annotator_data/ --html -g /storage/hmgu/software/gwava/```
 
 The above command will create ```rs12570947.html``` in ```~/output``` directory
