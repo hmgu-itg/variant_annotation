@@ -22,7 +22,7 @@ A variant annotation pipeline that combines information from various sources to 
 
 ### Basic help
 ```
-singularity exec -B <singularity binding options> /storage/hmgu/containers/worker_2.5 <command> -h
+singularity /storage/hmgu/containers/worker_2.5 <command> -h
 ```
 
 where ```command``` is one of:
