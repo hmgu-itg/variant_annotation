@@ -5,6 +5,8 @@ function usage {
     echo "Usage:" $(basename $0) "-o <output dir> { -h -g -x -r}"
     echo " -h : this help message"
     echo " -g -x -r are optional, for selecting which data to prepare (GWAS, GTEx or Regulation)"
+
+    exit 0
 }
 
 OPTIND=1
