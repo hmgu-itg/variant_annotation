@@ -29,7 +29,6 @@ done
 
 if [[ $# -eq 0 ]];then
     usage
-    exit 0
 fi
 
 if [ "$prepgwas" -eq 0 ] && [ "$prepgtex" -eq 0 ] && [ "$prepreg" -eq 0 ];then
