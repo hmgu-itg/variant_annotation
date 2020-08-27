@@ -149,12 +149,14 @@ def checkFiles(files):
     Input: list of file names
     Output: True if files exist, False otherwise
     '''
-    
+
+    f=True
     for f in files:
         if not os.path.isfile(f):
-            return False
+            LOGGER.error("File %s does not exist" % f)
+            f=False
 
-    return True
+    return f
 
 # ======================================================================================================================
 

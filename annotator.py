@@ -35,7 +35,7 @@ input_options = parser.add_argument_group('Input options')
 input_options.add_argument('--build','-b', action="store",help="Optional: genome build; default: 38", default="38",required=False)
 input_options.add_argument("--id", "-i", help="Required: input variant, rsID or variant ID: 14_94844947_C_T",required=True)
 input_options.add_argument("--data", "-d", help="Required: directory with GTEx, GWAS and Ensembl Regulation data",required=True)
-input_options.add_argument('--output','-o', action="store",help="Optional: output directory; defaults to variant ID in the current directory",required=False)
+input_options.add_argument('--output','-o', action="store",help="Optional: output directory; default: to current directory",required=False)
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 input_options.add_argument("--gwava", "-g", help="Optional: path to GWAVA directory", required=False, action='store')
 input_options.add_argument("--html", "-html", help="Optional: output HTML instead of default JSON.GZ", required=False, action='store_true')
@@ -71,7 +71,7 @@ if args.verbose is not None:
     elif args.verbose=="error":
         verbosity=logging.ERROR
 
-outdir=os.getcwd()+"/"+VAR_ID
+outdir=os.getcwd()
 if args.output:
     outdir=args.output
     
@@ -122,7 +122,6 @@ logging.getLogger("mouse").setLevel(verbosity)
 if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED]):
     LOGGER.error("Some of the data files don't exist")
     sys.exit(1)
-
 
 if not utils.createDir(outdir):
     LOGGER.error("Could not create output dir %s" % outdir)
