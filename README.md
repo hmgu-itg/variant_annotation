@@ -21,6 +21,7 @@ A variant annotation pipeline that combines information from various sources to 
 * PolyPhen
 
 ### Basic help
+
 ```
 singularity /storage/hmgu/containers/worker_2.5 <command> -h
 ```
@@ -30,6 +31,7 @@ where ```command``` is one of:
 2. ```annotate```
 
 ### Workflow
+
 1. Download GWAVA scipt and necessary data from [Sanger](https://www.sanger.ac.uk/sanger/StatGen_Gwava)
 
 **On AK GWAVA is installed in ```/storage/hmgu/software/gwava/```**
@@ -40,3 +42,6 @@ where ```command``` is one of:
 
 2. Perform variant annotation using ```annotate``` command.
 
+Example: **_singularity exec -B /tmp -B ~ -B /storage/hmgu/ /storage/hmgu/containers/worker_2.5 annotate -v debug -i rs12570947 -o ~/output -d /storage/hmgu/referenceData/variant_annotator_data/ --html -g /storage/hmgu/software/gwava/_**
+
+The above command will create **rs12570947.html** output data in **~/output** directory
