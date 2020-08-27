@@ -2,7 +2,8 @@
 
 function usage {
     echo ""
-    echo "Usage:" $(basename $0) "-o <output dir> { -g -x -r }"
+    echo "Usage:" $(basename $0) "-o <output dir> { -h -g -x -r}"
+    echo " -h : this help message"
     echo " -g -x -r are optional, for selecting which data to prepare (GWAS, GTEx or Regulation)"
 }
 
