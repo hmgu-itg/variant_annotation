@@ -39,8 +39,12 @@ input_options.add_argument('--output','-o', action="store",help="Optional: outpu
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 input_options.add_argument("--gwava", "-g", help="Optional: path to GWAVA directory", required=False, action='store')
 input_options.add_argument("--html", "-html", help="Optional: output HTML instead of default JSON.GZ", required=False, action='store_true')
+input_options.add_argument("--reg-window", "-reg-window", help="Optional: bp window around the input variant to look for overlapping ENSEMBL regulatory elements; default: 2000", required=False, action='store',dest="reg_window")
+input_options.add_argument("--pheno-window", "-pheno-window", help="Optional: bp window around the input variant to look for variants annotated with phenotypes; default: 500000", required=False, action='store',dest="pheno_window")
+input_options.add_argument("--gene-window", "-gene-window", help="Optional: bp window around the input variant to look for overlapping genes; default: 1000000", required=False, action='store',dest="gene_window")
+input_options.add_argument("--gwas-window", "-gwas-window", help="Optional: bp window around the input variant to look for GWAS signals; default: 500000", required=False, action='store',dest="gwas_window")
 
-# ------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------- PARSING COMMAND LINE ------------------------------------------------------
 
 args=parser.parse_args()
 VAR_ID=args.id
@@ -80,6 +84,15 @@ if GWAVA is not None:
     if GWAVA.endswith("/"):
         GWAVA=GWAVA[:-1]
     config.GWAVA_DIR=GWAVA
+
+if args.reg_window:
+    config.REG_WINDOW=args.reg_window
+if args.pheno_window:
+    config.PHENO_WINDOW=args.pheno_window
+if args.gene_window:
+    config.GENE_WINDOW=args.gene_window
+if args.gwas_window:
+    config.GWAS_WINDOW=args.gwas_window
 
 # ------------------------------------------------------------------------------------------------------------------------
 
