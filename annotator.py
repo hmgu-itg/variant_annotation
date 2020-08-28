@@ -99,7 +99,7 @@ if args.gwas_window:
 # ------------------------------------------------------------------------------------------------------------------------
 
 LOGGER=logging.getLogger("annotator")
-LOGGER.setLevel(verbosity)
+#LOGGER.setLevel(verbosity)
 #ch=logging.StreamHandler()
 ch=logging.FileHandler(logfile)
 ch.setLevel(verbosity)
@@ -108,19 +108,16 @@ ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
 logging.getLogger("variant").addHandler(ch)
-logging.getLogger("variant").setLevel(verbosity)
-
-logging.getLogger("gene").setLevel(verbosity)
-logging.getLogger("regulation").setLevel(verbosity)
-logging.getLogger("gwas").setLevel(verbosity)
-logging.getLogger("gtex").setLevel(verbosity)
-logging.getLogger("pubmed").setLevel(verbosity)
-logging.getLogger("vep").setLevel(verbosity)
-logging.getLogger("exac").setLevel(verbosity)
-logging.getLogger("gxa").setLevel(verbosity)
-logging.getLogger("uniprot").setLevel(verbosity)
-logging.getLogger("utils").setLevel(verbosity)
-logging.getLogger("mouse").setLevel(verbosity)
+logging.getLogger("gene").addHandler(ch)
+logging.getLogger("regulation").addHandler(ch)
+logging.getLogger("gwas").addHandler(ch)
+logging.getLogger("gtex").addHandler(ch)
+logging.getLogger("pubmed").addHandler(ch)
+logging.getLogger("vep").addHandler(ch)
+logging.getLogger("gxa").addHandler(ch)
+logging.getLogger("uniprot").addHandler(ch)
+logging.getLogger("utils").addHandler(ch)
+logging.getLogger("mouse").addHandler(ch)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -139,6 +136,8 @@ variant_data=variant.getVariantInfo(VAR_ID,build)
 if variant_data is None:
     LOGGER.error("Variant data could not be retreived")
     sys.exit(1)
+
+sys.exit(0)
 
 if GWAVA is not None:
     LOGGER.info("Getting GWAVA scores")
