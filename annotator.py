@@ -98,7 +98,8 @@ if args.gwas_window:
 
 # ------------------------------------------------------------------------------------------------------------------------
 
-LOGGER=logging.getLogger("annotator")
+#LOGGER=logging.getLogger("annotator")
+LOGGER=logging.getLogger()
 LOGGER.setLevel(verbosity)
 #ch=logging.StreamHandler()
 ch=logging.FileHandler(logfile)
