@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import logging.config
 import json
 import os
 import sys
@@ -99,6 +100,7 @@ if args.gwas_window:
 # ------------------------------------------------------------------------------------------------------------------------
 
 logging.config.dictConfig({
+    'version': 1,
     'disable_existing_loggers': True
 })
 
