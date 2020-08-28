@@ -2,7 +2,6 @@
 
 import argparse
 import logging
-import logging.config
 import json
 import os
 import sys
@@ -30,7 +29,8 @@ sys.stdout=open(sys.stdout.fileno(),mode='w',encoding='utf8',buffering=1)
 build="38"
 verbosity=logging.INFO
 
-# -----------------------------------
+# ------------------------------------------------------------------------------------------------------------------------
+
 parser = argparse.ArgumentParser()
 input_options = parser.add_argument_group('Input options')
 input_options.add_argument('--build','-b', action="store",help="Optional: genome build; default: 38", default="38",required=False)
@@ -99,13 +99,13 @@ if args.gwas_window:
 
 # ------------------------------------------------------------------------------------------------------------------------
 
-# logging.config.dictConfig({
-#     'version': 1,
-#     'disable_existing_loggers': True
-# })
+if not utils.createDir(outdir):
+    print("ERROR: Could not create output dir %s" % outdir,file=sys.stderr)
+    sys.exit(1)
+
+# -------------------------------------------------------- LOGGERS -------------------------------------------------------
 
 LOGGER=logging.getLogger("annotator")
-#LOGGER=logging.getLogger()
 LOGGER.setLevel(verbosity)
 #ch=logging.StreamHandler()
 ch=logging.FileHandler(logfile,'w')
@@ -143,11 +143,7 @@ if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS
     LOGGER.error("Some of the data files don't exist")
     sys.exit(1)
 
-if not utils.createDir(outdir):
-    LOGGER.error("Could not create output dir %s" % outdir)
-    sys.exit(1)
-
-# ------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------- MAIN ---------------------------------------------------------
 
 LOGGER.info("Retrieving variant data from ENSEMBL")
 variant_data=variant.getVariantInfo(VAR_ID,build)
@@ -264,14 +260,6 @@ for i in range(0,len(chrpos)):
 
 # ----------------------------------------------------------------------------
 
-# if out_html:
-#     template_fname=config.OUTPUT_DIR+"/template_var.html"
-#     utils.generateVarTemplate(mapping_names,template_fname)
-#     f=open(config.OUTPUT_DIR+"/%s.html" %VAR_ID,"w")
-#     f.write(utils.generateHTML(template_fname,D))
-#     f.close()
-
-# D.clear()
 gene_names=list()
 LOGGER.info("Total genes: %d" % len(all_genes))
 for i in range(0,len(all_genes)):
@@ -348,12 +336,13 @@ for i in range(0,len(all_genes)):
         D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
 
 if out_html:
+    LOGGER.info("Saving HTML output\n")
     template_fname=config.OUTPUT_DIR+"/template.html"
     utils.generateTemplate(mapping_names,gene_names,template_fname)
     f = open(config.OUTPUT_DIR+"/%s.html" %VAR_ID,"w")
     f.write(utils.generateHTML(template_fname,D))
     f.close()
 else:
-    LOGGER.info("Saving JSON data\n")
+    LOGGER.info("Saving JSON output\n")
     with gzip.GzipFile(config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID,"w") as fout:
         fout.write(json.dumps(D1).encode('utf-8'))

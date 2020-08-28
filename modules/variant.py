@@ -166,9 +166,6 @@ def getVariantInfo(rs,build="38"):
     "scores" : dictionary mapping "chr:pos" string to a dictionary with keys "avg_gerp", "gerp", "gwava"
     '''
 
-    LOGGER.debug("TEST")
-    LOGGER.info("TEST")
-
     res=dict()
 
 #------------------- general information ---------------

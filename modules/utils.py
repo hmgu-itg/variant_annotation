@@ -162,12 +162,12 @@ def checkFiles(files):
 
 def createDir(path):
     if os.path.exists(path):
-        LOGGER.info("%s already exists" % path)
+        #LOGGER.info("%s already exists" % path)
         return path
     try:
         os.mkdir(path)
     except OSError:
-        LOGGER.error("Creation of the directory %s failed" % path)
+        #LOGGER.error("Creation of the directory %s failed" % path)
         return None
     else:
         return path
