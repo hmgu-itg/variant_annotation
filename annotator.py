@@ -40,10 +40,10 @@ input_options.add_argument('--output','-o', action="store",help="Optional: outpu
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 input_options.add_argument("--gwava", "-g", help="Optional: path to GWAVA directory", required=False, action='store')
 input_options.add_argument("--html", "-html", help="Optional: output HTML instead of default JSON.GZ", required=False, action='store_true')
-input_options.add_argument("--reg-window", "-reg-window", help="Optional: bp window around the input variant to look for overlapping ENSEMBL regulatory elements; default: 2000", required=False, action='store',dest="reg_window")
-input_options.add_argument("--pheno-window", "-pheno-window", help="Optional: bp window around the input variant to look for variants annotated with phenotypes; default: 500000", required=False, action='store',dest="pheno_window")
-input_options.add_argument("--gene-window", "-gene-window", help="Optional: bp window around the input variant to look for overlapping genes; default: 1000000", required=False, action='store',dest="gene_window")
-input_options.add_argument("--gwas-window", "-gwas-window", help="Optional: bp window around the input variant to look for GWAS signals; default: 500000", required=False, action='store',dest="gwas_window")
+input_options.add_argument("--reg-window", "-reg-window", help="Optional: bp window around the input variant to look for overlapping ENSEMBL regulatory elements; default: %d" % config.REG_WINDOW, type=long, default=config.REG_WINDOW, required=False, action='store',dest="reg_window")
+input_options.add_argument("--pheno-window", "-pheno-window", help="Optional: bp window around the input variant to look for variants annotated with phenotypes; default: %d" % config.PHENO_WINDOW, type=long, default=config.PHENO_WINDOW, required=False, action='store',dest="pheno_window")
+input_options.add_argument("--gene-window", "-gene-window", help="Optional: bp window around the input variant to look for overlapping genes; default: %d" % config.GENE_WINDOW, type=long, default=config.GENE_WINDOW, required=False, action='store',dest="gene_window")
+input_options.add_argument("--gwas-window", "-gwas-window", help="Optional: bp window around the input variant to look for GWAS signals; default: %d" % config.GWAS_WINDOW, type=long, default=config.GWAS_WINDOW, required=False, action='store',dest="gwas_window")
 
 # --------------------------------------------- PARSING COMMAND LINE ------------------------------------------------------
 
