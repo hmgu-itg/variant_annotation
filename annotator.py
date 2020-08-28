@@ -137,7 +137,7 @@ if variant_data is None:
     LOGGER.error("Variant data could not be retreived")
     sys.exit(1)
 
-sys.exit(0)
+#sys.exit(0)
 
 if GWAVA is not None:
     LOGGER.info("Getting GWAVA scores")
