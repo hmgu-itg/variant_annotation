@@ -88,7 +88,7 @@ def getGeneList(chrom,pos,window=config.GENE_WINDOW,build="38"):
     "start", "end", "strand", "name", "description", "biotype", "ID", "distance", "orientation" 
     '''
 
-    LOGGER.debug("Genes around %s:%d; window: %d" %(chrom,pos,window))
+    LOGGER.debug("Looking for genes around %s:%d; window: %d" %(chrom,pos,window))
 
     end=pos+window
     start=pos-window
@@ -96,10 +96,10 @@ def getGeneList(chrom,pos,window=config.GENE_WINDOW,build="38"):
         start=1
 
     overlapping_genes=query.restQuery(query.makeGeneOverlapQueryURL(chrom,start,end,build=build))
-    gene_list=list()
     if overlapping_genes is None:
         return None
 
+    gene_list=list()
     for gene in overlapping_genes:
         d_from_start=abs(pos-int(gene["start"]))
         d_from_end=abs(pos-int(gene["end"]))

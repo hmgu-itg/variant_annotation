@@ -67,4 +67,5 @@ def getPopulationAF(var, dataset="gnomad_r3"):
                 i+=1
         return df
     else:
+        LOGGER.info("No GnomAD info for %s" % var)
         return empty_df
