@@ -115,7 +115,7 @@ ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
 #logging.getLogger("variant").addHandler(ch)
-#logging.getLogger("variant").setLevel(logging.DEBUG)
+logging.getLogger("modules.variant").setLevel(logging.DEBUG)
 
 # logging.getLogger("gene").addHandler(ch)
 # logging.getLogger("regulation").addHandler(ch)
