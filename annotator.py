@@ -48,6 +48,7 @@ input_options.add_argument("--gwas-window", "-gwas-window", help="Optional: bp w
 # --------------------------------------------- PARSING COMMAND LINE ------------------------------------------------------
 
 args=parser.parse_args()
+print(args)
 VAR_ID=args.id
 GWAVA=args.gwava
 out_html=args.html
@@ -96,6 +97,8 @@ if args.gene_window:
     config.GENE_WINDOW=args.gene_window
 if args.gwas_window:
     config.GWAS_WINDOW=args.gwas_window
+
+sys.exit(0)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
