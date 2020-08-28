@@ -99,34 +99,34 @@ if args.gwas_window:
 
 # ------------------------------------------------------------------------------------------------------------------------
 
-logging.config.dictConfig({
-    'version': 1,
-    'disable_existing_loggers': True
-})
+# logging.config.dictConfig({
+#     'version': 1,
+#     'disable_existing_loggers': True
+# })
 
 #LOGGER=logging.getLogger("annotator")
 LOGGER=logging.getLogger()
 LOGGER.setLevel(verbosity)
-#ch=logging.StreamHandler()
-ch=logging.FileHandler(logfile)
+ch=logging.StreamHandler()
+#ch=logging.FileHandler(logfile)
 #ch.setLevel(verbosity)
 formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
 #logging.getLogger("variant").addHandler(ch)
-logging.getLogger("variant").setLevel(logging.DEBUG)
+#logging.getLogger("variant").setLevel(logging.DEBUG)
 
-logging.getLogger("gene").addHandler(ch)
-logging.getLogger("regulation").addHandler(ch)
-logging.getLogger("gwas").addHandler(ch)
-logging.getLogger("gtex").addHandler(ch)
-logging.getLogger("pubmed").addHandler(ch)
-logging.getLogger("vep").addHandler(ch)
-logging.getLogger("gxa").addHandler(ch)
-logging.getLogger("uniprot").addHandler(ch)
-logging.getLogger("utils").addHandler(ch)
-logging.getLogger("mouse").addHandler(ch)
+# logging.getLogger("gene").addHandler(ch)
+# logging.getLogger("regulation").addHandler(ch)
+# logging.getLogger("gwas").addHandler(ch)
+# logging.getLogger("gtex").addHandler(ch)
+# logging.getLogger("pubmed").addHandler(ch)
+# logging.getLogger("vep").addHandler(ch)
+# logging.getLogger("gxa").addHandler(ch)
+# logging.getLogger("uniprot").addHandler(ch)
+# logging.getLogger("utils").addHandler(ch)
+# logging.getLogger("mouse").addHandler(ch)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -146,7 +146,7 @@ if variant_data is None:
     LOGGER.error("Variant data could not be retreived")
     sys.exit(1)
 
-#sys.exit(0)
+sys.exit(0)
 
 if GWAVA is not None:
     LOGGER.info("Getting GWAVA scores")
