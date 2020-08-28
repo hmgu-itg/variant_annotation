@@ -53,13 +53,13 @@ GWAVA=args.gwava
 out_html=args.html
 datadir=args.data
 
-if datadir.endswith("/"):
-    datadir=datadir[:-1]
+if not datadir.endswith("/"):
+    datadir+="/"
 
-config.REGULATORY_FILE=datadir+"/regulation/regulation.bed.gz"
-config.GWAS_FILE_VAR=datadir+"/gwas/gwas.tsv.gz"
-config.GWAS_FILE=datadir+"/gwas/gwas_full.tsv.gz"
-config.GTEX_BED=datadir+"/gtex/gtex.bed.gz"
+config.REGULATORY_FILE=datadir+config.REGULATORY_FILE_SFX
+config.GWAS_FILE_VAR=datadir+config.GWAS_FILE_VAR_SFX
+config.GWAS_FILE=datadir+config.GWAS_FILE_SFX
+config.GTEX_BED=datadir+config.GTEX_BED_SFX
 
 if args.build!=None:
     build=args.build
@@ -142,7 +142,6 @@ LOGGER.info("")
 # ------------------------------------------------------------------------------------------------------------------------
 
 if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED]):
-    LOGGER.error("Some of the data files don't exist")
     sys.exit(1)
 
 # --------------------------------------------------------- MAIN ---------------------------------------------------------

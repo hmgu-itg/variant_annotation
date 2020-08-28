@@ -62,6 +62,11 @@ GWAS_CAT_LINK   = '<a href="https://www.ebi.ac.uk/gwas/search?query=%s">%s</a>'
 PUBMED_LINK     = '<a href="http://www.ncbi.nlm.nih.gov/pubmed/%s">%s</a>'
 GTEX_LINK       = '<a href="http://www.gtexportal.org/home/snp/%s">GTEx site</a>'
 
+REGULATORY_FILE_SFX="regulation/regulation.bed.gz"
+GWAS_FILE_VAR_SFX="gwas/gwas.tsv.gz"
+GWAS_FILE_SFX="gwas/gwas_full.tsv.gz"
+GTEX_BED_SFX="gtex/gtex.bed.gz"
+
 GnomadPopulations={
     "AFR": "African American",
     "AMI": "Amish",
