@@ -102,12 +102,14 @@ LOGGER=logging.getLogger("annotator")
 LOGGER.setLevel(verbosity)
 #ch=logging.StreamHandler()
 ch=logging.FileHandler(logfile)
-ch.setLevel(verbosity)
+#ch.setLevel(verbosity)
 formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
+logging.getLogger("variant").setLevel(verbosity)
 logging.getLogger("variant").addHandler(ch)
+
 logging.getLogger("gene").addHandler(ch)
 logging.getLogger("regulation").addHandler(ch)
 logging.getLogger("gwas").addHandler(ch)
@@ -137,7 +139,7 @@ if variant_data is None:
     LOGGER.error("Variant data could not be retreived")
     sys.exit(1)
 
-sys.exit(0)
+#sys.exit(0)
 
 if GWAVA is not None:
     LOGGER.info("Getting GWAVA scores")
