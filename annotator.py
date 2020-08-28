@@ -48,8 +48,6 @@ input_options.add_argument("--gwas-window", "-gwas-window", help="Optional: bp w
 # --------------------------------------------- PARSING COMMAND LINE ------------------------------------------------------
 
 args=parser.parse_args()
-for arg in vars(args):
-    print(arg, getattr(args, arg))
 VAR_ID=args.id
 GWAVA=args.gwava
 out_html=args.html
@@ -99,8 +97,6 @@ if args.gene_window:
 if args.gwas_window:
     config.GWAS_WINDOW=args.gwas_window
 
-sys.exit(0)
-
 # ------------------------------------------------------------------------------------------------------------------------
 
 if not utils.createDir(outdir):
@@ -140,6 +136,9 @@ logging.getLogger("modules.utils").addHandler(ch)
 logging.getLogger("modules.utils").setLevel(verbosity)
 logging.getLogger("modules.mouse").addHandler(ch)
 logging.getLogger("modules.mouse").setLevel(verbosity)
+
+for arg in vars(args):
+    LOGGER.info("COMMAND LINE OPTIONS: " % (arg, getattr(args, arg)))
 
 # ------------------------------------------------------------------------------------------------------------------------
 
