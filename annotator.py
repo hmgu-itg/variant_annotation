@@ -116,17 +116,26 @@ LOGGER.addHandler(ch)
 
 logging.getLogger("modules.variant").addHandler(ch)
 logging.getLogger("modules.variant").setLevel(verbosity)
-
-# logging.getLogger("gene").addHandler(ch)
-# logging.getLogger("regulation").addHandler(ch)
-# logging.getLogger("gwas").addHandler(ch)
-# logging.getLogger("gtex").addHandler(ch)
-# logging.getLogger("pubmed").addHandler(ch)
-# logging.getLogger("vep").addHandler(ch)
-# logging.getLogger("gxa").addHandler(ch)
-# logging.getLogger("uniprot").addHandler(ch)
-# logging.getLogger("utils").addHandler(ch)
-# logging.getLogger("mouse").addHandler(ch)
+logging.getLogger("modules.gene").addHandler(ch)
+logging.getLogger("modules.gene").setLevel(verbosity)
+logging.getLogger("modules.regulation").addHandler(ch)
+logging.getLogger("modules.regulation").setLevel(verbosity)
+logging.getLogger("modules.gwas").addHandler(ch)
+logging.getLogger("modules.gwas").setLevel(verbosity)
+logging.getLogger("modules.gtex").addHandler(ch)
+logging.getLogger("modules.gtex").setLevel(verbosity)
+logging.getLogger("modules.pubmed").addHandler(ch)
+logging.getLogger("modules.pubmed").setLevel(verbosity)
+logging.getLogger("modules.vep").addHandler(ch)
+logging.getLogger("modules.vep").setLevel(verbosity)
+logging.getLogger("modules.gxa").addHandler(ch)
+logging.getLogger("modules.gxa").setLevel(verbosity)
+logging.getLogger("modules.uniprot").addHandler(ch)
+logging.getLogger("modules.uniprot").setLevel(verbosity)
+logging.getLogger("modules.utils").addHandler(ch)
+logging.getLogger("modules.utils").setLevel(verbosity)
+logging.getLogger("modules.mouse").addHandler(ch)
+logging.getLogger("modules.mouse").setLevel(verbosity)
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -145,8 +154,6 @@ variant_data=variant.getVariantInfo(VAR_ID,build)
 if variant_data is None:
     LOGGER.error("Variant data could not be retreived")
     sys.exit(1)
-
-sys.exit(0)
 
 if GWAVA is not None:
     LOGGER.info("Getting GWAVA scores")
