@@ -106,7 +106,7 @@ if args.gwas_window:
 
 LOGGER=logging.getLogger("annotator")
 #LOGGER=logging.getLogger()
-#LOGGER.setLevel(verbosity)
+LOGGER.setLevel(verbosity)
 #ch=logging.StreamHandler()
 ch=logging.FileHandler(logfile)
 ch.setLevel(verbosity)
@@ -115,7 +115,7 @@ ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
 logging.getLogger("modules.variant").addHandler(ch)
-#logging.getLogger("modules.variant").setLevel(logging.DEBUG)
+logging.getLogger("modules.variant").setLevel(verbosity)
 
 # logging.getLogger("gene").addHandler(ch)
 # logging.getLogger("regulation").addHandler(ch)
