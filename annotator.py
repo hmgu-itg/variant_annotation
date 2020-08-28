@@ -114,7 +114,7 @@ formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
-logging.getLogger("variant").addHandler(ch)
+logging.getLogger("modules.variant").addHandler(ch)
 logging.getLogger("modules.variant").setLevel(logging.DEBUG)
 
 # logging.getLogger("gene").addHandler(ch)
