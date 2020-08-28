@@ -101,7 +101,7 @@ if args.gwas_window:
 LOGGER=logging.getLogger("annotator")
 LOGGER.setLevel(verbosity)
 #ch=logging.StreamHandler()
-ch=logging.FileHandler(config.LOGFILE)
+ch=logging.FileHandler(logfile)
 ch.setLevel(verbosity)
 formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 ch.setFormatter(formatter)
