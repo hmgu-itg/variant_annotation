@@ -137,8 +137,10 @@ logging.getLogger("modules.utils").setLevel(verbosity)
 logging.getLogger("modules.mouse").addHandler(ch)
 logging.getLogger("modules.mouse").setLevel(verbosity)
 
+# ------------------------------------------------------------------------------------------------------------------------
+
 for arg in vars(args):
-    LOGGER.info("COMMAND LINE OPTIONS: " % (arg, getattr(args, arg)))
+    LOGGER.info("COMMAND LINE OPTIONS: %s : %s" % (arg, getattr(args, arg)))
 
 # ------------------------------------------------------------------------------------------------------------------------
 
