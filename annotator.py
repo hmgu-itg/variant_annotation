@@ -88,14 +88,10 @@ if GWAVA is not None:
         GWAVA=GWAVA[:-1]
     config.GWAVA_DIR=GWAVA
 
-if args.reg_window:
-    config.REG_WINDOW=args.reg_window
-if args.pheno_window:
-    config.PHENO_WINDOW=args.pheno_window
-if args.gene_window:
-    config.GENE_WINDOW=args.gene_window
-if args.gwas_window:
-    config.GWAS_WINDOW=args.gwas_window
+config.REG_WINDOW=args.reg_window
+config.PHENO_WINDOW=args.pheno_window
+config.GENE_WINDOW=args.gene_window
+config.GWAS_WINDOW=args.gwas_window
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -342,13 +338,15 @@ for i in range(0,len(all_genes)):
         D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
 
 if out_html:
-    LOGGER.info("Saving HTML output\n")
+    outfile=config.OUTPUT_DIR+"/%s.html" %VAR_ID
+    LOGGER.info("Saving HTML output to %s\n" % outfile)
     template_fname=config.OUTPUT_DIR+"/template.html"
     utils.generateTemplate(mapping_names,gene_names,template_fname)
-    f = open(config.OUTPUT_DIR+"/%s.html" %VAR_ID,"w")
+    f = open(outfile,"w")
     f.write(utils.generateHTML(template_fname,D))
     f.close()
 else:
-    LOGGER.info("Saving JSON output\n")
-    with gzip.GzipFile(config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID,"w") as fout:
+    outfile=config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID
+    LOGGER.info("Saving JSON output to %s\n" % outfile)
+    with gzip.GzipFile(outfile,"w") as fout:
         fout.write(json.dumps(D1).encode('utf-8'))

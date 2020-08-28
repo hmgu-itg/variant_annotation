@@ -67,7 +67,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
         LOGGER.error("Maximal region size allowed: 5Mbp")
         return empty_df
 
-    LOGGER.debug("%s:%d" %(chrom,pos))
+    LOGGER.debug("%s:%d; window: %d" %(chrom,pos,window))
     variants=query.restQuery(query.makePhenoOverlapQueryURL(chrom,start,end,build=build),qtype="get")
     #print(json.dumps(variants,indent=4,sort_keys=True))
 
