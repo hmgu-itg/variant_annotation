@@ -7,12 +7,6 @@ from . import config
 from . import query
 
 LOGGER=logging.getLogger(__name__)
-# LOGGER.setLevel(logging.DEBUG)
-# ch=logging.StreamHandler()
-# ch.setLevel(logging.DEBUG)
-# formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
-# ch.setFormatter(formatter)
-# LOGGER.addHandler(ch)
 
 # ==============================================================================================================================
 
@@ -61,7 +55,6 @@ def getGeneXrefs (ID,build="38"):
 
     r=query.restQuery(query.makeGeneXQueryURL(ID,build=build))
     if not r:
-        LOGGER.info("No cross references found for %s" %(ID))
         return  None
 
     xrefs = {
@@ -95,7 +88,7 @@ def getGeneList(chrom,pos,window=config.GENE_WINDOW,build="38"):
     "start", "end", "strand", "name", "description", "biotype", "ID", "distance", "orientation" 
     '''
 
-    LOGGER.debug("Genes around %s:%d" %(chrom,pos))
+    LOGGER.debug("Genes around %s:%d; window: %d" %(chrom,pos,window))
 
     end=pos+window
     start=pos-window
