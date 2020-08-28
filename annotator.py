@@ -104,17 +104,17 @@ if args.gwas_window:
 #     'disable_existing_loggers': True
 # })
 
-#LOGGER=logging.getLogger("annotator")
-LOGGER=logging.getLogger()
+LOGGER=logging.getLogger("annotator")
+#LOGGER=logging.getLogger()
 LOGGER.setLevel(verbosity)
-ch=logging.StreamHandler()
-#ch=logging.FileHandler(logfile)
+#ch=logging.StreamHandler()
+ch=logging.FileHandler(logfile)
 #ch.setLevel(verbosity)
 formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
-#logging.getLogger("variant").addHandler(ch)
+logging.getLogger("variant").addHandler(ch)
 logging.getLogger("modules.variant").setLevel(logging.DEBUG)
 
 # logging.getLogger("gene").addHandler(ch)
