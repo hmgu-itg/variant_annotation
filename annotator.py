@@ -48,7 +48,8 @@ input_options.add_argument("--gwas-window", "-gwas-window", help="Optional: bp w
 # --------------------------------------------- PARSING COMMAND LINE ------------------------------------------------------
 
 args=parser.parse_args()
-print(args)
+for arg in vars(args):
+    print arg, getattr(args, arg)
 VAR_ID=args.id
 GWAVA=args.gwava
 out_html=args.html
