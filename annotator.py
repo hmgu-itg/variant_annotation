@@ -104,6 +104,8 @@ if args.gwas_window:
 #     'disable_existing_loggers': True
 # })
 
+logging.basicConfig(filemode='w')
+
 LOGGER=logging.getLogger("annotator")
 #LOGGER=logging.getLogger()
 LOGGER.setLevel(verbosity)
