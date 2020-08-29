@@ -24,7 +24,7 @@ def df2svg(df):
     
     fig=go.Figure(data=data)
     fig.update_layout(barmode='stack')
-    out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR,suffix=".svg")
+    out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR_FIG,suffix=".svg")
     fname=out.name
     out.close()
     fig.write_image(fname)

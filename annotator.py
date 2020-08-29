@@ -80,6 +80,7 @@ if outdir.endswith("/"):
     outdir=outdir[:-1]
 
 config.OUTPUT_DIR=outdir
+config.OUTPUT_DIR_FIG=config.OUTPUT_DIR+"/figures"
 
 logfile=outdir+"/"+VAR_ID+".log"
 
@@ -97,6 +98,10 @@ config.GWAS_WINDOW=args.gwas_window
 
 if not utils.createDir(outdir):
     print("ERROR: Could not create output dir %s" % outdir,file=sys.stderr)
+    sys.exit(1)
+
+if not utils.createDir(config.OUTPUT_DIR_FIG):
+    print("ERROR: Could not create output dir %s" % config.OUTPUT_DIR_FIG,file=sys.stderr)
     sys.exit(1)
 
 # -------------------------------------------------------- LOGGERS -------------------------------------------------------

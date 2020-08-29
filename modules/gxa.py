@@ -35,7 +35,7 @@ def df2svg(df):
     df=df.set_index("Experiment")
     
     fig=px.imshow(df)
-    out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR,suffix=".svg")
+    out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR_FIG,suffix=".svg")
     fname=out.name
     out.close()
     fig.write_image(fname)
