@@ -143,7 +143,7 @@ logging.getLogger("modules.gnomad").setLevel(verbosity)
 logging.getLogger("modules.query").addHandler(ch)
 logging.getLogger("modules.query").setLevel(verbosity)
 
-with open(logfile,"a") as stderr, redirect_stderr(stderr):
+redirect_stderr(open(logfile,"a"))
 
 # ------------------------------------------------------------------------------------------------------------------------
 
@@ -157,6 +157,8 @@ if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS
     sys.exit(1)
 
 # --------------------------------------------------------- MAIN ---------------------------------------------------------
+
+print("STDERR TEST",file=sys.stderr)
 
 LOGGER.info("Retrieving variant data from ENSEMBL")
 variant_data=variant.getVariantInfo(VAR_ID,build)
