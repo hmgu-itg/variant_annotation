@@ -157,8 +157,6 @@ if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS
 
 # --------------------------------------------------------- MAIN ---------------------------------------------------------
 
-print("STDERR TEST",file=sys.stderr)
-
 LOGGER.info("Retrieving variant data from ENSEMBL")
 variant_data=variant.getVariantInfo(VAR_ID,build)
 if variant_data is None:
