@@ -101,10 +101,10 @@ if not utils.createDir(outdir):
     sys.exit(1)
 
 if not utils.createDir(config.OUTPUT_DIR_FIG):
-    print("ERROR: Could not create output dir %s" % config.OUTPUT_DIR_FIG,file=sys.stderr)
+    print("ERROR: Could not create %s" % config.OUTPUT_DIR_FIG,file=sys.stderr)
     sys.exit(1)
 
-# -------------------------------------------------------- LOGGERS -------------------------------------------------------
+# -------------------------------------------------------- LOGGING -------------------------------------------------------
 
 LOGGER=logging.getLogger("annotator")
 LOGGER.setLevel(verbosity)
@@ -349,7 +349,7 @@ for i in range(0,len(all_genes)):
 # ---------------------------------------------------- OUTPUT and CLEANUP  ---------------------------------------------------
 
 if out_html:
-    outfile=config.OUTPUT_DIR+"/%s.html" %VAR_ID
+    outfile=config.OUTPUT_DIR+"/%s.html" % VAR_ID
     LOGGER.info("Saving HTML output to %s\n" % outfile)
     template_fname=config.OUTPUT_DIR+"/template.html"
     utils.generateTemplate(mapping_names,gene_names,template_fname)
