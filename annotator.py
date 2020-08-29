@@ -194,7 +194,7 @@ for i in range(0,len(chrpos)):
     LOGGER.info("Creating populations dataframe")
     populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
     populationFig=utils.df2barchart(populationDF)
-    populationImage=utils.df2svg(populationDF,config.OUTPUT_DIR+"/"+VAR_ID+".svg")
+    populationFname=utils.df2svg(populationDF)
 
     LOGGER.info("Creating PubMed dataframe")
     pubmedDF=pubmed.getPubmedDF(VAR_ID,variant_data["synonyms"])
@@ -211,6 +211,7 @@ for i in range(0,len(chrpos)):
     LOGGER.info("Creating gnomAD dataframe")
     gnomadDF=gnomad.getPopulationAF(VAR_ID)
     gnomadFig=utils.df2barchart(gnomadDF)
+    gnomadFname=utils.df2svg(gnomadDF)
     
     LOGGER.info("Creating GTEx dataframe")
     GTEx_genesDF=gtex.getGTExDF(mappings)    
@@ -233,11 +234,12 @@ for i in range(0,len(chrpos)):
             D["vepreg_table%d" %i]=vepDFreg.to_html(index=False,classes='utf8',table_id="common")
         # if len(populationDF)>0:
         #     D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
-        if gnomadFig is not None:
-            D["gnomad_table%d" %i]=gnomadFig
+        # if gnomadFig is not None:
+        #     D["gnomad_table%d" %i]=gnomadFig
         # if populationFig is not None:
         #     D["population_table%d" %i]=populationFig
-        D["population_table%d" %i]="<img src=\""+config.OUTPUT_DIR+"/"+VAR_ID+".svg"+"\">"
+        D["population_table%d" %i]="<img src=\"%s\">" % populationFname
+        D["gnomad_table%d" %i]="<img src=\"%s\">" % gnomadFname
         if len(pubmedDF)>0:
             D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
         if len(phenotypeDF)>0:
@@ -305,6 +307,7 @@ for i in range(0,len(all_genes)):
     LOGGER.info("Creating GXA dataframe")
     gxaDF=gxa.getGxaDF(gene_ID)
     gxaHeatmap=gxa.df2heatmap(gxaDF)
+    gxaFname=utils.df2svg(gxaDF)
 
     LOGGER.info("Creating UniProt dataframe")
     uniprotDF=uniprot.uniprot2df(up)
@@ -324,7 +327,8 @@ for i in range(0,len(all_genes)):
             D["uniprot_table_%s" % gene_ID]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
         if len(gwasDF)>0:
             D["gwas_table_%s" % gene_ID]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-        D["gxa_heatmap_%s" % gene_ID]=gxaHeatmap
+#        D["gxa_heatmap_%s" % gene_ID]=gxaHeatmap
+        D["gxa_heatmap_%s" % gene_ID]="<img src=\"%s\">" % gxaFname
         if len(gtexDF)>0:
             D["gtexVariants_table_%s" % gene_ID]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
         if len(mouseDF)>0:

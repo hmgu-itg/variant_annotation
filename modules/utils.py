@@ -10,16 +10,10 @@ import plotly.graph_objects as go
 from . import config
 
 LOGGER=logging.getLogger(__name__)
-# LOGGER.setLevel(logging.DEBUG)
-# ch=logging.StreamHandler()
-# ch.setLevel(logging.DEBUG)
-# formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
-# ch.setFormatter(formatter)
-# LOGGER.addHandler(ch)
 
 # ==============================================================================================================================
 
-def df2svg(df,fname):
+def df2svg(df):
     if len(df)==0:
         return None
 
@@ -30,7 +24,11 @@ def df2svg(df,fname):
     
     fig=go.Figure(data=data)
     fig.update_layout(barmode='stack')
+    out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR,suffix=".svg")
+    fname=out.name()
+    out.close()
     fig.write_image(fname)
+    return fname
 
 # ==============================================================================================================================
 
