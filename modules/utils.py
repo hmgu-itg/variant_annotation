@@ -32,12 +32,13 @@ def df2barchart(df):
     fig.update_layout(barmode='stack')
     out=tf.NamedTemporaryFile(delete=False,mode="w")
     fig.write_html(out.name,full_html=False)
+    LOGEER.debug("temp file: out.name")
     out.close()
     with open (out.name, "r") as f:
         data=f.readlines()
     f.close()
-    if os.path.isfile(out.name):
-        os.remove(out.name)
+#    if os.path.isfile(out.name):
+#        os.remove(out.name)
 
     return "".join(data)
 
@@ -206,7 +207,7 @@ def generateTemplate(mapping_names,gene_names,fname):
     # collapsible styles
     f.write(".collapsible {\nbackground-color: #33b2ff;\ncolor: white;\ncursor: pointer;\npadding: 18px;\nwidth: 100%;\nborder: none;\ntext-align: center;\noutline: none;\nfont-size: 15px;\nborder-radius: 12px;\n}\n\n")
     f.write(".active, .collapsible:hover {\nbackground-color: #3399ff;\n}\n\n")
-    f.write(".content {\npadding: 0 18px;\ndisplay: none;\ntext-align: center;\noverflow: hidden;\nbackground-color: #f1f1f1;\n}\n\n")
+    f.write(".content {\nleft: 50%\npadding: 0 18px;\ndisplay: none;\ntext-align: center;\noverflow: hidden;\nbackground-color: #f1f1f1;\n}\n\n")
     # ------------------
 
     f.write("#space\n{width: 100%;\n height: 5px;\n margin: 0px;\n padding: 0px;\n border: 0px;\nbackground: #FFFFFF;\nclear:both;\n}\n\n") 
