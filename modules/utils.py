@@ -255,7 +255,8 @@ def generateTemplate(mapping_names,gene_names,fname):
         f.write("<div id=\"space\"></div>\n")
 
         f.write("<button type=\"button\" class=\"collapsible\">1kG allele frequencies</button>\n")
-        f.write("<div class=\"content\">\n{{ population_table%d }}\n</div>\n" %i)
+#        f.write("<div class=\"content\">\n{{ population_table%d }}\n</div>\n" %i)
+        f.write("\n{{ population_table%d }}\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
         f.write("<button type=\"button\" class=\"collapsible\">gnomAD allele frequencies</button>\n")
