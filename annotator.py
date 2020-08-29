@@ -307,7 +307,7 @@ for i in range(0,len(all_genes)):
     LOGGER.info("Creating GXA dataframe")
     gxaDF=gxa.getGxaDF(gene_ID)
     gxaHeatmap=gxa.df2heatmap(gxaDF)
-    gxaFname=utils.df2svg(gxaDF)
+    gxaFname=gxa.df2svg(gxaDF)
 
     LOGGER.info("Creating UniProt dataframe")
     uniprotDF=uniprot.uniprot2df(up)

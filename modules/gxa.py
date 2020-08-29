@@ -28,6 +28,21 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
+def df2svg(df):
+    if len(df)==0:
+        return None
+
+    df=df.set_index("Experiment")
+    
+    fig=px.imshow(df)
+    out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR,suffix=".svg")
+    fname=out.name
+    out.close()
+    fig.write_image(fname)
+    return fname
+
+# ==============================================================================================================================
+
 def df2heatmap(df):
     if len(df)==0:
         return None
