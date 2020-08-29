@@ -31,7 +31,7 @@ def df2barchart(df):
     fig=go.Figure(data=data)
     fig.update_layout(barmode='stack')
     out=tf.NamedTemporaryFile(delete=False,mode="w")
-    fig.write_html(out.name,full_html=False)
+    fig.write_html(out.name,full_html=False,default_width="100%")
     out.close()
     with open (out.name, "r") as f:
         data=f.readlines()
