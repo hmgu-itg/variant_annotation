@@ -199,7 +199,7 @@ for i in range(0,len(chrpos)):
     LOGGER.info("Creating populations dataframe")
     populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
     populationFig=utils.df2barchart(populationDF)
-    populationFname=utils.df2svg(populationDF)
+    populationFname=utils.df2svg(populationDF,VAR_ID)
 
     LOGGER.info("Creating PubMed dataframe")
     pubmedDF=pubmed.getPubmedDF(VAR_ID,variant_data["synonyms"])
