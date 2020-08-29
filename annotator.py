@@ -216,7 +216,7 @@ for i in range(0,len(chrpos)):
     LOGGER.info("Creating gnomAD dataframe")
     gnomadDF=gnomad.getPopulationAF(VAR_ID)
     gnomadFig=utils.df2barchart(gnomadDF)
-    gnomadFname=utils.df2svg(gnomadDF)
+    gnomadFname=utils.df2svg(gnomadDF,VAR_ID)
     
     LOGGER.info("Creating GTEx dataframe")
     GTEx_genesDF=gtex.getGTExDF(mappings)    

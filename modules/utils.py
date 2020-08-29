@@ -13,7 +13,7 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
-def df2svg(df):
+def df2svg(df,var):
     if len(df)==0:
         return None
 
@@ -24,10 +24,10 @@ def df2svg(df):
     
     fig=go.Figure(data=data)
     fig.update_layout(barmode='stack')
-    out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR_FIG,suffix=".svg")
-    fname=out.name
+    #out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR_FIG,suffix=".svg")
+    fd,fname=tf.mkstemp(dir=config.OUTPUT_DIR_FIG,suffix="_"+var+".svg")
     LOGGER.debug("SVG: %s" % fname)
-    out.close()
+    #out.close()
     fig.write_image(fname)
     return fname
 
