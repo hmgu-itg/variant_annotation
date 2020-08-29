@@ -351,8 +351,11 @@ if out_html:
     f = open(outfile,"w")
     f.write(utils.generateHTML(template_fname,D))
     f.close()
+    if os.path.isfile(template_fname):
+        os.remove(template_fname)
 else:
     outfile=config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID
     LOGGER.info("Saving JSON output to %s\n" % outfile)
     with gzip.GzipFile(outfile,"w") as fout:
         fout.write(json.dumps(D1).encode('utf-8'))
+
