@@ -173,6 +173,9 @@ all_genes=list()
 mapping_names=list()
 D=dict()
 D1=dict()
+
+# ---------------------------------------------------- ALL MAPPINGS ------------------------------------------------------
+
 for i in range(0,len(chrpos)):
     mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
     LOGGER.info("Current mapping: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
@@ -226,7 +229,7 @@ for i in range(0,len(chrpos)):
     GTEx_genesDF=gtex.getGTExDF(mappings)    
     LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
 
-# ----------------------------------------------------------------------------
+# -------
 
     if out_html:
         if len(variantDF)>0:
@@ -266,7 +269,7 @@ for i in range(0,len(chrpos)):
         D1["gene_table%d" %i]=geneDF.to_json(orient="records")
         D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json(orient="records")
 
-# ----------------------------------------------------------------------------
+# --------------------------------------------------- ALL GENES -------------------------------------------------------
 
 gene_names=list()
 LOGGER.info("Total genes: %d" % len(all_genes))
@@ -318,7 +321,7 @@ for i in range(0,len(all_genes)):
     goDF=gene.goterms2df(xrefs)
     LOGGER.info("")
 
-# ----------------------------------------------------------------------------
+# -----
 
     if out_html:
         if len(infoDF)>0:
@@ -343,6 +346,8 @@ for i in range(0,len(all_genes)):
         D1["mouse_table_%s" %gene_ID]=mouseDF.to_json(orient="records")
         D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
 
+# ---------------------------------------------------- OUTPUT and CLEANUP  ---------------------------------------------------
+
 if out_html:
     outfile=config.OUTPUT_DIR+"/%s.html" %VAR_ID
     LOGGER.info("Saving HTML output to %s\n" % outfile)
@@ -358,4 +363,7 @@ else:
     LOGGER.info("Saving JSON output to %s\n" % outfile)
     with gzip.GzipFile(outfile,"w") as fout:
         fout.write(json.dumps(D1).encode('utf-8'))
+
+if os.path.isfile(config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv"):
+    os.remove(config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv")
 
