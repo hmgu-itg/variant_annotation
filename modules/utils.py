@@ -32,7 +32,7 @@ def df2barchart(df):
     fig.update_layout(barmode='stack')
     out=tf.NamedTemporaryFile(delete=False,mode="w")
     fig.write_html(out.name,full_html=False)
-    LOGEER.debug("temp file: out.name")
+    LOGGER.debug("temp file: out.name")
     out.close()
     with open (out.name, "r") as f:
         data=f.readlines()
