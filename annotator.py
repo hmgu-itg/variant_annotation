@@ -142,13 +142,13 @@ logging.getLogger("modules.gnomad").setLevel(verbosity)
 logging.getLogger("modules.query").addHandler(ch)
 logging.getLogger("modules.query").setLevel(verbosity)
 
-sys.stderr=open(logfile,"a")
-
 # ------------------------------------------------------------------------------------------------------------------------
 
 for arg in vars(args):
     LOGGER.info("INPUT OPTIONS: %s : %s" % (arg, getattr(args, arg)))
 LOGGER.info("")
+
+sys.stderr=open(logfile,"a")
 
 # ------------------------------------------------------------------------------------------------------------------------
 
