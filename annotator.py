@@ -245,8 +245,10 @@ for i in range(0,len(chrpos)):
         #     D["gnomad_table%d" %i]=gnomadFig
         # if populationFig is not None:
         #     D["population_table%d" %i]=populationFig
-        D["population_table%d" %i]="<img src=\"%s\">" % populationFname
-        D["gnomad_table%d" %i]="<img src=\"%s\">" % gnomadFname
+        if populationFname:
+            D["population_table%d" %i]="<img src=\"%s\">" % populationFname
+        if gnomadFname:
+            D["gnomad_table%d" %i]="<img src=\"%s\">" % gnomadFname
         if len(pubmedDF)>0:
             D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
         if len(phenotypeDF)>0:
