@@ -194,6 +194,7 @@ for i in range(0,len(chrpos)):
     LOGGER.info("Creating populations dataframe")
     populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
     populationFig=utils.df2barchart(populationDF)
+    populationImage=utils.df2svg(populationDF,config.OUTPUT_DIR+"/"+VAR_ID+".svg")
 
     LOGGER.info("Creating PubMed dataframe")
     pubmedDF=pubmed.getPubmedDF(VAR_ID,variant_data["synonyms"])
@@ -234,8 +235,9 @@ for i in range(0,len(chrpos)):
         #     D["population_table%d" %i]=populationDF.to_html(index=False,classes='utf8',table_id="common")
         if gnomadFig is not None:
             D["gnomad_table%d" %i]=gnomadFig
-        if populationFig is not None:
-            D["population_table%d" %i]=populationFig
+        # if populationFig is not None:
+        #     D["population_table%d" %i]=populationFig
+        D["population_table%d" %i]="<img src=\""+config.OUTPUT_DIR+"/"+VAR_ID+".svg"+"\">"
         if len(pubmedDF)>0:
             D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
         if len(phenotypeDF)>0:
