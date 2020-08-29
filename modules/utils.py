@@ -185,23 +185,12 @@ def generateTemplate(mapping_names,gene_names,fname):
     f.write("<style>\n\nth{ text-align: left; }\n")
     f.write("#common {\nborder-collapse: collapse;\nwidth: 100%;\ncolumn-width=auto;\ncolor: black;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 15px;\n}\n\n")
     f.write("h1 {\nbackground-color: #8b9bc1;\nmargin: 0;\npadding: 4px 8px 2px 24px;\n-webkit-border-radius: 8px 0 8px 0;\nline-height: 1em;\ndisplay: block;\n-webkit-margin-before: 0px;\n-webkit-margin-after: 0px;-webkit-margin-start: 0px;\n-webkit-margin-end: 0px;\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 25px;\nfont-weight: bold;\n}\n\n")
-#    f.write("div.big_box {\nbackground-color: white;\nwidth: 98%;\nborder: 1px solid navy;\ndisplay: block;\n\nbackground-color: #fff;\npadding: 0;\nmargin: 0;\n\n/* Margins */\nmargin: 0 auto 1em;\n\n/* Rounded edges */\nborder-bottom-right-radius: 8px;\nborder-top-left-radius: 8px;\n\n/* Shadows around boxes*/\nbox-shadow: 4px 4px 10px #BCBCCC;\n\n/* Setting fonts */\ncolor: navy;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 20px;\n}\n\n")
-
     f.write(".tab {\noverflow: hidden;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\n}\n")
     f.write(".tab button {\nbackground-color: inherit;\nfloat: left;\nborder: none;\noutline: none;\ncursor: pointer;\npadding: 14px 16px;\ntransition: 0.3s;\n}\n")
     f.write(".tab button:hover {\nbackground-color: #ddd;\n}\n")
     f.write(".tab button.active {\nbackground-color: #ccc;\n}\n")
-    #f.write(".genetab {\nfloat: left;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\nwidth: 15%;\nheight: 200px;\n}\n")
-#    f.write(".genetab {\noverflow: hidden;\nborder: 1px solid #ccc;\nbackground-color: #f1f1f1;\n}\n")
-#    f.write(".genetab button {\nbackground-color: inherit;\nfloat: left;\nborder: none;\noutline: none;\ncursor: pointer;\npadding: 14px 16px;\ntransition: 0.3s;\n}\n")
-#    f.write(".genetab button:hover {\nbackground-color: #ddd;\n}\n")
-#    f.write(".genetab button.active {\nbackground-color: #ccc;\n}\n")
-
-#    f.write(".genetab2 {\nfloat: right;\nborder: 1px solid #ccc;\nbackground-color: #0101f1;\nwidth: 80%;\n}\n")
     f.write(".tabcontent {\ndisplay: none;\npadding: 6px 12px;\nborder: 1px solid #ccc;\nborder-top: none;\n}\n")
-#    f.write(".tabcontent2 {\ndisplay: none;\npadding: 6px 12px;\nborder: 1px solid #ccc;\nborder-top: none;\n}\n")
     f.write(".genetabcontent {\ndisplay: none;\nfloat: left;\npadding: 0px 12px;\nborder: 1px solid #ccc;\nwidth: 98%;\nheight: 98%;\n}\n")
-
     # collapsible styles
     f.write(".collapsible {\nbackground-color: #33b2ff;\ncolor: white;\ncursor: pointer;\npadding: 18px;\nwidth: 100%;\nborder: none;\ntext-align: center;\noutline: none;\nfont-size: 15px;\nborder-radius: 12px;\n}\n\n")
     f.write(".active, .collapsible:hover {\nbackground-color: #3399ff;\n}\n\n")
@@ -216,7 +205,6 @@ def generateTemplate(mapping_names,gene_names,fname):
 
     f.write("<div class=\"tab\">\n")
     f.write("<button class=\"tablinks2\" onclick=\"openTab2(event, 'Variant')\" id=\"defaultTabOpen\">Variant</button>\n")
-    #f.write("<button class=\"tablinks2\" onclick=\"openTab2(event, 'Variant')\">Variant</button>\n")
     f.write("<button class=\"tablinks2\" onclick=\"openTab2(event, 'Genes')\">Genes</button>\n")
     f.write("</div>\n\n")
 
