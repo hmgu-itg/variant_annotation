@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import gzip
+from contextlib import redirect_stderr
 
 from modules import config
 from modules import utils
@@ -141,6 +142,8 @@ logging.getLogger("modules.gnomad").addHandler(ch)
 logging.getLogger("modules.gnomad").setLevel(verbosity)
 logging.getLogger("modules.query").addHandler(ch)
 logging.getLogger("modules.query").setLevel(verbosity)
+
+with open(logfile,"a") as stderr, redirect_stderr(stderr):
 
 # ------------------------------------------------------------------------------------------------------------------------
 
