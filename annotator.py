@@ -137,6 +137,8 @@ logging.getLogger("modules.utils").addHandler(ch)
 logging.getLogger("modules.utils").setLevel(verbosity)
 logging.getLogger("modules.mouse").addHandler(ch)
 logging.getLogger("modules.mouse").setLevel(verbosity)
+logging.getLogger("modules.gnomad").addHandler(ch)
+logging.getLogger("modules.gnomad").setLevel(verbosity)
 
 # ------------------------------------------------------------------------------------------------------------------------
 

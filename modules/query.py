@@ -198,7 +198,7 @@ def getRefSeq(chrom,start,end,build="38"):
 def fetchGnomAD(jsondata, url=config.GNOMAD_URL):
     headers = {"Content-Type": "application/json"}
     #response = requests.post(url, json=jsondata, headers=headers)
-    response=restQuery(url,data=jsondata,qtype="post",)
+    response=restQuery(url,data=jsondata,qtype="post")
     if not response:
         return None
     # json = response.json()
