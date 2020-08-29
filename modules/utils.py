@@ -26,6 +26,7 @@ def df2svg(df):
     fig.update_layout(barmode='stack')
     out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR_FIG,suffix=".svg")
     fname=out.name
+    LOGGER.debug("SVG: %s" % fname)
     out.close()
     fig.write_image(fname)
     return fname
