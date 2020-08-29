@@ -194,8 +194,8 @@ def generateTemplate(mapping_names,gene_names,fname):
     # collapsible styles
     f.write(".collapsible {\nbackground-color: #33b2ff;\ncolor: white;\ncursor: pointer;\npadding: 18px;\nwidth: 100%;\nborder: none;\ntext-align: center;\noutline: none;\nfont-size: 15px;\nborder-radius: 12px;\n}\n\n")
     f.write(".active, .collapsible:hover {\nbackground-color: #3399ff;\n}\n\n")
-    f.write(".content {\npadding: 0 18px;\ndisplay: none;\ntext-align: center;\noverflow: hidden;\nbackground-color: #f1f1f1;\n}\n\n")
     # ------------------
+    f.write(".content {\npadding: 0 18px;\ndisplay: none;\nfloat: none;\ntext-align: center;\noverflow: hidden;\nbackground-color: #f1f1f1;\n}\n\n")
 
     f.write("#space\n{width: 100%;\n height: 5px;\n margin: 0px;\n padding: 0px;\n border: 0px;\nbackground: #FFFFFF;\nclear:both;\n}\n\n") 
 
@@ -241,8 +241,8 @@ def generateTemplate(mapping_names,gene_names,fname):
         f.write("<div id=\"space\"></div>\n")
 
         f.write("<button type=\"button\" class=\"collapsible\">1kG allele frequencies</button>\n")
-#        f.write("<div class=\"content\">\n{{ population_table%d }}\n</div>\n" %i)
-        f.write("\n{{ population_table%d }}\n" %i)
+        f.write("<div class=\"content\">\n{{ population_table%d }}\n</div>\n" %i)
+#        f.write("\n{{ population_table%d }}\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
         f.write("<button type=\"button\" class=\"collapsible\">gnomAD allele frequencies</button>\n")
