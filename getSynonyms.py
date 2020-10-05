@@ -13,7 +13,7 @@ from modules import query
 
 build="38"
 
-parser = argparse.ArgumentParser(description="Get rs ID for given variant ID")
+parser = argparse.ArgumentParser(description="Get synonyms for a given rs ID")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38")
 requiredArgs=parser.add_argument_group('required arguments')
 requiredArgs.add_argument('--id','-i', action="store",help="varID",required=True)
