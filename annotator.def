@@ -1,0 +1,240 @@
+Bootstrap: docker
+From: ubuntu:18.04
+
+%environment
+	TZ=Europe/Berlin
+        #PERL_MM_USE_DEFAULT=1
+	#export PERL_MM_USE_DEFAULT
+	
+	#PERL_EXTUTILS_AUTOINSTALL="--defaultdeps"
+	#export PERL_EXTUTILS_AUTOINSTALL
+	
+	PATH=$PATH:/usr/bin:/usr/bin/variant_annotation
+	export PATH
+	
+	LC_ALL=C
+	export LC_ALL
+
+	# LC_COLLATE=C
+	# export LC_COLLATE
+	# LC_CTYPE=en_US.UTF-8
+	# export LC_CTYPE
+	
+	#PERL5LIB=$PERL5LIB:/usr/local/bin/.vep
+	#export PERL5LIB
+
+%post
+	apt update
+	ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+	apt-get install -y r-base libcurl4-openssl-dev libxml2-dev libmariadbclient-dev libssl-dev
+apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-ping git yum gcc gfortran libc6 libc-bin libc-dev-bin make libblas-dev liblapack-dev libatlas-base-dev curl zlib1g zlib1g-dev libbz2-1.0 libbz2-dev libbz2-ocaml libbz2-ocaml-dev liblzma-dev lzma lzma-dev unzip
+	cd /usr/bin
+	wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20191130.zip
+	unzip plink_linux_x86_64_20191130.zip
+	rm LICENSE toy.* prettify
+	cd /
+	git clone git://github.com/samtools/htslib.git
+	git clone git://github.com/samtools/bcftools.git
+	git clone https://github.com/samtools/samtools.git
+	cd bcftools
+	make
+	cd ../htslib
+	make tabix
+	make bgzip
+	cd ../samtools
+	make samtools
+	cd /
+	mv /samtools/samtools /usr/bin
+	mv /bcftools/bcftools /usr/bin
+	mv /htslib/bgzip /usr/bin
+	mv /htslib/tabix /usr/bin
+
+	rm -r samtools bcftools htslib
+	
+	wget http://www.well.ox.ac.uk/~gav/resources/snptest_v2.5.2_linux_x86_64_dynamic.tgz
+	tar -xvzf snptest_v2.5.2_linux_x86_64_dynamic.tgz
+	cp /snptest_v2.5.2_linux_x86_64_dynamic/snptest_v2.5.2 /usr/bin
+	rm -r /snptest_v2.5.2_linux_x86_64_dynamic /snptest_v2.5.2_linux_x86_64_dynamic.tgz
+
+	cd /
+	git clone https://github.com/xianyi/OpenBLAS.git
+	cd OpenBLAS
+	echo "/opt/OpenBLAS/lib" > /etc/ld.so.conf.d/openblas.conf
+	#cp openblas.conf /etc/ld.so.conf.d/openblas.conf
+	make DYNAMIC_ARCH=1 NO_AFFINITY=1 NUM_THREADS=32
+	make install
+	ldconfig
+	
+	cd /
+	git clone https://github.com/genetics-statistics/GEMMA.git
+	cd /GEMMA
+	apt-get install -y libeigen3-dev libgsl0-dev
+	ln -s /opt/OpenBLAS/lib/libopenblas.so /usr/lib/libopenblas.so
+	sed -i 's/\/usr\/local\/opt\/openblas\/include/\/opt\/OpenBLAS\/include/' Makefile
+	sed -i '28i #include "cblas.h"' src/fastblas.cpp
+	make
+	cp bin/gemma /usr/bin
+	export DEBIAN_FRONTEND=noninteractive
+	
+	cd /
+	wget http://csg.sph.umich.edu/abecasis/metal/download/generic-metal-2011-03-25.tar.gz
+	tar -xvzf generic-metal-2011-03-25.tar.gz
+	cd /generic-metal
+	make all
+	make install
+	
+	cd /
+	wget https://data.broadinstitute.org/alkesgroup/BOLT-LMM/downloads/BOLT-LMM_v2.3.4.tar.gz
+	tar -xvzf BOLT-LMM_v2.3.4.tar.gz
+	export PATH="/BOLT-LMM_v2.3.4:${PATH}"
+	rm -r BOLT-LMM_v2.3.4.tar.gz generic-metal-2011-03-25.tar.gz /generic-metal
+	
+	cd /
+	wget https://www.well.ox.ac.uk/~gav/resources/qctool_v2.0.1-Ubuntu16.04-x86_64.tgz
+	tar -xvzf qctool_v2.0.1-Ubuntu16.04-x86_64.tgz
+	cp qctool_v2.0.1-Ubuntu16.04-x86_64/qctool /usr/bin/qctool2
+
+	wget https://www.well.ox.ac.uk/~gav/resources/archive/qctool_v1.5-linux-x86_64-static.tgz
+	tar -xvzf qctool_v1.5-linux-x86_64-static.tgz
+	cp qctool_v1.5-linux-x86_64/qctool /usr/bin/qctool1
+	rm -r qctool*
+	wget https://homepages.uni-regensburg.de/~wit59712/easyqc/EasyQC_9.2.tar.gz
+	apt-get install -y libcairo2-dev libxt-dev
+	apt-get install -y python3-pip
+	pip3 install h5py scipy plinkio
+
+	cd /home
+	apt-get update
+	apt-get install -y apt-transport-https software-properties-common
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+	add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/'
+	apt-get update
+	apt-get install -y r-base libcurl4-openssl-dev libxml2-dev libmariadbclient-dev libssl-dev
+
+	pip install virtualenv powerline-status bitarray nose pybedtools scipy pandas numpy
+	cd /
+	wget https://cnsgenomics.com/software/gcta/bin/gcta_1.93.0beta.zip
+	unzip gcta_1.93.0beta.zip
+	mv gcta_1.93.0beta/gcta64 /usr/bin
+	rm -rf gcta_1.93.0beta
+	wget http://dougspeed.com/wp-content/uploads/ldak5.linux_.zip
+	wget http://dougspeed.com/wp-content/uploads/ldak5.linux_.fast_.zip
+	unzip ldak5.linux_.zip
+	unzip ldak5.linux_.fast_.zip
+	rm *.zip
+	mv ldak5* /usr/bin
+
+	Rscript -e "install.packages(c('Cairo', 'plotrix', 'data.table'))"
+	Rscript -e "install.packages('EasyQC_9.2.tar.gz')"
+
+	apt-get install -y jq bsdmainutils bc autoconf libtool bc man-db freeglut3 freeglut3-dev xorg x11-utils emacs feh chromium-browser r-base-core cmake libboost-dev libboost-all-dev libopenblas-dev htop tofrodos libjsoncpp-dev
+	pip3 install CrossMap cget pandas
+	apt install -y moreutils ncurses-term default-jre default-jdk locales
+	sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+	locale-gen
+	#sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+	# update-locale LANG=en_US.UTF-8
+	# update-locale LC_CTYPE=en_US.UTF-8
+	# update-locale LC_NUMERIC=C
+	# update-locale LC_TIME=C
+	# update-locale LC_COLLATE=C
+	# update-locale LC_MONETARY=C
+	# update-locale LC_MESSAGES=C
+	# update-locale LC_PAPER=C
+	# update-locale LC_NAME=C
+	# update-locale LC_ADDRESS=C
+	# update-locale LC_TELEPHONE=C
+	# update-locale LC_MEASUREMENT=C
+	# update-locale LC_IDENTIFICATION=C
+	dpkg-reconfigure --frontend=noninteractive locales
+
+	cd /
+	git clone https://github.com/arq5x/bedtools2.git
+	cd /bedtools2
+	# gwava needs a version without "sam header" error messages
+	git checkout tags/v2.27.1
+	make
+	make install
+
+	cd / 
+	git clone https://gitlab.com/german.tischler/libmaus2
+	cd libmaus2 
+	libtoolize
+	aclocal
+	autoreconf -i -f 
+	./configure 
+	make
+	make install
+
+	cd /
+	git clone https://gitlab.com/german.tischler/biobambam2
+	cd biobambam2
+	autoreconf -i -f && ./configure && make install
+
+	wget https://github.com/jgm/pandoc/releases/download/2.7.3/pandoc-2.7.3-linux.tar.gz
+	tar -xvzf pandoc-2.7.3-linux.tar.gz && mv pandoc-2.7.3/bin/pandoc /usr/bin
+
+	curl -sL https://deb.nodesource.com/setup_12.x | bash - && apt-get install -y nodejs && npm install --unsafe-perm=true -g electron@1.8.4 orca && pip3 install psutil requests
+
+	cd /
+	git clone https://github.com/bulik/ldsc.git && ln -s ldsc/ldsc.py /usr/bin/ldsc.py
+
+	wget https://github.com/COMBINE-lab/salmon/releases/download/v1.0.0/salmon-1.0.0_linux_x86_64.tar.gz && tar -xvzf salmon-1.0.0_linux_x86_64.tar.gz && ln -s salmon-latest_linux_x86_64/bin/salmon /usr/bin/salmon
+
+	cd /
+	git clone git://github.com/pezmaster31/bamtools.git
+	cd /bamtools
+	mkdir build && cd build && cmake -DCMAKE_INSTALL_PREFIX=/bamtools .. && make install && cp /bamtools/bin/bamtools /usr/bin
+	apt install -y source-highlight
+	cd /
+	git clone https://github.com/zd1/telseq && cd telseq/src && chmod +x autogen.sh && ./autogen.sh && ./configure --with-bamtools=/bamtools && make && cp Telseq/telseq /usr/bin
+	wget -qO - https://packages.irods.org/irods-signing-key.asc | apt-key add -
+	echo "deb [arch=amd64] https://packages.irods.org/apt/ xenial main" | tee /etc/apt/sources.list.d/renci-irods.list
+	apt-get update
+
+	apt install -y irods-icommands tofrodos axel
+	pip install spython
+	apt install -y tree
+	apt install -y tofrodos
+	cd /
+	wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20200428.zip
+	unzip plink_linux_x86_64_20200428.zip
+	rm LICENSE toy.* prettify
+	mv plink /usr/bin
+
+	pip3 install bokeh jinja2
+
+	apt-get install rsync
+
+	cd /usr/bin
+	rsync -azvP rsync://hgdownload.soe.ucsc.edu/genome/admin/exe/linux.x86_64/liftOver .
+	wget http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz
+	wget http://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz
+	git clone https://github.com/hmgu-itg/variant_annotation.git
+
+	pip3 install selenium dash plotly kaleido
+	apt-get install -y firefox lftp
+
+	cd /usr/bin
+	wget https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz
+	tar -zxvf geckodriver-v0.26.0-linux64.tar.gz
+	rm geckodriver-v0.26.0-linux64.tar.gz
+	
+	Rscript -e "install.packages(c('svglite', 'reshape2', 'ggplot2'))"
+
+	# for gwava
+	pip install scikit-learn==0.14.1
+
+	CREATIONDATE=`date`
+
+%runscript
+	echo "This container was created: $CREATIONDATE"
+
+%labels
+	Author Arthur Gilly, Andrei Barysenka
+	Version v2.5
+
+%help
+	This container allows you to run variant annotation pipeline; for more information run this container with the help command line option.
+
+
