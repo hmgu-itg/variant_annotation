@@ -34,6 +34,7 @@ def rs2position(ID,build="38"):
         for x in z:
             spdis=x["spdi"]
             for spdi in spdis:
+                LOGGER.debug("%s" % spdi)
                 h=parseSPDI(spdi)
                 p=h["pos"]
                 c=h["chr"]
@@ -264,7 +265,7 @@ def getVariantInfo(rs,build="38"):
 
 def id2rs(varid,build="38"):
     '''
-    For a given variant ID (chr_pos_ref_alt), return a set of matching rs IDs
+    For a given variant ID (chr_pos_A1_A2), return a set of matching rs IDs
 
     Input: variant ID, build (default: 38)
     Output: set of rs IDs
