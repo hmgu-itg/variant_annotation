@@ -35,7 +35,7 @@ def rs2position(ID,build="38"):
             spdis=x["spdi"]
             for spdi in spdis:
                 LOGGER.debug("%s" % spdi)
-                h=parseSPDI(spdi)
+                h=query.parseSPDI(spdi)
                 p=h["pos"]
                 c=h["chr"]
                 z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
