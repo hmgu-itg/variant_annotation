@@ -65,40 +65,7 @@ apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-p
 	make install
 	ldconfig
 	
-	# cd /
-	# git clone https://github.com/genetics-statistics/GEMMA.git
-	# cd /GEMMA
-	# apt-get install -y libeigen3-dev libgsl0-dev
-	# ln -s /opt/OpenBLAS/lib/libopenblas.so /usr/lib/libopenblas.so
-	# sed -i 's/\/usr\/local\/opt\/openblas\/include/\/opt\/OpenBLAS\/include/' Makefile
-	# sed -i '28i #include "cblas.h"' src/fastblas.cpp
-	# make
-	# cp bin/gemma /usr/bin
-	# export DEBIAN_FRONTEND=noninteractive
-	
-	# cd /
-	# wget http://csg.sph.umich.edu/abecasis/metal/download/generic-metal-2011-03-25.tar.gz
-	# tar -xvzf generic-metal-2011-03-25.tar.gz
-	# cd /generic-metal
-	# make all
-	# make install
-	
-	# cd /
-	# wget https://data.broadinstitute.org/alkesgroup/BOLT-LMM/downloads/BOLT-LMM_v2.3.4.tar.gz
-	# tar -xvzf BOLT-LMM_v2.3.4.tar.gz
-	# export PATH="/BOLT-LMM_v2.3.4:${PATH}"
-	# rm -r BOLT-LMM_v2.3.4.tar.gz generic-metal-2011-03-25.tar.gz /generic-metal
-	
-	# cd /
-	# wget https://www.well.ox.ac.uk/~gav/resources/qctool_v2.0.1-Ubuntu16.04-x86_64.tgz
-	# tar -xvzf qctool_v2.0.1-Ubuntu16.04-x86_64.tgz
-	# cp qctool_v2.0.1-Ubuntu16.04-x86_64/qctool /usr/bin/qctool2
-
-	# wget https://www.well.ox.ac.uk/~gav/resources/archive/qctool_v1.5-linux-x86_64-static.tgz
-	# tar -xvzf qctool_v1.5-linux-x86_64-static.tgz
-	# cp qctool_v1.5-linux-x86_64/qctool /usr/bin/qctool1
-	# rm -r qctool*
-	# wget https://homepages.uni-regensburg.de/~wit59712/easyqc/EasyQC_9.2.tar.gz
+	export DEBIAN_FRONTEND=noninteractive
 	
 	apt-get install -y libcairo2-dev libxt-dev
 	apt-get install -y python3-pip
@@ -114,39 +81,24 @@ apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-p
 
 	pip install virtualenv powerline-status bitarray nose pybedtools scipy pandas numpy
 	cd /
-	wget https://cnsgenomics.com/software/gcta/bin/gcta_1.93.0beta.zip
-	unzip gcta_1.93.0beta.zip
-	mv gcta_1.93.0beta/gcta64 /usr/bin
-	rm -rf gcta_1.93.0beta
-	wget http://dougspeed.com/wp-content/uploads/ldak5.linux_.zip
-	wget http://dougspeed.com/wp-content/uploads/ldak5.linux_.fast_.zip
-	unzip ldak5.linux_.zip
-	unzip ldak5.linux_.fast_.zip
-	rm *.zip
-	mv ldak5* /usr/bin
+	# wget https://cnsgenomics.com/software/gcta/bin/gcta_1.93.0beta.zip
+	# unzip gcta_1.93.0beta.zip
+	# mv gcta_1.93.0beta/gcta64 /usr/bin
+	# rm -rf gcta_1.93.0beta
+	# wget http://dougspeed.com/wp-content/uploads/ldak5.linux_.zip
+	# wget http://dougspeed.com/wp-content/uploads/ldak5.linux_.fast_.zip
+	# unzip ldak5.linux_.zip
+	# unzip ldak5.linux_.fast_.zip
+	# rm *.zip
+	# mv ldak5* /usr/bin
 
 	Rscript -e "install.packages(c('Cairo', 'plotrix', 'data.table'))"
-	# Rscript -e "install.packages('EasyQC_9.2.tar.gz')"
 
 	apt-get install -y jq bsdmainutils bc autoconf libtool bc man-db freeglut3 freeglut3-dev xorg x11-utils emacs feh chromium-browser r-base-core cmake libboost-dev libboost-all-dev libopenblas-dev htop tofrodos libjsoncpp-dev
 	pip3 install CrossMap cget pandas
 	apt install -y moreutils ncurses-term default-jre default-jdk locales
 	sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
 	locale-gen
-	#sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
-	# update-locale LANG=en_US.UTF-8
-	# update-locale LC_CTYPE=en_US.UTF-8
-	# update-locale LC_NUMERIC=C
-	# update-locale LC_TIME=C
-	# update-locale LC_COLLATE=C
-	# update-locale LC_MONETARY=C
-	# update-locale LC_MESSAGES=C
-	# update-locale LC_PAPER=C
-	# update-locale LC_NAME=C
-	# update-locale LC_ADDRESS=C
-	# update-locale LC_TELEPHONE=C
-	# update-locale LC_MEASUREMENT=C
-	# update-locale LC_IDENTIFICATION=C
 	dpkg-reconfigure --frontend=noninteractive locales
 
 	cd /
@@ -157,30 +109,30 @@ apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-p
 	make
 	make install
 
-	cd / 
-	git clone https://gitlab.com/german.tischler/libmaus2
-	cd libmaus2 
-	libtoolize
-	aclocal
-	autoreconf -i -f 
-	./configure 
-	make
-	make install
+	# cd / 
+	# git clone https://gitlab.com/german.tischler/libmaus2
+	# cd libmaus2 
+	# libtoolize
+	# aclocal
+	# autoreconf -i -f 
+	# ./configure 
+	# make
+	# make install
 
-	cd /
-	git clone https://gitlab.com/german.tischler/biobambam2
-	cd biobambam2
-	autoreconf -i -f && ./configure && make install
+	# cd /
+	# git clone https://gitlab.com/german.tischler/biobambam2
+	# cd biobambam2
+	# autoreconf -i -f && ./configure && make install
 
 	wget https://github.com/jgm/pandoc/releases/download/2.7.3/pandoc-2.7.3-linux.tar.gz
 	tar -xvzf pandoc-2.7.3-linux.tar.gz && mv pandoc-2.7.3/bin/pandoc /usr/bin
 
 	curl -sL https://deb.nodesource.com/setup_12.x | bash - && apt-get install -y nodejs && npm install --unsafe-perm=true -g electron@1.8.4 orca && pip3 install psutil requests
 
-	cd /
-	git clone https://github.com/bulik/ldsc.git && ln -s ldsc/ldsc.py /usr/bin/ldsc.py
+	# cd /
+	# git clone https://github.com/bulik/ldsc.git && ln -s ldsc/ldsc.py /usr/bin/ldsc.py
 
-	wget https://github.com/COMBINE-lab/salmon/releases/download/v1.0.0/salmon-1.0.0_linux_x86_64.tar.gz && tar -xvzf salmon-1.0.0_linux_x86_64.tar.gz && ln -s salmon-latest_linux_x86_64/bin/salmon /usr/bin/salmon
+	# wget https://github.com/COMBINE-lab/salmon/releases/download/v1.0.0/salmon-1.0.0_linux_x86_64.tar.gz && tar -xvzf salmon-1.0.0_linux_x86_64.tar.gz && ln -s salmon-latest_linux_x86_64/bin/salmon /usr/bin/salmon
 
 	cd /
 	git clone git://github.com/pezmaster31/bamtools.git
@@ -208,9 +160,9 @@ apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-p
 	apt-get install rsync
 
 	cd /usr/bin
-	rsync -azvP rsync://hgdownload.soe.ucsc.edu/genome/admin/exe/linux.x86_64/liftOver .
-	wget http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz
-	wget http://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz
+	# rsync -azvP rsync://hgdownload.soe.ucsc.edu/genome/admin/exe/linux.x86_64/liftOver .
+	# wget http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz
+	# wget http://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz
 	git clone https://github.com/hmgu-itg/variant_annotation.git
 
 	pip3 install selenium dash plotly kaleido

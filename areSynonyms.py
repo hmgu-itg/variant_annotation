@@ -60,8 +60,10 @@ if data2:
 
 if rs1 in L2:
     sys.exit(0)
-        
-if len(set(L1).intersect(L2))!=0:
+
+I=[x for x in L1 if x in L2]
+
+if len(I)!=0:
     sys.exit(0)
 else:
     sys.exit(1)
