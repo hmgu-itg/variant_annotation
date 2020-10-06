@@ -41,7 +41,7 @@ formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
-logging.getLogger("variant").setLevel(logging.DEBUG)
+logging.getLogger("modules.variant").setLevel(logging.DEBUG)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
