@@ -45,12 +45,5 @@ logging.getLogger("modules.variant").setLevel(logging.DEBUG)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
-rsIDs=list(variant.id2rs(varID,build))
-if len(rsIDs)==0:
-    print(varID,"NA",sep="\t",file=sys.stdout)
-elif len(rsIDs)==1:
-    print(varID,rsIDs[0],sep="\t",file=sys.stdout)
-else:
-    LOGGER.warning("Several rsIDs for %s" % varID)
-    for x in rsIDs:
-        print(varID,x,sep="\t",file=sys.stdout)
+for x in variant.rs2position(varID,build):
+    print(varID,x["chr"],x["pos"],sep="\t",file=sys.stdout)
