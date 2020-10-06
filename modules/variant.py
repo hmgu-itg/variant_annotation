@@ -313,12 +313,12 @@ def id2rs(varid,build="38"):
                 spdis=x["spdi"]
                 var=x["id"][0]
                 for spdi in spdis:
-                    LOGGER.debug("%s : %s" % (var,spdi))
                     h=query.parseSPDI(spdi,alleles=True)
                     ref=h["ref"]
                     alt=h["alt"]
                     p=h["pos"]
                     c=h["chr"]
+                    LOGGER.debug("%s : %s : %s %d %s %s" % (var,spdi,c,p,ref,alt))
                     #print(spdi)
                     #print(c,p,ref,alt,sep="\t")
 
