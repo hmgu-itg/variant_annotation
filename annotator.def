@@ -65,43 +65,43 @@ apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-p
 	make install
 	ldconfig
 	
-	cd /
-	git clone https://github.com/genetics-statistics/GEMMA.git
-	cd /GEMMA
-	apt-get install -y libeigen3-dev libgsl0-dev
-	ln -s /opt/OpenBLAS/lib/libopenblas.so /usr/lib/libopenblas.so
-	sed -i 's/\/usr\/local\/opt\/openblas\/include/\/opt\/OpenBLAS\/include/' Makefile
-	sed -i '28i #include "cblas.h"' src/fastblas.cpp
-	make
-	cp bin/gemma /usr/bin
-	export DEBIAN_FRONTEND=noninteractive
+	# cd /
+	# git clone https://github.com/genetics-statistics/GEMMA.git
+	# cd /GEMMA
+	# apt-get install -y libeigen3-dev libgsl0-dev
+	# ln -s /opt/OpenBLAS/lib/libopenblas.so /usr/lib/libopenblas.so
+	# sed -i 's/\/usr\/local\/opt\/openblas\/include/\/opt\/OpenBLAS\/include/' Makefile
+	# sed -i '28i #include "cblas.h"' src/fastblas.cpp
+	# make
+	# cp bin/gemma /usr/bin
+	# export DEBIAN_FRONTEND=noninteractive
 	
-	cd /
-	wget http://csg.sph.umich.edu/abecasis/metal/download/generic-metal-2011-03-25.tar.gz
-	tar -xvzf generic-metal-2011-03-25.tar.gz
-	cd /generic-metal
-	make all
-	make install
+	# cd /
+	# wget http://csg.sph.umich.edu/abecasis/metal/download/generic-metal-2011-03-25.tar.gz
+	# tar -xvzf generic-metal-2011-03-25.tar.gz
+	# cd /generic-metal
+	# make all
+	# make install
 	
-	cd /
-	wget https://data.broadinstitute.org/alkesgroup/BOLT-LMM/downloads/BOLT-LMM_v2.3.4.tar.gz
-	tar -xvzf BOLT-LMM_v2.3.4.tar.gz
-	export PATH="/BOLT-LMM_v2.3.4:${PATH}"
-	rm -r BOLT-LMM_v2.3.4.tar.gz generic-metal-2011-03-25.tar.gz /generic-metal
+	# cd /
+	# wget https://data.broadinstitute.org/alkesgroup/BOLT-LMM/downloads/BOLT-LMM_v2.3.4.tar.gz
+	# tar -xvzf BOLT-LMM_v2.3.4.tar.gz
+	# export PATH="/BOLT-LMM_v2.3.4:${PATH}"
+	# rm -r BOLT-LMM_v2.3.4.tar.gz generic-metal-2011-03-25.tar.gz /generic-metal
 	
-	cd /
-	wget https://www.well.ox.ac.uk/~gav/resources/qctool_v2.0.1-Ubuntu16.04-x86_64.tgz
-	tar -xvzf qctool_v2.0.1-Ubuntu16.04-x86_64.tgz
-	cp qctool_v2.0.1-Ubuntu16.04-x86_64/qctool /usr/bin/qctool2
+	# cd /
+	# wget https://www.well.ox.ac.uk/~gav/resources/qctool_v2.0.1-Ubuntu16.04-x86_64.tgz
+	# tar -xvzf qctool_v2.0.1-Ubuntu16.04-x86_64.tgz
+	# cp qctool_v2.0.1-Ubuntu16.04-x86_64/qctool /usr/bin/qctool2
 
-	wget https://www.well.ox.ac.uk/~gav/resources/archive/qctool_v1.5-linux-x86_64-static.tgz
-	tar -xvzf qctool_v1.5-linux-x86_64-static.tgz
-	cp qctool_v1.5-linux-x86_64/qctool /usr/bin/qctool1
-	rm -r qctool*
-	wget https://homepages.uni-regensburg.de/~wit59712/easyqc/EasyQC_9.2.tar.gz
-	apt-get install -y libcairo2-dev libxt-dev
-	apt-get install -y python3-pip
-	pip3 install h5py scipy plinkio
+	# wget https://www.well.ox.ac.uk/~gav/resources/archive/qctool_v1.5-linux-x86_64-static.tgz
+	# tar -xvzf qctool_v1.5-linux-x86_64-static.tgz
+	# cp qctool_v1.5-linux-x86_64/qctool /usr/bin/qctool1
+	# rm -r qctool*
+	# wget https://homepages.uni-regensburg.de/~wit59712/easyqc/EasyQC_9.2.tar.gz
+	# apt-get install -y libcairo2-dev libxt-dev
+	# apt-get install -y python3-pip
+	# pip3 install h5py scipy plinkio
 
 	cd /home
 	apt-get update
