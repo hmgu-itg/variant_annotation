@@ -8,8 +8,45 @@ import tempfile as tf
 import plotly.graph_objects as go
 
 from . import config
+from . import query
 
 LOGGER=logging.getLogger(__name__)
+
+
+# ==============================================================================================================================
+
+# input: s:p:d:i
+# p is 0-based
+
+def convertSPDI(spdi,build="38"):
+    L=spdi.rsplit(":")
+    c=L[0]
+    m=re.search("NC_0+(\d+)\.\d+",L[0])
+    if m:
+        c=m.group(1)
+    pos=int(L[1])
+    D=L[2]
+    I=L[3]
+    lD=len(D)
+
+    m=re.match("^(\d+)$",D)
+    if m:
+        return {"seq":c,"pos":p+1,"del":query.getRefSeq(c,pos+1,pos+lD,build),"ins":I}
+    else:
+        return {"seq":c,"pos":p+1,"del":D,"ins":I}
+
+# ==============================================================================================================================
+
+# input: 1_12345_A_ACG
+# position is 1-based
+# if reverse==True, the second allele is DEL, the first: INS
+
+def convertVariantID(varid,reverse=False):
+    L=varid.rsplit("_")
+    if reverse:
+        return {"seq":L[0],"pos":L[1],"del":L[3],"ins":L[2]}
+    else:
+        return {"seq":L[0],"pos":L[1],"del":L[2],"ins":L[3]}
 
 # ==============================================================================================================================
 
