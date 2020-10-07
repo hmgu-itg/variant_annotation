@@ -356,6 +356,10 @@ def id2rs_mod(varid,build="38"):
     window=50
 
     V=utils.convertVariantID(varid)
+    V1=utils.convertVariantID(varid,reverse=True)
+    b=utils.checkDEL(V,build=build)
+    b1=utils.checkDEL(V1,build=build)
+        
     if utils.getVariantType(V)=="SNP":
         r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"],V["pos"],build=build))
         if not r:
@@ -379,9 +383,16 @@ def id2rs_mod(varid,build="38"):
                 spdis=x["spdi"]
                 var=x["id"][0]
                 for spdi in spdis:
-                    if utils.equivalentVariants(V,utils.convertSPDI(spdi,build=build),build=build):
-                        S.add(var)
-                        break
+                    V2=utils.convertSPDI(spdi,build=build)
+                    if b:
+                        if utils.equivalentVariants(V,V2,build=build):
+                            S.add(var)
+                            break
+                    if b1:
+                        if utils.equivalentVariants(V1,V2,build=build):
+                            S.add(var)
+                            break
+                    
                         
     return S
 
