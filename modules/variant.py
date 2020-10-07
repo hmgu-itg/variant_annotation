@@ -385,16 +385,12 @@ def id2rs_mod(varid,build="38"):
                 spdis=x["spdi"]
                 var=x["id"][0]
                 for spdi in spdis:
-                    LOGGER.debug("Current SPDI: %s" % spdi)
                     V2=utils.convertSPDI(spdi,build=build)
-                    LOGGER.debug("Converted SPDI: %s" % str(V2))
                     if b:
-                        LOGGER.debug("Converted variant: %s" % str(V))
                         if utils.equivalentVariants(V,V2,build=build):
                             S.add(var)
                             break
                     if b1:
-                        LOGGER.debug("Converted variant: %s" % str(V1))
                         if utils.equivalentVariants(V1,V2,build=build):
                             S.add(var)
                             break

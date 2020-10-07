@@ -42,9 +42,9 @@ ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
 logging.getLogger("modules.variant").addHandler(ch)
-logging.getLogger("modules.variant").setLevel(logging.DEBUG)
+logging.getLogger("modules.variant").setLevel(logging.INFO)
 logging.getLogger("modules.utils").addHandler(ch)
-logging.getLogger("modules.utils").setLevel(logging.DEBUG)
+logging.getLogger("modules.utils").setLevel(logging.INFO)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
