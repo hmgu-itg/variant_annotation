@@ -46,7 +46,7 @@ logging.getLogger("modules.variant").setLevel(logging.DEBUG)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
-rsIDs=list(variant.id2rs(varID,build))
+rsIDs=list(variant.id2rs_mod(varID,build))
 if len(rsIDs)==0:
     print(varID,"NA",sep="\t",file=sys.stdout)
 elif len(rsIDs)==1:

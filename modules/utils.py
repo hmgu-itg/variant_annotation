@@ -42,7 +42,7 @@ def equivalentVariants(r1,r2,build="38"):
     if r1["seq"]!=r2["seq"]:
         return False
 
-    if len(r1["ins"])-len(r1["del"])!=len(r2["ins"])-len(r2["del"])
+    if len(r1["ins"])-len(r1["del"])!=len(r2["ins"])-len(r2["del"]):
         return False
     
     c=r1["seq"]
@@ -81,9 +81,9 @@ def convertSPDI(spdi,build="38"):
 
     m=re.match("^(\d+)$",D)
     if m:
-        return {"seq":c,"pos":p+1,"del":query.getRefSeq(c,pos+1,pos+lD,build),"ins":I}
+        return {"seq":c,"pos":pos+1,"del":query.getRefSeq(c,pos+1,pos+lD,build),"ins":I}
     else:
-        return {"seq":c,"pos":p+1,"del":D,"ins":I}
+        return {"seq":c,"pos":pos+1,"del":D,"ins":I}
 
 # ==============================================================================================================================
 

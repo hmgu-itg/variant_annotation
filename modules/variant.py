@@ -353,14 +353,15 @@ def id2rs_mod(varid,build="38"):
         return S
 
     batchsize=100
-    window=50
 
     V=utils.convertVariantID(varid)
     V1=utils.convertVariantID(varid,reverse=True)
     b=utils.checkDEL(V,build=build)
     b1=utils.checkDEL(V1,build=build)
         
-    if utils.getVariantType(V)=="SNP":
+    window=max(len(V["del"]),len(V["ins"]))
+        
+    if utils.getVarType(V)=="SNP":
         r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"],V["pos"],build=build))
         if not r:
             return S
@@ -374,6 +375,7 @@ def id2rs_mod(varid,build="38"):
         if not r:
             return S
 
+        LOGGER.debug("Got %d variants around %s:%d" %(len(r),V["seq"],V["pos"]))
         for v in r:
             z=query.restQuery(query.makeRSQueryURL(v["id"],build=build))
             if not z:
@@ -383,6 +385,7 @@ def id2rs_mod(varid,build="38"):
                 spdis=x["spdi"]
                 var=x["id"][0]
                 for spdi in spdis:
+                    LOGGER.debug("Current SPDI: %s", % spdi)
                     V2=utils.convertSPDI(spdi,build=build)
                     if b:
                         if utils.equivalentVariants(V,V2,build=build):
