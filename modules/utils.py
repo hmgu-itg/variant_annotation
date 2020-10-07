@@ -32,7 +32,7 @@ def getVarType(R):
 # returns True if both variants result in the same altered sequence
 
 def equivalentVariants(r1,r2,build="38"):
-    if r1["seq"]=!r2["seq"]:
+    if r1["seq"]!=r2["seq"]:
         return False
 
     c=r1["seq"]

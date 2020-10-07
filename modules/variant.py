@@ -333,6 +333,58 @@ def id2rs(varid,build="38"):
                         break
     return S
 
+# ===========================================================================================================================
+
+def id2rs_mod(varid,build="38"):
+    '''
+    For a given variant ID (chr_pos_A1_A2), return a set of matching rs IDs
+
+    Input: variant ID, build (default: 38)
+    Output: set of rs IDs
+    '''
+
+    S=set()
+
+    if varid.startswith("rs"):
+        return varid
+
+    if not utils.checkID(varid):
+        LOGGER.error("Variant ID %s is malformed" % varid)
+        return S
+
+    batchsize=100
+    window=50
+
+    V=utils.convertVariantID(varid)
+    if utils.getVariantType(V)=="SNP":
+        r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"],V["pos"],build=build))
+        if not r:
+            return S
+
+        for v in r:
+            if V["del"] in v["alleles"] and V["ins"] in v["alleles"] and v["strand"]==1 and v["start"]==v["end"]:
+                S.add(v["id"])
+
+    else:
+        r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"]-window,V["pos"]+window,build=build))
+        if not r:
+            return S
+
+        for v in r:
+            z=query.restQuery(query.makeRSQueryURL(v["id"],build=build))
+            if not z:
+                continue
+
+            for x in z:
+                spdis=x["spdi"]
+                var=x["id"][0]
+                for spdi in spdis:
+                    if utils.equivalentVariants(V,utils.convertSPDI(spdi,build=build),build=build):
+                        S.add(var)
+                        break
+                        
+    return S
+
 # ==============================================================================================================================
 
 def getGwavaScore(variant_data):

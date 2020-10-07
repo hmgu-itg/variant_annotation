@@ -5,6 +5,7 @@ import os
 import argparse
 import re
 import logging
+import json
 
 from modules import variant
 from modules import query
@@ -48,3 +49,5 @@ logging.getLogger("modules.variant").setLevel(logging.DEBUG)
 
 for x in variant.rs2position(varID,build):
     print(varID,x["chr"],x["pos"],sep="\t",file=sys.stdout)
+    #r=query.restQuery(query.makeOverlapVarQueryURL(x["chr"],x["pos"],x["pos"],build=build))
+    #print(json.dumps(r,indent=4,sort_keys=True))
