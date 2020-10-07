@@ -57,11 +57,17 @@ def equivalentVariants(r1,r2,build="38"):
     x=R2["pos"]-R1["pos"]
     d1=len(R1["del"])
     d2=len(R2["del"])
-
+    
     if x+d2>=d1:
-        return query.getRefSeq(c,R1["pos"],R1["pos"]+x,build)+R2["ins"]==R1["ins"]+query.getRefSeq(c,R1["pos"]+d1,R1["pos"]+d2+x,build)
+        str1=query.getRefSeq(c,R1["pos"],R1["pos"]+x,build)+R2["ins"]
+        str2=R1["ins"]+query.getRefSeq(c,R1["pos"]+d1,R1["pos"]+d2+x,build)
+        LOGGER.debug("x+d2>=d1:\n%s\n%s\n" %(str1,str2))
+        return str1==str2
     else:
-        return query.getRefSeq(c,R1["pos"],R1["pos"]+x,build)+R2["ins"]+query.getRefSeq(c,R1["pos"]+x+d2,R1["pos"]+d1,build)==R1["ins"]
+        str1=query.getRefSeq(c,R1["pos"],R1["pos"]+x,build)+R2["ins"]+query.getRefSeq(c,R1["pos"]+x+d2,R1["pos"]+d1,build)
+        str2=R1["ins"]
+        LOGGER.debug("x+d2<d1:\n%s\n%s\n" %(str1,str2))
+        return str1==str2
 
 # ==============================================================================================================================
 
