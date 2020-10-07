@@ -14,6 +14,13 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
+# check if "del" sequence is in genome at "seq":"pos" position
+
+def checkDEL(R,build="38"):
+    return query.getRefSeq(R["seq"],R["pos"],R["pos"]+len(R["del"])-1,build)==R["del"]
+
+# ==============================================================================================================================
+
 # R:dict with "seq","pos","del","ins"
 
 def getVarType(R):
