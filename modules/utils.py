@@ -35,6 +35,9 @@ def equivalentVariants(r1,r2,build="38"):
     if r1["seq"]!=r2["seq"]:
         return False
 
+    if len(r1["ins"])-len(r1["del"])!=len(r2["ins"])-len(r2["del"])
+        return False
+    
     c=r1["seq"]
     
     if r1["pos"]<r2["pos"]:
