@@ -15,6 +15,32 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
+# returns True if both variants result in the same altered sequence
+
+def equivalentVariants(r1,r2,build="38"):
+    if r1["seq"]=!r2["seq"]:
+        return False
+
+    c=r1["seq"]
+    
+    if r1["pos"]<r2["pos"]:
+        R1=r1
+        R2=r2
+    else:
+        R1=r2
+        R2=r1
+        
+    x=R2["pos"]-R1["pos"]
+    d1=len(R1["del"])
+    d2=len(R2["del"])
+
+    if x+d2>=d1:
+        return query.getRefSeq(c,R1["pos"],R1["pos"]+x,build)+R2["ins"]==R1["ins"]+query.getRefSeq(c,R1["pos"]+d1,R1["pos"]+d2+x,build)
+    else:
+        return query.getRefSeq(c,R1["pos"],R1["pos"]+x,build)+R2["ins"]+query.getRefSeq(c,R1["pos"]+x+d2,R1["pos"]+d1,build)==R1["ins"]
+
+# ==============================================================================================================================
+
 # input: s:p:d:i
 # p is 0-based
 
@@ -44,9 +70,9 @@ def convertSPDI(spdi,build="38"):
 def convertVariantID(varid,reverse=False):
     L=varid.rsplit("_")
     if reverse:
-        return {"seq":L[0],"pos":L[1],"del":L[3],"ins":L[2]}
+        return {"seq":L[0],"pos":int(L[1]),"del":L[3],"ins":L[2]}
     else:
-        return {"seq":L[0],"pos":L[1],"del":L[2],"ins":L[3]}
+        return {"seq":L[0],"pos":int(L[1]),"del":L[2],"ins":L[3]}
 
 # ==============================================================================================================================
 
