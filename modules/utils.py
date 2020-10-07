@@ -12,6 +12,20 @@ from . import query
 
 LOGGER=logging.getLogger(__name__)
 
+# ==============================================================================================================================
+
+# R:dict with "seq","pos","del","ins"
+
+def getVarType(R):
+    if len(R["del"])==1 and len(R["ins"])==1:
+        return "SNP"
+
+    if len(R["del"])>len(R["ins"]):
+        return "DEL"
+    elif len(R["del"])<len(R["ins"]):
+        return "INS"
+    else:
+        return "INDEL"
 
 # ==============================================================================================================================
 
