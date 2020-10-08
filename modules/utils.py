@@ -210,7 +210,7 @@ def checkGnomadID(var):
 # ======================================================================================================================
 
 # check if provided input is a valid variant ID
-# valid ID: either rsID or chr_pos_ref_alt
+# valid ID: either rsID or chr_pos_A1_A2
 def checkID(id):
     m=re.search("^rs\d+",id)
     if m:
@@ -218,13 +218,7 @@ def checkID(id):
     
     m=re.search("^\d+_\d+_([ATGC]+)_([ATGC]+)",id)
     if m:
-        if len(m.group(1))==1 and len(m.group(2))==1:
-            return True
-
-        if m.group(1).startswith(m.group(2)) or m.group(2).startswith(m.group(1)):
-            return True
-        else:
-            return False
+        return True
     else:
         return False
 
