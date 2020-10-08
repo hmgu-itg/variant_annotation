@@ -113,7 +113,7 @@ def convertSPDI(spdi,build="38"):
     I=L[3]
     lD=len(D)
 
-    m=re.match("^(\d+)$",D)
+    m=re.match("^\d+$",D)
     if m:
         return {"seq":c,"pos":pos+1,"del":query.getRefSeq(c,pos+1,pos+lD,build),"ins":I}
     else:
