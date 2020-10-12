@@ -37,7 +37,17 @@ if [ "$prepgwas" -eq 0 ] && [ "$prepgtex" -eq 0 ] && [ "$prepreg" -eq 0 ];then
     prepreg=1
 fi
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+#DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+pushd . > /dev/null
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+if ([ -h "${SCRIPT_PATH}" ]); then
+  while([ -h "${SCRIPT_PATH}" ]); do cd `dirname "$SCRIPT_PATH"`; 
+  SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
+fi
+cd `dirname ${SCRIPT_PATH}` > /dev/null
+SCRIPT_PATH=`pwd`;
+popd  > /dev/null
+DIR-$SCRIPT_PATH
 CDIR=$(pwd)
 
 reg_script="$DIR"/"prepareRegulation.sh"
