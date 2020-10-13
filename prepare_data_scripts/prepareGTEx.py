@@ -66,7 +66,9 @@ if version=="8":
         s=row[3]
         e=row[4]
         f=row[8]
-        m=re.search("gene_id\s+\"(ENSG\d+)(\.\d+)?\"",f)
+        m=re.search("gene_id\s+\"(ENSG\d+)(\.\d+)?(\_PAR\_Y)?\"",f)
+        if m.group(3):
+            print("WARNING: %s skipped (PAR Y)." % (m.group(0)),file=sys.stderr)
         if m:
             gene_id=m.group(1)
             if gene_id in gene_map:
@@ -76,6 +78,7 @@ if version=="8":
                 gene_map[gene_id]={"chr":c,"start":int(s),"end":int(e)}
         else:
             print("ERROR: no gene ID in row %d" % index,file=sys.stderr)
+            print(row)
             continue
 
 # ======================================== BUILDING VAR MAPPING ======================================================
