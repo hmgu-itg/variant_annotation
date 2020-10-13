@@ -69,6 +69,7 @@ if version=="8":
         m=re.search("gene_id\s+\"(ENSG\d+)(\.\d+)?(\_PAR\_Y)?\"",f)
         if m.group(3):
             print("WARNING: %s skipped (PAR Y)." % (m.group(0)),file=sys.stderr)
+            continue
         if m:
             gene_id=m.group(1)
             if gene_id in gene_map:
