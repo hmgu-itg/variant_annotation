@@ -10,7 +10,8 @@ From: ubuntu:18.04
 	export LC_ALL
 
 	PYTHONPATH=$PYTHONPATH:/usr/bin/variant_annotation/python
-
+	export PYTHONPATH
+	
 %post
 	apt update
 	ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
