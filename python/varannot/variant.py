@@ -6,9 +6,9 @@ import os
 import tempfile as tf
 import subprocess
 
-from . import config
-from . import query
-from . import utils
+from varannot import config
+from varannot import query
+from varannot import utils
 
 LOGGER=logging.getLogger(__name__)
 # LOGGER.setLevel(logging.DEBUG)

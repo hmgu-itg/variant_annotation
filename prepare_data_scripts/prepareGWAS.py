@@ -4,7 +4,7 @@ import argparse
 import sys
 import re
 import pandas as pd
-import variant
+from varannot import variant
 import os
 
 sys.stdout=open(sys.stdout.fileno(),mode='w',encoding='utf8',buffering=1)
