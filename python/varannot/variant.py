@@ -6,45 +6,48 @@ import os
 import tempfile as tf
 import subprocess
 
-from varannot import config
-from varannot import query
-from varannot import utils
+from python.varannot import config
+from python.varannot import query
+from python.varannot import utils
 
 LOGGER=logging.getLogger(__name__)
-# LOGGER.setLevel(logging.DEBUG)
-# ch=logging.StreamHandler()
-# ch.setLevel(logging.DEBUG)
-# formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
-# ch.setFormatter(formatter)
-# LOGGER.addHandler(ch)
 
 # ==============================================================================================================================
 
 def rsList2position(L,build="38"):
     '''
-    Given a list of rsIDs, return a list of dictionaries with keys "chr", "pos"
-    
-    Input: rsID, build (default: 38)
-    Output: a list of dictionaries with keys "chr", "pos", or None if query fails
+    Input: list of rsID, build (default: 38)
+    Output: a dictionary rsID --> [{"chr":c,"pos":p}, ...], or None if query fails
     '''
 
     D={}
-    z=query.restQuery(query.makeRSQueryURL(ID,build=build),qtype="post",data=utils.list2string(L))
+    data=utils.list2string(L)
+    LOGGER.debug("data: %s" % data)
+    url=query.makeRSListQueryURL(build=build)
+    LOGGER.debug("url: %s" % url)
+    z=query.restQuery(url,qtype="post",data=data)
     if z:
         for x in z:
+            inputID=x["input"]
+            D[inputID]=[]
             spdis=x["spdi"]
             for spdi in spdis:
                 LOGGER.debug("%s" % spdi)
                 h=query.parseSPDI(spdi)
                 p=h["pos"]
                 c=h["chr"]
-                z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
+                z=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p),None)
                 if not z:
-                    L.append({"chr":c,"pos":p})
+                    D[inputID].append({"chr":c,"pos":p})
+                    
+        # in case some input IDs are missing in the response
+        for ID in L:
+            if not ID in D:
+                D[ID]=[{"chr":"NA","pos":"NA"}]
     else:
         return None
 
-    return L
+    return D
 
 # ==============================================================================================================================
 
@@ -62,7 +65,7 @@ def rs2position(ID,build="38"):
         for x in z:
             spdis=x["spdi"]
             for spdi in spdis:
-                LOGGER.debug("%s" % spdi)
+                LOGGER.debug("SPDI: %s" % spdi)
                 h=query.parseSPDI(spdi)
                 p=h["pos"]
                 c=h["chr"]
@@ -81,7 +84,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
     For a given genomic region, return dataframe containing variants with phenotype annotations
 
     Input: chromosome, position, window (default: config.PHENO_WINDOW), build (default: "38") 
-    Output: pandas dataframe with the columns: "ID","Consequence","Location","Phenotype","Source","Distance"
+    Output: pandas dataframe with columns: "ID", "Consequence", "Location", "Phenotype", "Source", "Distance"
     '''
     
     start=pos-window

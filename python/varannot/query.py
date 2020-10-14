@@ -3,14 +3,14 @@ from requests.exceptions import Timeout,TooManyRedirects,RequestException
 import logging
 import re
 
-from . import config
+from python.varannot import config
 
 LOGGER=logging.getLogger(__name__)
 
 def getServerName(build="38"):
-    server="http://grch"+build+".rest.ensembl.org"
+    server="https://grch"+build+".rest.ensembl.org"
     if build=="38":
-        server="http://rest.ensembl.org"
+        server="https://rest.ensembl.org"
     return server
 
 def makeOverlapVarQueryURL(chrom,start,end,build="38"):
@@ -157,7 +157,7 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
             r = func(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},data=data,timeout=timeout)
 
         if not r.ok:
-            LOGGER.error("Error %s occured (input: %s)" %(str(r.status_code),URL))
+            LOGGER.error("Error %s occured (input URL: %s)" %(str(r.status_code),URL))
             return None
 
         try:
