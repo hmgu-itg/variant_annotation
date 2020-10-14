@@ -38,7 +38,11 @@ def rsList2position(L,build="38",alleles=False):
                 c=h["chr"]
                 ref=h["ref"]
                 alt=h["alt"]
-                z=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p),None)
+                z=None
+                if alleles:
+                    z=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p and x["ref"]==ref and x["alt"]==alt),None)
+                else:
+                    z=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p),None)
                 if not z:
                     D[inputID].append({"chr":c,"pos":p,"ref":ref,"alt":alt})
                     
@@ -73,7 +77,12 @@ def rs2position(ID,build="38",alleles=False):
                 c=h["chr"]
                 ref=h["ref"]
                 alt=h["alt"]
-                z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
+                LOGGER.debug("%s:%d:%s:%s" % (c,p,ref,alt))
+                z=None
+                if alleles:
+                    z=next((x for x in L if x["chr"]==c and x["pos"]==p and x["ref"]==ref and x["alt"]==alt),None)
+                else:
+                    z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
                 if not z:
                     L.append({"chr":c,"pos":p,"ref":ref,"alt":alt})
     else:
