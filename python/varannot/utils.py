@@ -7,8 +7,8 @@ import pandas as pd
 import tempfile as tf
 import plotly.graph_objects as go
 
-from . import config
-from . import query
+from varannot import config
+from varannot import query
 
 LOGGER=logging.getLogger(__name__)
 
