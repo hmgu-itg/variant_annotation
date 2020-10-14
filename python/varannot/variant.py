@@ -14,9 +14,9 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
-def rsList2position(L,build="38"):
+def rsList2position(L,build="38",alleles=False):
     '''
-    Input: list of rsID, build (default: 38)
+    Input: list of rsID, build (default: 38), alleles=True/False (if we need alleles as well)
     Output: a dictionary rsID --> [{"chr":c,"pos":p}, ...], or None if query fails
     '''
 
@@ -33,17 +33,19 @@ def rsList2position(L,build="38"):
             spdis=x["spdi"]
             for spdi in spdis:
                 LOGGER.debug("%s" % spdi)
-                h=query.parseSPDI(spdi)
+                h=query.parseSPDI(spdi,build=build,alleles=alleles)
                 p=h["pos"]
                 c=h["chr"]
+                ref=h["ref"]
+                alt=h["alt"]
                 z=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p),None)
                 if not z:
-                    D[inputID].append({"chr":c,"pos":p})
+                    D[inputID].append({"chr":c,"pos":p,"ref":ref,"alt":alt})
                     
         # in case some input IDs are missing in the response
         for ID in L:
             if not ID in D:
-                D[ID]=[{"chr":"NA","pos":"NA"}]
+                D[ID]=[{"chr":None,"pos":None,"ref":None,"alt":None}]
     else:
         return None
 
@@ -51,11 +53,11 @@ def rsList2position(L,build="38"):
 
 # ==============================================================================================================================
 
-def rs2position(ID,build="38"):
+def rs2position(ID,build="38",alleles=False):
     '''
     Given rsID, return a list of dictionaries with keys "chr", "pos"
     
-    Input: rsID, build (default: 38)
+    Input: rsID, build (default: 38), alleles=True/False (if we need alleles as well)
     Output: a list of dictionaries with keys "chr", "pos", or None if query fails
     '''
 
@@ -66,12 +68,14 @@ def rs2position(ID,build="38"):
             spdis=x["spdi"]
             for spdi in spdis:
                 LOGGER.debug("SPDI: %s" % spdi)
-                h=query.parseSPDI(spdi)
+                h=query.parseSPDI(spdi,build=build,alleles=alleles)
                 p=h["pos"]
                 c=h["chr"]
+                ref=h["ref"]
+                alt=h["alt"]
                 z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
                 if not z:
-                    L.append({"chr":c,"pos":p})
+                    L.append({"chr":c,"pos":p,"ref":ref,"alt":alt})
     else:
         return None
 
