@@ -1,0 +1,101 @@
+--- ../gwava.py	2020-10-14 12:27:19.981069673 +0000
++++ /storage/hmgu/software/gwava/src/gwava.py	2020-07-20 23:31:43.809884051 +0000
+@@ -18,10 +18,10 @@
+ 
+ import sys, os
+ import numpy as np
+-import pylab as pl
++#import pylab as pl
+ from scipy import interp
+ from sklearn.utils import shuffle
+-from sklearn.metrics import roc_curve, auc, zero_one_score, precision_recall_curve
++from sklearn.metrics import roc_curve, auc, zero_one_loss, precision_recall_curve
+ #from sklearn.ensemble import RandomForestClassifier
+ from forest import RandomForestClassifier
+ from sklearn.cross_validation import StratifiedKFold, permutation_test_score
+@@ -491,46 +491,46 @@
+     fis = Series(model.feature_importances_[idx[::-1]], index=df.columns.drop(cols_to_drop + [cls])[idx[::-1]].values)
+     return fis
+ 
+-def plot_cv_roc(k, df, clf = None, cls = 'cls', do_plot=True, rs=0, curve_type=roc_curve):
+-    y = df[cls].values
+-    X = df.as_matrix(df.columns.drop(cols_to_drop + [cls]))
+-
+-    if clf is None:
+-        clf = RandomForestClassifier(n_estimators=100, max_depth=None, min_samples_split=1, random_state=rs, balance_classes=True, compute_importances=True, oob_score=True)
+-
+-    cv = StratifiedKFold(y, n_folds=k)
+-
+-    mean_tpr = 0.0
+-    mean_fpr = np.linspace(0, 1, 100)
+-
+-    for i, (train, test) in enumerate(cv):
+-        probas_ = clf.fit(X[train], y[train]).predict_proba(X[test])
+-        fpr, tpr, thresholds = curve_type(y[test], probas_[:, 1])
+-        mean_tpr += interp(mean_fpr, fpr, tpr)
+-        mean_tpr[0] = 0.0
+-        roc_auc = auc(fpr, tpr)
+-        if do_plot:
+-            pl.plot(fpr, tpr, lw=1, label='ROC fold %d (area = %0.2f)' % (i, roc_auc))
+-
+-    if do_plot:
+-        pl.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Chance')
+-
+-    mean_tpr /= len(cv)
+-    mean_tpr[-1] = 1.0
+-    mean_auc = auc(mean_fpr, mean_tpr)
+-
+-    if do_plot:
+-        pl.plot(mean_fpr, mean_tpr, 'k--',
+-                label='Mean ROC (area = %0.2f)' % mean_auc, lw=2)
+-        pl.xlim([-0.05, 1.05])
+-        pl.ylim([-0.05, 1.05])
+-        pl.xlabel('False Positive Rate')
+-        pl.ylabel('True Positive Rate')
+-        pl.title('10-fold cross validation')
+-        pl.legend(loc="lower right")
+-        pl.show()
++# def plot_cv_roc(k, df, clf = None, cls = 'cls', do_plot=True, rs=0, curve_type=roc_curve):
++#     y = df[cls].values
++#     X = df.as_matrix(df.columns.drop(cols_to_drop + [cls]))
++
++#     if clf is None:
++#         clf = RandomForestClassifier(n_estimators=100, max_depth=None, min_samples_split=1, random_state=rs, balance_classes=True, compute_importances=True, oob_score=True)
++
++#     cv = StratifiedKFold(y, n_folds=k)
++
++#     mean_tpr = 0.0
++#     mean_fpr = np.linspace(0, 1, 100)
++
++#     for i, (train, test) in enumerate(cv):
++#         probas_ = clf.fit(X[train], y[train]).predict_proba(X[test])
++#         fpr, tpr, thresholds = curve_type(y[test], probas_[:, 1])
++#         mean_tpr += interp(mean_fpr, fpr, tpr)
++#         mean_tpr[0] = 0.0
++#         roc_auc = auc(fpr, tpr)
++#         if do_plot:
++#             pl.plot(fpr, tpr, lw=1, label='ROC fold %d (area = %0.2f)' % (i, roc_auc))
++
++#     if do_plot:
++#         pl.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Chance')
++
++#     mean_tpr /= len(cv)
++#     mean_tpr[-1] = 1.0
++#     mean_auc = auc(mean_fpr, mean_tpr)
++
++#     if do_plot:
++#         pl.plot(mean_fpr, mean_tpr, 'k--',
++#                 label='Mean ROC (area = %0.2f)' % mean_auc, lw=2)
++#         pl.xlim([-0.05, 1.05])
++#         pl.ylim([-0.05, 1.05])
++#         pl.xlabel('False Positive Rate')
++#         pl.ylabel('True Positive Rate')
++#         pl.title('10-fold cross validation')
++#         pl.legend(loc="lower right")
++#         pl.show()
+ 
+-    return (mean_fpr, mean_tpr, mean_auc)
++#     return (mean_fpr, mean_tpr, mean_auc)
+ 
+ def build_full_classifier(df, cls='cls', rs=0):
+     y = df[cls].values
