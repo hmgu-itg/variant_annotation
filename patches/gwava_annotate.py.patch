@@ -1,0 +1,221 @@
+--- ../gwava_annotate.py	2020-10-14 12:27:42.562303612 +0000
++++ /storage/hmgu/software/gwava/src/gwava_annotate.py	2020-07-20 23:31:43.978898519 +0000
+@@ -17,10 +17,10 @@
+ """
+ 
+ import sys, os
+-from subprocess import call
++import subprocess
+ import pybedtools
+ from pybedtools import BedTool
+-from tabix import Tabix
++#from tabix import Tabix
+ from pandas import *
+ 
+ # read the GWAVA_DIR from the environment, but default to the directory above where the script is located
+@@ -33,14 +33,15 @@
+     v = BedTool(vf)
+     feats = BedTool(af)
+     cols = open(af+'.cols', 'r').readline().strip().split(',')
+-    intersection = feats.intersect(v, wb=True)
+-    sort_cmd = 'sort -k1,1 -k2,2n -k3,3n %s -o %s' % (intersection.fn, intersection.fn)
+-    call(sort_cmd, shell=True)
+-    annots = intersection.groupby(g=[9,10,11,12], c=6, ops='freqdesc')
+     results = {}
+-    for entry in annots:
+-        fs = entry[4].strip(',').split(',')
+-        results[entry.name] = Series({e[0]: int(e[1]) for e in [f.split(':') for f in fs]})
++    intersection = feats.intersect(v, wb=True)
++    if len(intersection) > 0:
++        sort_cmd = 'sort -k1,1 -k2,2n -k3,3n %s -o %s' % (intersection.fn, intersection.fn)
++        subprocess.call(sort_cmd, shell=True)
++        annots = intersection.groupby(g=[9,10,11,12], c=6, ops='freqdesc')
++        for entry in annots:
++            fs = entry[4].strip(',').split(',')
++            results[entry.name] = Series({e[0]: int(e[1]) for e in [f.split(':') for f in fs]})
+     df = DataFrame(results, index = cols)
+     # transpose to turn feature types into columns, and turn all the NAs in to 0s
+     return df.T.fillna(0)
+@@ -48,14 +49,10 @@
+ def gene_regions(vf, af):
+     v = BedTool(vf)
+     feats = BedTool(af)
+-    
+     # first establish all the columns in the annotation file
+     cols = set(f[4] for f in feats)
+-
+     results = {}
+-
+     intersection = v.intersect(feats, wb=True)
+-
+     if len(intersection) > 0:
+         annots = intersection.groupby(g=[1,2,3,4], c=9, ops='collapse')
+ 
+@@ -66,24 +63,20 @@
+                     regions[region] += 1
+                 else:
+                     regions[region] = 1
+-
+             results[entry.name] = Series(regions)
+-
+     df = DataFrame(results, index = cols)
+-
+     return df.T.fillna(0)
+ 
+ def gerp(vf, af, name="gerp"):
+     v = BedTool(vf)
+-    t = Tabix(af)
+-
++#    t = Tabix(af)
+     results = {}
+-
+     for var in v:
+         try:
+             result = 0.0
+             num = 0
+-            for res in t.query(var.chrom, var.start, var.end):
++#            for res in t.query(var.chrom, var.start, var.end):
++            for res in runTabix(af,var.chrom, var.start, var.end):
+                 result += float(res[4])
+                 num += 1
+             if num > 0:
+@@ -105,24 +98,24 @@
+     flanks = v.slop(g=pybedtools.chromsizes('hg19'), b=flank)
+     return gerp(flanks.fn, af, name="avg_gerp")
+ 
+-def feat_dist(vf, af, name):
++def feat_dist(vf, af, name,genome=None):
+     v = BedTool(vf)
+     a = BedTool(af)
+-    closest = v.closest(a, D="b")
++    closest = v.closest(a, D="b", g=genome)
+     results = dict([ (r.name, int(r[len(r.fields)-1])) for r in closest ])
+     return Series(results, name=name)
+ 
+ def motifs(vf, af):
+     v = BedTool(vf)
+     cpg = BedTool(af)
+-    overlap = v.intersect(cpg, wb=True)
++    overlap = v.intersect(cpg, wb=True,nonamecheck=True)
+     results = dict([ (r.name, 1) for r in overlap ])
+     return Series(results, name="pwm")
+ 
+ def cpg_islands(vf, af):
+     v = BedTool(vf)
+     cpg = BedTool(af)
+-    overlap = v.intersect(cpg, wb=True)
++    overlap = v.intersect(cpg, wb=True,nonamecheck=True)
+     results = dict([ (r.name, 1) for r in overlap ])
+     return Series(results, name="cpg_island")
+ 
+@@ -130,7 +123,7 @@
+     v = BedTool(vf)
+     feats = BedTool(af)
+     results = {}
+-    intersection = v.intersect(feats, wb=True)
++    intersection = v.intersect(feats, wb=True,nonamecheck=True)
+     if len(intersection) > 0:
+         annots = intersection.groupby(g=[1,2,3,4], c=8, ops='collapse')
+         for entry in annots: 
+@@ -152,11 +145,13 @@
+     v = BedTool(vf)
+     feats = BedTool(af)
+     results = {}
+-    intersection = feats.intersect(v, wb=True)
++    intersection = feats.intersect(v, wb=True,nonamecheck=True)
+     if len(intersection) > 0:
+         sort_cmd = 'sort -k6,6 -k7,7n -k8,8n -k9,9 %s -o %s' % (intersection.fn, intersection.fn)
+-        call(sort_cmd, shell=True)
++        subprocess.call(sort_cmd, shell=True)
+         annots = intersection.groupby(g=[6,7,8,9], c=4, ops='collapse')
++
++        # is this correct ?
+         for entry in annots:
+             cells = entry[4].split(',') 
+             results[entry.name] = len(cells)
+@@ -166,11 +161,11 @@
+ def bound_motifs(vf, af):
+     v = BedTool(vf)
+     feats = BedTool(af)
+-    intersection = feats.intersect(v, wb=True)
++    intersection = feats.intersect(v, wb=True,nonamecheck=True)
+     results = {}
+     if len(intersection) > 0:
+         sort_cmd = 'sort -k6,6 -k7,7n -k8,8n -k9,9 %s -o %s' % (intersection.fn, intersection.fn)
+-        call(sort_cmd, shell=True)
++        subprocess.call(sort_cmd, shell=True)
+         annots = intersection.groupby(g=[6,7,8,9], c=4, ops='collapse')
+         for entry in annots:
+             cells = entry[4].split(',') 
+@@ -182,11 +177,11 @@
+     v = BedTool(vf)
+     feats = BedTool(af)
+     flanks = v.slop(g=pybedtools.chromsizes('hg19'), b=flank)
+-    intersection = feats.intersect(flanks, wb=True)
++    intersection = feats.intersect(flanks, wb=True,nonamecheck=True)
+     results = {}
+     if len(intersection) > 0:
+         sort_cmd = 'sort -k6,6 -k7,7n -k8,8n -k9,9 %s -o %s' % (intersection.fn, intersection.fn)
+-        call(sort_cmd, shell=True)
++        subprocess.call(sort_cmd, shell=True)
+         annots = intersection.groupby(g=[6,7,8,9], c=5, ops='collapse')
+ 
+         for entry in annots:
+@@ -214,7 +209,7 @@
+ def repeats(vf, af):
+     v = BedTool(vf)
+     feats = BedTool(af)
+-    intersection = v.intersect(feats, wb=True)
++    intersection = v.intersect(feats, wb=True,nonamecheck=True)
+     results = {}
+     if len(intersection) > 0:
+         annots = intersection.groupby(g=[1,2,3,4], c=8, ops='collapse')
+@@ -236,6 +231,7 @@
+ TSS = DIR+'encode/Gencodev10_TSS_May2012.gff.gz'
+ GERP = DIR+'gerp/gerp_whole_genome.bed.gz'
+ HG19 = DIR+'hg19/hg19.fa'
++HG19GENOME = DIR+'hg19/human.hg19.genome'
+ MOTIFS = DIR+'ensembl/MotifFeatures.gff.gz'
+ SEGMENTS = DIR+'ensembl/segmentation.bed.gz'
+ DNASE_FPS = DIR+'encode/all.footprints.bed.gz'
+@@ -247,6 +243,15 @@
+ REPEATS = DIR+'ucsc/ucsc_repeats.bed.gz'
+ ENCODE_FEATS = DIR+'encode/encode_megamix.bed.gz'
+ 
++def runTabix(fname,chrom,start,end):
++    query = "tabix %s %s:%s-%s" %(fname,chrom,start,end)
++    output = subprocess.Popen(query.strip(),universal_newlines=True,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
++    L=[]
++    for line in output.stdout.readlines():
++        L.append(line.strip().split("\t"))
++
++    return L
++
+ def annotate(vf):
+   
+     df = coordinates(vf)
+@@ -257,13 +262,13 @@
+         cpg_islands(vf, CPG),
+         average_gerp(vf, GERP),
+         gerp(vf, GERP),
+-        feat_dist(vf, TSS, name='tss_dist'),  
++        feat_dist(vf, TSS, name='tss_dist',genome=HG19GENOME),  
+         gc_content(vf, HG19),
+         segmentations(vf, SEGMENTS),
+         dnase_fps(vf, DNASE_FPS),
+         bound_motifs(vf, BOUND_MOTIFS),
+         gene_regions(vf, GENE_REGIONS),
+-        feat_dist(vf, SPLICE_SITES, name='ss_dist'),
++        feat_dist(vf, SPLICE_SITES, name='ss_dist',genome=HG19GENOME),
+         snp_stats(vf, HET_RATES, stat='avg_het'),
+         snp_stats(vf, DAF, stat='avg_daf'),
+         seq_context(vf, HG19),
+@@ -283,7 +288,7 @@
+ if __name__ == "__main__":
+ 
+     if len(sys.argv) < 3:
+-        print "Usage:",sys.argv[0]," variants.bed output.csv class"
++        print("Usage:",sys.argv[0]," variants.bed output.csv class" )
+         sys.exit(0)
+ 
+     vf = sys.argv[1]
