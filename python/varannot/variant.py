@@ -20,6 +20,34 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
+def rsList2position(L,build="38"):
+    '''
+    Given a list of rsIDs, return a list of dictionaries with keys "chr", "pos"
+    
+    Input: rsID, build (default: 38)
+    Output: a list of dictionaries with keys "chr", "pos", or None if query fails
+    '''
+
+    D={}
+    z=query.restQuery(query.makeRSQueryURL(ID,build=build),qtype="post",data=utils.list2string(L))
+    if z:
+        for x in z:
+            spdis=x["spdi"]
+            for spdi in spdis:
+                LOGGER.debug("%s" % spdi)
+                h=query.parseSPDI(spdi)
+                p=h["pos"]
+                c=h["chr"]
+                z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
+                if not z:
+                    L.append({"chr":c,"pos":p})
+    else:
+        return None
+
+    return L
+
+# ==============================================================================================================================
+
 def rs2position(ID,build="38"):
     '''
     Given rsID, return a list of dictionaries with keys "chr", "pos"
