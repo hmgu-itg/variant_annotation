@@ -129,9 +129,9 @@ def parseSPDI(string,alleles=False,build="38"):
                 return {"chr":c,"pos":pos,"ref":base+delseq,"alt":base+alt}
     else:
         if isSNP:
-            return {"chr":c,"pos":pos+1}
+            return {"chr":c,"pos":pos+1,"ref":None,"alt":None}
         else:
-            return {"chr":c,"pos":pos}
+            return {"chr":c,"pos":pos,"ref":None,"alt":None}
 
 # ===========================================================================================================================
 
