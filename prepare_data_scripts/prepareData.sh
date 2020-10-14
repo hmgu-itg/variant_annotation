@@ -127,7 +127,7 @@ fi
 if [[ "$prepgwas" -eq 1 ]];then
     gwas="$out/gwas/gwas_full.tsv.gz"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GWAS file"
-    PYTHONPATH=$(dirname "$DIR") "$gwas_script" -i "$gwas" | gzip - > "$out/gwas/gwas.tsv.gz"
+    "$gwas_script" -i "$gwas" | gzip - > "$out/gwas/gwas.tsv.gz"
 fi
 
 # -------------------------------------------------------------------------
