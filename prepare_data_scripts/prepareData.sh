@@ -2,9 +2,9 @@
 
 function usage {
     echo ""
-    echo "Usage:" $(basename $0) "-o <output dir> { -h -g -x -r}"
+    echo "Usage:" $(basename $0) "-o <output dir> { -h -g -x -r -w}"
     echo " -h : this help message"
-    echo " -g -x -r are optional, for selecting which data to prepare (GWAS, GTEx or Regulation)"
+    echo " -g -x -r -w are optional, for selecting which data to prepare (GWAS, GTEx, Regulation or GWAVA), by default all."
 
     exit 0
 }
