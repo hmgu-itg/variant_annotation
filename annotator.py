@@ -7,19 +7,19 @@ import os
 import sys
 import gzip
 
-from modules import config
-from modules import utils
-from modules import gnomad
-from modules import mouse
-from modules import variant
-from modules import gene
-from modules import regulation
-from modules import gwas
-from modules import gxa
-from modules import gtex
-from modules import vep
-from modules import pubmed
-from modules import uniprot
+from varannot import config
+from varannot import utils
+from varannot import gnomad
+from varannot import mouse
+from varannot import variant
+from varannot import gene
+from varannot import regulation
+from varannot import gwas
+from varannot import gxa
+from varannot import gtex
+from varannot import vep
+from varannot import pubmed
+from varannot import uniprot
 
 sys.stdout=open(sys.stdout.fileno(),mode='w',encoding='utf8',buffering=1)
 
