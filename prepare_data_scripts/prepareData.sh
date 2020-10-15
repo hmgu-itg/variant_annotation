@@ -16,7 +16,7 @@ prepgtex=0
 prepreg=0
 prepgwava=0
 
-while getopts "gxro:h" optname; do
+while getopts "gxrwo:h" optname; do
     case "$optname" in
         "g" ) prepgwas=1;;
         "x" ) prepgtex=1;;
