@@ -50,10 +50,10 @@ formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
-logging.getLogger("python.varannot.variant").addHandler(ch)
-logging.getLogger("python.varannot.variant").setLevel(verbosity)
-logging.getLogger("python.varannot.utils").addHandler(ch)
-logging.getLogger("python.varannot.utils").setLevel(verbosity)
+logging.getLogger("varannot.variant").addHandler(ch)
+logging.getLogger("varannot.variant").setLevel(verbosity)
+logging.getLogger("varannot.utils").addHandler(ch)
+logging.getLogger("varannot.utils").setLevel(verbosity)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
