@@ -6,8 +6,8 @@ import argparse
 import re
 import logging
 
-from python.varannot import variant
-from python.varannot import query
+from varannot import variant
+from varannot import query
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
