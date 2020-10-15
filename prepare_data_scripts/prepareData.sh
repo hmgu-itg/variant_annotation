@@ -14,12 +14,14 @@ OPTIND=1
 prepgwas=0
 prepgtex=0
 prepreg=0
+prepgwava=0
 
 while getopts "gxro:h" optname; do
     case "$optname" in
         "g" ) prepgwas=1;;
         "x" ) prepgtex=1;;
         "r" ) prepreg=1;;
+        "w" ) prepgwava=1;;
         "o" ) out="${OPTARG}";;
         "h" ) usage ;;
         "?" ) usage ;;
@@ -31,10 +33,11 @@ if [[ $# -eq 0 ]];then
     usage
 fi
 
-if [ "$prepgwas" -eq 0 ] && [ "$prepgtex" -eq 0 ] && [ "$prepreg" -eq 0 ];then
+if [ "$prepgwas" -eq 0 ] && [ "$prepgtex" -eq 0 ] && [ "$prepreg" -eq 0 ] && [ "$prepgwava" -eq 0 ];then
     prepgwas=1
     prepgtex=1
     prepreg=1
+    prepgwava=1
 fi
 
 #DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -64,7 +67,7 @@ gtexlookupURL="https://storage.googleapis.com/gtex_analysis_v8/reference/GTEx_An
 gtexgencodeURL="https://storage.googleapis.com/gtex_analysis_v8/reference/gencode.v26.GRCh38.genes.gtf"
 gwasURL="https://www.ebi.ac.uk/gwas/api/search/downloads/alternative"
 ensregURL="ftp://ftp.ensembl.org/pub/release-100/regulation/homo_sapiens/RegulatoryFeatureActivity/"
-
+gwavaURL="ftp://ftp.sanger.ac.uk/pub/resources/software/gwava/v1.0/"
 # -------------------------------------------------------------------------
 
 echo $(date '+%d/%m/%Y %H:%M:%S') "Creating output directories"
@@ -72,6 +75,8 @@ mkdir -p "$out/gwas"
 mkdir -p "$out/gtex"
 mkdir -p "$out/regulation"
 mkdir -p "$out/temp"
+mkdir -p "$out/gwava"
+
 
 # ----------------------- DOWNLOADING DATA --------------------------------
 
@@ -100,6 +105,12 @@ if [[ "$prepreg" -eq 1 ]];then
     echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading Ensembl Regulation"
     lftp -c "open $ensregURL; mirror -P . ." > /dev/null 2> /dev/null
     cd "$CDIR"
+fi
+
+
+if [[ "$prepgwava" -eq 1 ]];then
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GWAVA"
+    wget -r -N -l inf --cut-dirs 5 -np -nH -P $out/gwava --quiet -c "$gwavaURL"
 fi
 
 # -------------------------- REGULATION -----------------------------------
