@@ -35,10 +35,9 @@ parser = argparse.ArgumentParser()
 input_options = parser.add_argument_group('Input options')
 input_options.add_argument('--build','-b', action="store",type=str,help="Optional: genome build; default: 38", default=build,required=False)
 input_options.add_argument("--id", "-i", help="Required: input variant, rsID or variant ID: 14_94844947_C_T",required=True)
-input_options.add_argument("--data", "-d", help="Required: directory with GTEx, GWAS and Ensembl Regulation data",required=True)
+input_options.add_argument("--data", "-d", help="Required: directory with GWAVA, GTEx, GWAS and Ensembl Regulation data",required=True)
 input_options.add_argument('--output','-o', action="store",help="Optional: output directory; default: to current directory",required=False)
 input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
-input_options.add_argument("--gwava", "-g", help="Optional: path to GWAVA directory", required=False, action='store')
 input_options.add_argument("--html", "-html", help="Optional: output HTML instead of default JSON.GZ", required=False, action='store_true')
 input_options.add_argument("--reg-window", "-reg-window", help="Optional: bp window around the input variant to look for overlapping ENSEMBL regulatory elements; default: %d" % config.REG_WINDOW, type=int, default=config.REG_WINDOW, required=False, action='store',dest="reg_window")
 input_options.add_argument("--pheno-window", "-pheno-window", help="Optional: bp window around the input variant to look for variants annotated with phenotypes; default: %d" % config.PHENO_WINDOW, type=int, default=config.PHENO_WINDOW, required=False, action='store',dest="pheno_window")
@@ -49,7 +48,6 @@ input_options.add_argument("--gwas-window", "-gwas-window", help="Optional: bp w
 
 args=parser.parse_args()
 VAR_ID=args.id
-GWAVA=args.gwava
 out_html=args.html
 datadir=args.data
 
@@ -60,6 +58,7 @@ config.REGULATORY_FILE=datadir+config.REGULATORY_FILE_SFX
 config.GWAS_FILE_VAR=datadir+config.GWAS_FILE_VAR_SFX
 config.GWAS_FILE=datadir+config.GWAS_FILE_SFX
 config.GTEX_BED=datadir+config.GTEX_BED_SFX
+config.GWAVA_DIR=datadir+"gwava"
 
 if args.build!=None:
     build=args.build
@@ -83,11 +82,6 @@ config.OUTPUT_DIR=outdir
 config.OUTPUT_DIR_FIG=config.OUTPUT_DIR+"/figures"
 
 logfile=outdir+"/"+VAR_ID+".log"
-
-if GWAVA is not None:
-    if GWAVA.endswith("/"):
-        GWAVA=GWAVA[:-1]
-    config.GWAVA_DIR=GWAVA
 
 config.REG_WINDOW=args.reg_window
 config.PHENO_WINDOW=args.pheno_window
@@ -116,7 +110,7 @@ ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
-# shouldn't this be a loop
+for m in ["",]
 logging.getLogger("modules.variant").addHandler(ch)
 logging.getLogger("modules.variant").addHandler(logging.StreamHandler(sys.stdout))
 logging.getLogger("modules.variant").setLevel(verbosity)
