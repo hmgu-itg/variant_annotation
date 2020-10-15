@@ -68,6 +68,7 @@ gtexgencodeURL="https://storage.googleapis.com/gtex_analysis_v8/reference/gencod
 gwasURL="https://www.ebi.ac.uk/gwas/api/search/downloads/alternative"
 ensregURL="ftp://ftp.ensembl.org/pub/release-100/regulation/homo_sapiens/RegulatoryFeatureActivity/"
 gwavaURL="ftp://ftp.sanger.ac.uk/pub/resources/software/gwava/v1.0/"
+
 # -------------------------------------------------------------------------
 
 echo $(date '+%d/%m/%Y %H:%M:%S') "Creating output directories"
@@ -111,6 +112,7 @@ fi
 if [[ "$prepgwava" -eq 1 ]];then
     echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GWAVA"
     wget -r -N -l inf --cut-dirs 5 -np -nH -P $out/gwava --quiet -c "$gwavaURL"
+    wget -q https://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.chrom.sizes -O $out/gwava/source_data/hg19/human.hg19.genome
 fi
 
 # -------------------------- REGULATION -----------------------------------
@@ -140,6 +142,12 @@ if [[ "$prepgwas" -eq 1 ]];then
     echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GWAS file"
     "$gwas_script" -i "$gwas" | gzip - > "$out/gwas/gwas.tsv.gz"
 fi
+
+# ------------------------ POST-PROCESSING GWAVA --------------------------
+
+echo $(date '+%d/%m/%Y %H:%M:%S') "Patching GWAVA"
+patch -b $out/gwava/src/gwava_annotate.py /usr/bin/variant_annotation/patches/gwava_annotate.py.patch
+patch -b $out/gwava/src/gwava.py /usr/bin/variant_annotation/patches/gwava.py.patch
 
 # -------------------------------------------------------------------------
 
