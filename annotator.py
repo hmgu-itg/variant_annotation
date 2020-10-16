@@ -137,9 +137,8 @@ if variant_data is None:
     LOGGER.error("Variant data could not be retreived")
     sys.exit(1)
 
-if GWAVA is not None:
-    LOGGER.info("Getting GWAVA scores")
-    variant.getGwavaScore(variant_data)
+LOGGER.info("Getting GWAVA scores")
+variant.getGwavaScore(variant_data)
 
 chrpos=variant.getChrPosList(variant_data["mappings"])
 
