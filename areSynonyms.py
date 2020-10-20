@@ -54,7 +54,7 @@ logging.getLogger("varannot.query").setLevel(logging.DEBUG)
 #---------------------------------------------------------------------------------------------------------------------------
 
 if rs1==rs2:
-    sys.exit((0)
+    sys.exit(0)
 
 data1=query.restQuery(query.makeRsPhenotypeQuery2URL(rs1,build))
 data2=query.restQuery(query.makeRsPhenotypeQuery2URL(rs2,build))
