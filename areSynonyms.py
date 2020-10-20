@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
 import sys
-import os
-import argparse
-import re
+#import os
+#import argparse
+#import re
 import logging
 
 from varannot import variant
@@ -13,27 +13,30 @@ from varannot import query
 
 build="38"
 
-parser = argparse.ArgumentParser(description="Returns 0 if the two provided rsIDs are synonyms, 1 otherwise")
-parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38")
-requiredArgs=parser.add_argument_group('required arguments')
-requiredArgs.add_argument('--first','-f', action="store",help="rs1",required=True)
-requiredArgs.add_argument('--second','-s', action="store",help="rs2",required=True)
+# parser = argparse.ArgumentParser(description="Returns 0 if the two provided rsIDs are synonyms, 1 otherwise")
+# parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38")
+# requiredArgs=parser.add_argument_group('required arguments')
+# requiredArgs.add_argument('--first','-f', action="store",help="rs1",required=True)
+# requiredArgs.add_argument('--second','-s', action="store",help="rs2",required=True)
 
-if len(sys.argv[1:])==0:
-    parser.print_help()
-    sys.exit(0)
+# if len(sys.argv[1:])==0:
+#     parser.print_help()
+#     sys.exit(0)
 
-try:
-    args=parser.parse_args()
-except:
-    parser.print_help()
-    sys.exit(0)
+# try:
+#     args=parser.parse_args()
+# except:
+#     parser.print_help()
+#     sys.exit(0)
 
-if args.build!=None:
-    build=args.build
+# if args.build!=None:
+#     build=args.build
 
-rs1=args.first
-rs2=args.second
+# rs1=args.first
+# rs2=args.second
+
+rs1=sys.argv[1]
+rs2=sys.argv[2]
 
 if rs1==rs2:
     sys.exit(0)
