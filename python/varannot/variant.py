@@ -495,8 +495,8 @@ def getGwavaScore(variant_data):
             LOGGER.error("liftOver was not found in PATH.")
             sys.exit()
         
-        LOGGER.debug("Calling: liftOver %s /usr/bin/hg38ToHg19.over.chain.gz %s %s\n" %(in_bed.name,bed37_fname,unmapped_fname))
-        cmdline="liftOver %s /usr/bin/hg38ToHg19.over.chain.gz %s %s" %(in_bed.name,bed37_fname,unmapped_fname)
+        LOGGER.debug("Calling: liftOver %s /usr/local/bin/hg38ToHg19.over.chain.gz %s %s\n" %(in_bed.name,bed37_fname,unmapped_fname))
+        cmdline="liftOver %s /usr/local/bin/hg38ToHg19.over.chain.gz %s %s" %(in_bed.name,bed37_fname,unmapped_fname)
         subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT).communicate()
 
         if not os.path.isfile(bed37_fname):
