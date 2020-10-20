@@ -3,7 +3,7 @@ From: ubuntu:18.04
 
 %environment
 	TZ=Europe/Berlin
-	PATH=$PATH:/usr/bin:/usr/bin/variant_annotation
+	PATH=$PATH:/usr/bin:/usr/local/bin:/usr/bin/variant_annotation
 	export PATH
 	
 	LC_ALL=C
@@ -17,6 +17,13 @@ From: ubuntu:18.04
 	ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 	apt-get install -y r-base libcurl4-openssl-dev libxml2-dev libmariadbclient-dev libssl-dev
 apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-ping git yum gcc gfortran libc6 libc-bin libc-dev-bin make libblas-dev liblapack-dev libatlas-base-dev curl zlib1g zlib1g-dev libbz2-1.0 libbz2-dev libbz2-ocaml libbz2-ocaml-dev liblzma-dev lzma lzma-dev unzip
+
+	cd /usr/local/bin
+	wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v385/liftOver
+	chmod +x liftOver
+	wget ftp://hgdownload.cse.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHg19.over.chain.gz
+	gunzip hg38ToHg19.over.chain.gz
+	
 	cd /usr/bin
 	wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20191130.zip
 	unzip plink_linux_x86_64_20191130.zip
