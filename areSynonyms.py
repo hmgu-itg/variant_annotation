@@ -39,17 +39,17 @@ if rs1==rs2:
     sys.exit(0)
 
 LOGGER=logging.getLogger("areSynonyms")
-LOGGER.setLevel(verbosity)
+LOGGER.setLevel(logging.DEBUG)
 ch=logging.StreamHandler()
-ch.setLevel(verbosity)
+ch.setLevel(logging.DEBUG)
 formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
 logging.getLogger("varannot.variant").addHandler(ch)
-logging.getLogger("varannot.variant").setLevel(verbosity)
+logging.getLogger("varannot.variant").setLevel(logging.DEBUG)
 logging.getLogger("varannot.query").addHandler(ch)
-logging.getLogger("varannot.query").setLevel(verbosity)
+logging.getLogger("varannot.query").setLevel(logging.DEBUG)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
