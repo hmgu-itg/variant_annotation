@@ -14,7 +14,7 @@ from python.varannot import query
 
 build="38"
 
-parser = argparse.ArgumentParser(description="Get chr:pos:ref:alt for a given rs")
+parser = argparse.ArgumentParser(description="Get SPDIs for a given rs")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38")
 requiredArgs=parser.add_argument_group('required arguments')
 requiredArgs.add_argument('--id','-i', action="store",help="rsID",required=True)
@@ -47,5 +47,5 @@ logging.getLogger("python.varannot.variant").setLevel(logging.DEBUG)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
-for x in variant.rs2position(varID,build,alleles=True):
-    print(varID,x["chr"],x["pos"],x["ref"],x["alt"],sep="\t",file=sys.stdout)
+for x in variant.rs2spdi(varID,build):
+    print(x,file=sys.stdout)
