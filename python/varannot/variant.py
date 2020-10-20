@@ -419,8 +419,9 @@ def id2rs_mod(varid,build="38"):
         if not r:
             return S
 
-        LOGGER.debug("Got %d variants around %s:%d" %(len(r),V["seq"],V["pos"]))
+        LOGGER.debug("Got %d variants around %s:%d\n" %(len(r),V["seq"],V["pos"]))
         for v in r:
+            LOGGER.debug("Current variant: %s" % v["id"])
             z=query.restQuery(query.makeRSQueryURL(v["id"],build=build))
             if not z:
                 continue
@@ -429,7 +430,9 @@ def id2rs_mod(varid,build="38"):
                 spdis=x["spdi"]
                 var=x["id"][0]
                 for spdi in spdis:
+                    LOGGER.debug("SPDI: %s" % spdi)
                     V2=utils.convertSPDI(spdi,build=build)
+                    LOGGER.debug("V2: %s" % V2)
                     if b:
                         if utils.equivalentVariants(V,V2,build=build):
                             S.add(var)
