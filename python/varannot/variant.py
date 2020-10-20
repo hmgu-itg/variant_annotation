@@ -16,6 +16,21 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
+def rs2spdi(ID,build="38"):
+    L=[]
+    z=query.restQuery(query.makeRSQueryURL(ID,build=build))
+    if z:
+        for x in z:
+            if "spdi" in x:
+                spdis=x["spdi"]
+                for spdi in spdis:
+                    if not spdi in L:
+                        L.append(spdi)
+
+    return L
+
+# ==============================================================================================================================
+
 def rsList2position(L,build="38",alleles=False):
     '''
     Input: list of rsID, build (default: 38), alleles=True/False (if we need alleles as well)
