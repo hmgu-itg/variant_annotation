@@ -6,6 +6,8 @@ import os
 import tempfile as tf
 import subprocess
 
+from shutil import which
+
 from varannot import config
 from varannot import query
 from varannot import utils
@@ -474,6 +476,10 @@ def getGwavaScore(variant_data):
         in_bed.write("%s%s\t%d\t%d\t%s\n" %(prefix,chrpos[i][0],chrpos[i][1]-1,chrpos[i][1],variant_data["rsID"]))
         in_bed.close()
 
+        if which("liftOver") is None:
+            LOGGER.error("liftOver was not found in PATH.")
+            sys.exit()
+        
         LOGGER.debug("Calling: liftOver %s /usr/bin/hg38ToHg19.over.chain.gz %s %s\n" %(in_bed.name,bed37_fname,unmapped_fname))
         cmdline="liftOver %s /usr/bin/hg38ToHg19.over.chain.gz %s %s" %(in_bed.name,bed37_fname,unmapped_fname)
         subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT).communicate()
