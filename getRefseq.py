@@ -6,7 +6,7 @@ import argparse
 import re
 import logging
 
-from modules import query
+from varannot import query
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
