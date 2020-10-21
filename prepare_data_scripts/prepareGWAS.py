@@ -20,8 +20,6 @@ if len(sys.argv[1:])==0:
 try:
     args=parser.parse_args()
 except:
-    parser.print_help()
-    print(sys.path)
     sys.exit(0)
 
 fname=args.input
