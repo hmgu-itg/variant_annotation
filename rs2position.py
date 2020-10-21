@@ -26,9 +26,10 @@ if len(sys.argv[1:])==0:
 try:
     args=parser.parse_args()
 except:
-    parser.print_help()
     sys.exit(0)
 
+print("D")
+    
 if args.build!=None:
     build=args.build
 
