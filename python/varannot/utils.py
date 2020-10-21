@@ -6,11 +6,73 @@ import sys
 import pandas as pd
 import tempfile as tf
 import plotly.graph_objects as go
+import subprocess
 
 from varannot import config
 from varannot import query
 
 LOGGER=logging.getLogger(__name__)
+
+# ==============================================================================================================================
+
+'''
+Input: list of dictionaries chr:start:end:id
+Input: build (37 or 38): build to lift over from
+Output: lifted over list of dictionaries chr:start:end:id
+'''
+
+def runLiftOver(input_data,build="38"):
+    if build!="38" and build!="37":
+        LOGGER.error("provided build: %s; build should be either 37 or 38" % build)
+        return None
+    
+    L=list()
+
+    chain="/usr/local/bin/hg38ToHg19.over.chain.gz"
+    if build=="37":
+        chain="/usr/local/bin/hg19ToHg38.over.chain.gz"
+
+    in_bed=tf.NamedTemporaryFile(delete=False,mode="w")
+    LOGGER.debug("Input b%s bed file: %s" % (build,in_bed.name))
+    out_fname=tf.mktemp()
+    LOGGER.debug("Output b%s bed file: %s" % (build,out_fname))
+    unmapped_bed=tf.mktemp()
+    LOGGER.debug("Unmapped file: %s" % unmapped_fname)
+
+    for x in input_data:
+        in_bed.write("%s\t%d\t%d\t%s\n" %(x["chr"],int(x["start"]),int(x["end"]),x["id"],))
+    in_bed.close()
+
+    if which("liftOver") is None:
+        LOGGER.error("liftOver was not found in PATH")
+        return None
+        
+    LOGGER.debug("Calling: liftOver %s %s %s %s\n" %(in_bed.name,chain,out_fname,unmapped_fname))
+    cmdline="liftOver %s %s %s %s" %(in_bed.name,chain,out_fname,unmapped_fname)
+    subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT).communicate()
+
+    if not os.path.isfile(out_fname):
+        LOGGER.error("liftOver failed to create output file %s" % out_fname)
+        return None
+
+    if os.path.getsize(out_fname)==0:
+        LOGGER.warning("liftOver produced empty output file %s" % out_fname)
+        return None
+
+    with open(out_fname) as F:
+        for line in F:
+            (chrom,start,end,ID)=line.split("\t")
+            L.append({"end":,"start":,"end":end,"id":ID})
+    
+    LOGGER.debug("Removing temporary files\n")
+    if os.path.isfile(in_bed.name):
+        os.remove(in_bed.name)
+    if os.path.isfile(out_fname):
+        os.remove(out_fname)
+    if os.path.isfile(unmapped_fname):
+        os.remove(unmapped_fname)
+        
+    return L
 
 # ==============================================================================================================================
 
