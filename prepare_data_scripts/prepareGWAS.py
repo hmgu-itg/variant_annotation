@@ -1,17 +1,23 @@
 #!/usr/bin/python3
 
+import logging
 import argparse
 import sys
 import re
 import pandas as pd
-from varannot import variant
 import os
+
+from varannot import variant
+from varannot import utils
 
 sys.stdout=open(sys.stdout.fileno(),mode='w',encoding='utf8',buffering=1)
 
+verbosity=logging.INFO
+
 parser = argparse.ArgumentParser(description="Clean up GWAS associations file")
 requiredArgs=parser.add_argument_group('required arguments')
-requiredArgs.add_argument('--input','-i', action="store",help="input GWAS.tsv.gz",required=True)
+requiredArgs.add_argument('--input','-i', action="store",help="input gwas_full.tsv.gz",required=True)
+requiredArgs.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 
 if len(sys.argv[1:])==0:
     parser.print_help()
@@ -24,12 +30,80 @@ except:
 
 fname=args.input
 
+if args.verbose is not None:
+    if args.verbose=="debug":
+        verbosity=logging.DEBUG
+    elif args.verbose=="warning":
+        verbosity=logging.WARNING
+    elif args.verbose=="error":
+        verbosity=logging.ERROR
+
+LOGGER=logging.getLogger("prepareGWAS")
+LOGGER.setLevel(verbosity)
+ch=logging.StreamHandler()
+ch.setLevel(verbosity)
+formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+ch.setFormatter(formatter)
+LOGGER.addHandler(ch)
+
+logging.getLogger("varannot.variant").addHandler(ch)
+logging.getLogger("varannot.variant").setLevel(verbosity)
+logging.getLogger("varannot.utils").addHandler(ch)
+logging.getLogger("varannot.utils").setLevel(verbosity)
+
+#=========================================================================================================================================================
+
+L=list() # list of dicts (from input): chr:pos:id:pval:trait:pmid
 T=pd.read_table(fname,header=0,sep="\t",keep_default_na=False,dtype=str,encoding="utf-8",compression="gzip")
 print("CHR_ID","CHR_POS","SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID",sep="\t")
 for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VALUE"]].iterrows():
-    a=row["CHR_ID"].split(";")
-    b=row["CHR_POS"].split(";")
-    c=row["SNPS"].split(";")
+    chrID=row["CHR_ID"]
+    chrPOS=row["CHR_POS"]
+    SNPs=row["SNPS"]
+    trait=row["DISEASE/TRAIT"]
+    pmid=row["PUBMEDID"]
+    pval=row["P-VALUE"]
+
+    # case 1: there is only one chr:pos, but several SNPs, because a haplotype is reported
+    m1=re.search("^\d+$",chrPOS)
+    m2=re.search("[;,x]",SNPs)
+    if m1 and m2:
+        for x in re.split("\s*[;,x]\s*",SNPs):
+            d={"chr":chrID,"pos":chrPOS,"id":x,"trait":trait,"pval":pval,"pmid":pmid}
+            if not d in L:
+                L.append(d)
+        continue
+
+    # case 2: only one field in CHR, no separators in SNPS
+    m1=re.search("^[XY\d]+$",chrID,re.I)
+    if m1 and not m2:
+        d={"chr":chrID,"pos":chrPOS,"id":SNPs,"trait":trait,"pval":pval,"pmid":pmid}
+        if not d in L:
+            L.append(d)
+        continue
+
+    # case 3: CHR has several fields separated by 'x' or ';'
+    m1=re.search("\s*[x;]\s*",chrID)
+    if m1:
+        L1=re.split("\s*[x;]\s*",chrID)
+        L2=re.split("\s*[x;]\s*",chrPOS)
+        L3=re.split("\s*[x;]\s*",SNPs)
+        # TODO: check lengths
+        for (c,p,x) in zip(L1,L2,L3):
+            d={"chr":c,"pos":p,"id":x,"trait":trait,"pval":pval,"pmid":pmid}
+            if not d in L:
+                L.append(d)
+        continue
+
+    # case 4: both CHR and POS are empty
+    m1=re.search("^\s*$",chrID)
+    m2=re.search("^\s*$",chrPOS)
+    # if (/([XY\d]+)[:_.-]\s*(\d+)/i && !/\*/)
+    if m1 and m2:
+        m3=re.search("\*",SNPs)
+        if not m3:
+            m4=re.search("([XY\d]+)[:_.-]\s*(\d+)",SNPs,re.I)
+
 
     if len(row["CHR_ID"])==0 or len(row["CHR_POS"])==0:
         if len(c)==1 and len(row["SNPS"])!=0:
