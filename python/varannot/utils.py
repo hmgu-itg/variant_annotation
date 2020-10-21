@@ -62,7 +62,7 @@ def runLiftOver(input_data,build="38"):
     with open(out_fname) as F:
         for line in F:
             (chrom,start,end,ID)=line.split("\t")
-            L.append({"end":,"start":,"end":end,"id":ID})
+            L.append({"end":chrom,"start":start,"end":end,"id":ID})
     
     LOGGER.debug("Removing temporary files\n")
     if os.path.isfile(in_bed.name):
