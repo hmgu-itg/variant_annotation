@@ -6,8 +6,6 @@ import os
 import tempfile as tf
 import subprocess
 
-from shutil import which
-
 from varannot import config
 from varannot import query
 from varannot import utils

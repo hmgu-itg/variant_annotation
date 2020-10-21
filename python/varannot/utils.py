@@ -8,6 +8,8 @@ import tempfile as tf
 import plotly.graph_objects as go
 import subprocess
 
+from shutil import which
+
 from varannot import config
 from varannot import query
 
@@ -36,7 +38,7 @@ def runLiftOver(input_data,build="38"):
     LOGGER.debug("Input b%s bed file: %s" % (build,in_bed.name))
     out_fname=tf.mktemp()
     LOGGER.debug("Output b%s bed file: %s" % (build,out_fname))
-    unmapped_bed=tf.mktemp()
+    unmapped_fname=tf.mktemp()
     LOGGER.debug("Unmapped file: %s" % unmapped_fname)
 
     for x in input_data:
@@ -62,7 +64,7 @@ def runLiftOver(input_data,build="38"):
     with open(out_fname) as F:
         for line in F:
             (chrom,start,end,ID)=line.split("\t")
-            L.append({"end":chrom,"start":start,"end":end,"id":ID})
+            L.append({"chr":chrom,"start":start,"end":end,"id":ID})
     
     LOGGER.debug("Removing temporary files\n")
     if os.path.isfile(in_bed.name):
