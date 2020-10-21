@@ -477,60 +477,42 @@ def getGwavaScore(variant_data):
         keystr=chrpos[i][0]+":"+str(chrpos[i][1])
         LOGGER.debug("GWAVA scores for mapping %s\n" %keystr)
 
-        in_bed=tf.NamedTemporaryFile(delete=False,mode="w")
-        LOGGER.debug("Input b38 bed file: %s" % in_bed.name)
-        bed37_fname=tf.mktemp()
-        LOGGER.debug("Output b37 bed file: %s" % bed37_fname)
-        unmapped_fname=tf.mktemp()
-        LOGGER.debug("Unmapped file: %s" % unmapped_fname)
-
         prefix=""
         if re.search("^\d+$",chrpos[i][0]) or re.search("^[XYM]$",chrpos[i][0]):
             prefix="chr"
 
-        in_bed.write("%s%s\t%d\t%d\t%s\n" %(prefix,chrpos[i][0],chrpos[i][1]-1,chrpos[i][1],variant_data["rsID"]))
-        in_bed.close()
-
-        if which("liftOver") is None:
-            LOGGER.error("liftOver was not found in PATH.")
-            sys.exit()
+        L=utils.runLiftOver([{"chr":prefix+chrpos[i][0],"start":chrpos[i][1]-1,"end":chrpos[i][1],"id":variant_data["rsID"]}])
+        if L is None:
+            continue
         
-        LOGGER.debug("Calling: liftOver %s /usr/local/bin/hg38ToHg19.over.chain.gz %s %s\n" %(in_bed.name,bed37_fname,unmapped_fname))
-        cmdline="liftOver %s /usr/local/bin/hg38ToHg19.over.chain.gz %s %s" %(in_bed.name,bed37_fname,unmapped_fname)
-        subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT).communicate()
+        gwava_input=tf.NamedTemporaryFile(delete=False,mode="w")
+        for x in L:
+            gwava_input.write("%s\t%s\t%s\t%s\n" % (x["chr"],x["start"],x["end"],x["id"]))
+        gwava_input.close()
 
-        if not os.path.isfile(bed37_fname):
-            LOGGER.error("liftOver failed to create output file %s" % bed37_fname)
-            continue
-
-        if os.path.getsize(bed37_fname)==0:
-            LOGGER.warning("liftOver produced empty output file %s" % bed37_fname)
-            continue
-    
         env=os.environ.copy()
         env["GWAVA_DIR"]=config.GWAVA_DIR
 
         annot_fname=tf.mktemp()
         LOGGER.debug("GWAVA annotation file: %s" % annot_fname)
-        gwava_fname=tf.mktemp()
-        LOGGER.debug("GWAVA score file: %s" % gwava_fname)
+        gwava_output_fname=tf.mktemp()
+        LOGGER.debug("GWAVA score file: %s" % gwava_output_fname)
 
-        LOGGER.debug("Calling: python2 %s/src/gwava_annotate.py %s %s" %(config.GWAVA_DIR,bed37_fname,annot_fname))
-        cmdline="python2 %s/src/gwava_annotate.py %s %s" %(config.GWAVA_DIR,bed37_fname,annot_fname)
+        LOGGER.debug("Calling: python2 %s/src/gwava_annotate.py %s %s" %(config.GWAVA_DIR,gwava_input.name,annot_fname))
+        cmdline="python2 %s/src/gwava_annotate.py %s %s" %(config.GWAVA_DIR,gwava_input.name,annot_fname)
         subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=env).communicate()
 
-        LOGGER.debug("Calling: python2 %s/src/gwava.py tss %s %s" %(config.GWAVA_DIR,annot_fname,gwava_fname))
-        cmdline="python2 %s/src/gwava.py tss %s %s" %(config.GWAVA_DIR,annot_fname,gwava_fname)
+        LOGGER.debug("Calling: python2 %s/src/gwava.py tss %s %s" %(config.GWAVA_DIR,annot_fname,gwava_output_fname))
+        cmdline="python2 %s/src/gwava.py tss %s %s" %(config.GWAVA_DIR,annot_fname,gwava_output_fname)
         subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=env).communicate()
 
         for line in open(annot_fname, 'r'):
             if "start" in line: continue
+            avg_gerp=line.split(",")[147]
+            gerp=line.split(",")[148]
 
-            avg_gerp = line.split(",")[147]
-            gerp = line.split(",")[148]
-
-        for line in open(gwava_fname, 'r'):
-            gwava = line.strip().split("\t")[4]
+        for line in open(gwava_output_fname, 'r'):
+            gwava=line.strip().split("\t")[4]
 
         #variant_data["scores"][keystr]["avg_gerp"]=avg_gerp
         #variant_data["scores"][keystr]["gerp"]=gerp
@@ -539,16 +521,10 @@ def getGwavaScore(variant_data):
         LOGGER.info("avg_gerp: %s: gerp: %s; gwava: %s" % (avg_gerp,gerp,gwava))
 
         LOGGER.debug("Removing temporary files\n")
-        if os.path.isfile(in_bed.name):
-            os.remove(in_bed.name)
-        if os.path.isfile(bed37_fname):
-            os.remove(bed37_fname)
-        if os.path.isfile(unmapped_fname):
-            os.remove(unmapped_fname)
         if os.path.isfile(annot_fname):
             os.remove(annot_fname)
-        if os.path.isfile(gwava_fname):
-            os.remove(gwava_fname)
+        if os.path.isfile(gwava_output_fname):
+            os.remove(gwava_output_fname)
 
 # ==============================================================================================================================
 
