@@ -3,7 +3,7 @@ from requests.exceptions import Timeout,TooManyRedirects,RequestException
 import logging
 import re
 
-from python.varannot import config
+from varannot import config
 
 LOGGER=logging.getLogger(__name__)
 
