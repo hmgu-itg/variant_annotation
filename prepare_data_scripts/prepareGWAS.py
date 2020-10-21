@@ -55,7 +55,6 @@ logging.getLogger("varannot.utils").setLevel(verbosity)
 
 L=list() # list of dicts (from input): chr:pos:id:pval:trait:pmid
 T=pd.read_table(fname,header=0,sep="\t",keep_default_na=False,dtype=str,encoding="utf-8",compression="gzip")
-print("CHR_ID","CHR_POS","SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID",sep="\t")
 for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VALUE"]].iterrows():
     chrID=row["CHR_ID"]
     chrPOS=row["CHR_POS"]
@@ -100,85 +99,33 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
     m2=re.search("^\s*$",chrPOS)
     # if (/([XY\d]+)[:_.-]\s*(\d+)/i && !/\*/)
     if m1 and m2:
+        m3=re.search("(rs\d+)",SNPs)
+        if m3:
+            d={"chr":"NA","pos":"NA","id":m3.group(1),"trait":trait,"pval":pval,"pmid":pmid}
+            if not d in L:
+                L.append(d)
+        continue
+            
         m3=re.search("\*",SNPs)
         if not m3:
             m4=re.search("([XY\d]+)[:_.-]\s*(\d+)",SNPs,re.I)
+            if m4:
+                d={"chr":m4.group(1),"pos":m4.group(2),"id":SNPs,"trait":trait,"pval":pval,"pmid":pmid}
+                if not d in L:
+                    L.append(d)
+            continue
+                
+#=========================================================================================================================================================
 
+# all rsIDs
+#D={x["id"]:1 for x in L}
 
-    if len(row["CHR_ID"])==0 or len(row["CHR_POS"])==0:
-        if len(c)==1 and len(row["SNPS"])!=0:
-            m=re.search("(rs\d+)",row["SNPS"],re.I)
-            if m:
-                rs=m.group(1)
-                L=variant.rs2position(rs)
-                if L:
-                    for z in L:
-                        print("%s\t%s\t%s\t%s\t%s\t%s" %(z["chr"],z["pos"],rs,row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-            else:
-                m=re.search("^snp(\d+)-(\d+)",row["SNPS"],re.I)
-                if m:
-                    c=m.group(1)
-                    p=m.group(2)
-                    print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-                else:
-                    m=re.search("^(chr)?(\d+):\s*(\d+)",row["SNPS"],re.I)
-                    if m:
-                        c=m.group(2)
-                        p=m.group(3)
-                        print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-                    else:
-                        m=re.search("^chr(\d+)[._](\d+)",row["SNPS"],re.I)
-                        if m:
-                            c=m.group(1)
-                            p=m.group(2)
-                            print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-                        else:
-                            m=re.search("^(\d{1,2})-(\d+)",row["SNPS"],re.I)
-                            if m:
-                                c=m.group(1)
-                                p=m.group(2)
-                                print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-                            else:
-                                m=re.search("^([XY]):(\d+)",row["SNPS"],re.I)
-                                if m:
-                                    c=m.group(1)
-                                    p=m.group(2)
-                                    print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-                                else:
-                                    m=re.search("^del-(\d+):(\d+)",row["SNPS"],re.I)
-                                    if m:
-                                        c=m.group(1)
-                                        p=m.group(2)
-                                        print("%s\t%s\t%s\t%s\t%s\t%s" %(c,p,row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-    else:
-        if len(a)==1 and len(b)==1 and len(c)==1:
-            m1=re.search("^(\w+)\s+x\s+(\w+)",row["CHR_ID"],re.I)
-            m2=re.search("^(\d+)\s+x\s+(\d+)",row["CHR_POS"],re.I)
-            m3=re.search("^(rs\d+)\s+x\s+(rs\d+)",row["SNPS"],re.I)
-            if not m1 and not m3:
-                print("%s\t%s\t%s\t%s\t%s\t%s" %(row["CHR_ID"],row["CHR_POS"],row["SNPS"],row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-            else:
-                if m2:
-                    print("%s\t%s\t%s\t%s\t%s\t%s" %(m1.group(1),m2.group(1),m3.group(1),row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-                    print("%s\t%s\t%s\t%s\t%s\t%s" %(m1.group(2),m2.group(2),m3.group(2),row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-                else:
-                    rs=m3.group(1)
-                    L=variant.rs2position(rs)
-                    if L:
-                        for z in L:
-                            print("%s\t%s\t%s\t%s\t%s\t%s" %(z["chr"],z["pos"],rs,row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-                    rs=m3.group(2)
-                    L=variant.rs2position(rs)
-                    if L:
-                        for z in L:
-                            print("%s\t%s\t%s\t%s\t%s\t%s" %(z["chr"],z["pos"],rs,row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
-        elif len(c)!=1:
-            for v in c:
-                m=re.search("(rs\d+)",v,re.I)
-                if m:
-                    rs=m.group(1)
-                    L=variant.rs2position(rs)
-                    if L:
-                        for z in L:
-                            print("%s\t%s\t%s\t%s\t%s\t%s" %(z["chr"],z["pos"],rs,row["P-VALUE"],row["DISEASE/TRAIT"],row["PUBMEDID"]))
+# TODO: put it in the config.py
+VARIANT_RECODER_POST_MAX=200
 
+for chunk in utils.chunks(list(set([x["id"] for x in L])),VARIANT_RECODER_POST_MAX):
+    p=variant.rsList2position(chunk,build="38",alleles=False)
+
+#=========================================================================================================================================================
+
+print("CHR_ID","CHR_POS","SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID",sep="\t")
