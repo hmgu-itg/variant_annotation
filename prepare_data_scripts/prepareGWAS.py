@@ -162,7 +162,8 @@ print("CHR_ID","CHR_POS","SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID",sep="\t")
 for x in L:
     if x["chr"]=="NA" and x["pos"]=="NA":
         if x["id"] in rest_out:
-            print(rest_out[x["id"]]["chr"],rest_out[x["id"]]["pos"],x["id"],x["pval"],x["trait"],x["pmid"])
+            for a in rest_out[x["id"]]:
+                print(a["chr"],a["pos"],x["id"],x["pval"],x["trait"],x["pmid"])
     else:
         z=next((a for a in liftover_out if a["id"]==x["id"]),None)
         if z:
