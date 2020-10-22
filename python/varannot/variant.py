@@ -59,9 +59,9 @@ def rsList2position(L,build="38",alleles=False):
                     D[inputID].append({"chr":c,"pos":p,"ref":ref,"alt":alt})
                     
         # in case some input IDs are missing in the response
-        for ID in L:
-            if not ID in D:
-                D[ID]=[{"chr":None,"pos":None,"ref":None,"alt":None}]
+        # for ID in L:
+        #     if not ID in D:
+        #         D[ID]=[{"chr":None,"pos":None,"ref":None,"alt":None}]
     else:
         return None
 
