@@ -158,6 +158,7 @@ LOGGER.debug("Done")
 
 #============================================================= OUTPUT ====================================================================================
 
+LOGGER.debug("Output")
 print("CHR_ID","CHR_POS","SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID",sep="\t")
 for x in L:
     if x["chr"]=="NA" and x["pos"]=="NA":
@@ -168,3 +169,4 @@ for x in L:
         z=next((a for a in liftover_out if a["id"]==x["id"]),None)
         if z:
             print(print(z["chr"],z["pos"],x["id"],x["pval"],x["trait"],x["pmid"]))
+LOGGER.debug("Done")

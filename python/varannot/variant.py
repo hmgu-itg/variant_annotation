@@ -37,9 +37,7 @@ def rsList2position(L,build="38",alleles=False):
 
     D={}
     data=utils.list2string(L)
-    LOGGER.debug("data: %s" % data)
     url=query.makeRSListQueryURL(build=build)
-    LOGGER.debug("url: %s" % url)
     z=query.restQuery(url,qtype="post",data=data)
     if z:
         for x in z:
@@ -47,7 +45,6 @@ def rsList2position(L,build="38",alleles=False):
             D[inputID]=[]
             spdis=x["spdi"]
             for spdi in spdis:
-                LOGGER.debug("%s" % spdi)
                 h=query.parseSPDI(spdi,build=build,alleles=alleles)
                 p=h["pos"]
                 c=h["chr"]
