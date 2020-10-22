@@ -66,7 +66,7 @@ def runLiftOver(input_data,build="38"):
     count=0
     with open(out_fname) as F:
         for line in F:
-            (chrom,start,end,ID)=line.split("\t")
+            (chrom,start,end,ID)=line.rstrip().split("\t")
             L.append({"chr":chrom,"start":start,"end":end,"id":ID})
             count+=1
 
