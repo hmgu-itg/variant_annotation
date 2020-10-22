@@ -45,6 +45,8 @@ def runLiftOver(input_data,build="38"):
         in_bed.write("%s\t%d\t%d\t%s\n" %(x["chr"],int(x["start"]),int(x["end"]),x["id"],))
     in_bed.close()
 
+    LOGGER.debug("Input: %d records" % len(input_data))
+    
     if which("liftOver") is None:
         LOGGER.error("liftOver was not found in PATH")
         return None
@@ -61,10 +63,16 @@ def runLiftOver(input_data,build="38"):
         LOGGER.warning("liftOver produced empty output file %s" % out_fname)
         return None
 
+    count=0
     with open(out_fname) as F:
         for line in F:
             (chrom,start,end,ID)=line.split("\t")
             L.append({"chr":chrom,"start":start,"end":end,"id":ID})
+            count+=1
+
+    LOGGER.debug("Remapped: %d records" % count)
+    unmapped=sum(1 for line in open(unmapped_fname))
+    LOGGER.debug("Unmapped: %d records" % unmapped)
     
     LOGGER.debug("Removing temporary files\n")
     if os.path.isfile(in_bed.name):
