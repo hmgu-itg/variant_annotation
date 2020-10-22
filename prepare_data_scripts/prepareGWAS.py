@@ -9,6 +9,7 @@ import os
 
 from varannot import variant
 from varannot import utils
+from varannot import config
 
 sys.stdout=open(sys.stdout.fileno(),mode='w',encoding='utf8',buffering=1)
 
@@ -56,7 +57,7 @@ logging.getLogger("varannot.utils").setLevel(verbosity)
 L=list() # list of dicts (from input): chr:pos:id:pval:trait:pmid
 T=pd.read_table(fname,header=0,sep="\t",keep_default_na=False,dtype=str,encoding="utf-8",compression="gzip")
 
-LOGGER.debug("Starting reading input")
+LOGGER.debug("Start analyzing input")
 count=0
 
 for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VALUE"]].iterrows():
@@ -69,7 +70,7 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
 
     count+=1
     if count%10000==0:
-        LOGGER.debug("Record %d" % count)
+        LOGGER.debug("Record %d (%d)" % (count,len(T)))
     
     # case 1: there is only one chr:pos, but several SNPs, because a haplotype is reported
     m1=re.search("^\d+$",chrPOS)
@@ -145,7 +146,7 @@ liftover_out=utils.runLiftOver(liftover_in,build="37")
 LOGGER.debug("Done")
 
 rest_out=dict()
-LOGGER.debug("Starting REST (%d records)" % len(rest_in))
+LOGGER.debug("Start REST (%d records)" % len(rest_in))
 count=0
 for chunk in utils.chunks(list(rest_in),config.VARIANT_RECODER_POST_MAX):
     res=variant.rsList2position(chunk,build="38",alleles=False)
