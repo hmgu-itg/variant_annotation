@@ -158,7 +158,7 @@ LOGGER.debug("Done")
 
 #============================================================= OUTPUT ====================================================================================
 
-LOGGER.debug("Output")
+LOGGER.debug("Start output")
 print("CHR_ID","CHR_POS","SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID",sep="\t")
 for x in L:
     if x["chr"]=="NA" and x["pos"]=="NA":

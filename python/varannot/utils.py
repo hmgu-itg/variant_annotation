@@ -71,7 +71,7 @@ def runLiftOver(input_data,build="38"):
             count+=1
 
     LOGGER.debug("Remapped: %d records" % count)
-    unmapped=sum(1 for line in open(unmapped_fname))
+    unmapped=sum(1 for line in open(unmapped_fname) if not line.startswith("#"))
     LOGGER.debug("Unmapped: %d records" % unmapped)
     
     LOGGER.debug("Removing temporary files\n")
