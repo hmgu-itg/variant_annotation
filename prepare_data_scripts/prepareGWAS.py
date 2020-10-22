@@ -141,7 +141,7 @@ for x in L:
 LOGGER.debug("Done")
 
 LOGGER.debug("Start liftOver")
-liftover_out=utils.runLiftOver(liftover_in,build="38")
+liftover_out=utils.runLiftOver(liftover_in,build="37")
 LOGGER.debug("Done")
 
 rest_out=dict()
