@@ -145,6 +145,12 @@ LOGGER.debug("Start liftOver")
 liftover_out=utils.runLiftOver(liftover_in,build="37")
 LOGGER.debug("Done")
 
+# for x in L:
+#     print("%s\t%s\t%s" %(x["chr"],x["pos"],x["id"]))
+
+# for x in liftover_out:
+#     print("%s\t%s\t%s\t%s" %(x["chr"],x["start"],x["end"],x["id"]))
+
 rest_out=dict()
 LOGGER.debug("Start REST (%d records)" % len(rest_in))
 count=0
@@ -153,8 +159,8 @@ for chunk in utils.chunks(list(rest_in),config.VARIANT_RECODER_POST_MAX):
     for x in res:
         rest_out[x]=res[x]
     count+=1
-    LOGGER.debug("REST chunk 1")
-LOGGER.debug("Done")
+    LOGGER.debug("Done REST chunk %d" % count)
+LOGGER.debug("Done, REST output: %d records" % len(rest_out))
 
 #============================================================= OUTPUT ====================================================================================
 
@@ -164,9 +170,13 @@ for x in L:
     if x["chr"]=="NA" and x["pos"]=="NA":
         if x["id"] in rest_out:
             for a in rest_out[x["id"]]:
-                print(a["chr"],a["pos"],x["id"],x["pval"],x["trait"],x["pmid"])
-    else:
-        z=next((a for a in liftover_out if a["id"]==x["id"]),None)
-        if z:
-            print(print(z["chr"],z["pos"],x["id"],x["pval"],x["trait"],x["pmid"]))
+                print("%s\t%s\t%s\t%s\t%s\t%s" % (a["chr"],a["pos"],x["id"],x["pval"],x["trait"],x["pmid"]))
+        else:
+            LOGGER.out("Could not find %s in REST output" % x["id"])
+#    else:
+        # z=next((a for a in liftover_out if a["id"]==x["id"]),None)
+        # if z:
+        #     print("%s\t%s\t%s\t%s\t%s\t%s" % (z["chr"],z["end"],x["id"],x["pval"],x["trait"],x["pmid"]))
+        # else:
+        #     LOGGER.debug("Could not find %s in liftOver output" % x["id"])
 LOGGER.debug("Done")

@@ -43,8 +43,13 @@ LOGGER.addHandler(ch)
 
 logging.getLogger("varannot.variant").addHandler(ch)
 logging.getLogger("varannot.variant").setLevel(logging.DEBUG)
+logging.getLogger("varannot.query").addHandler(ch)
+logging.getLogger("varannot.query").setLevel(logging.DEBUG)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
-for x in variant.rs2position(varID,build,alleles=True):
-    print(varID,x["chr"],x["pos"],x["ref"],x["alt"],sep="\t",file=sys.stdout)
+z=variant.rs2position(varID,build,alleles=True)
+
+if z:
+    for x in z:
+        print(varID,x["chr"],x["pos"],x["ref"],x["alt"],sep="\t",file=sys.stdout)
