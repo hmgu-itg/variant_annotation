@@ -55,6 +55,10 @@ logging.getLogger("varannot.utils").setLevel(verbosity)
 
 L=list() # list of dicts (from input): chr:pos:id:pval:trait:pmid
 T=pd.read_table(fname,header=0,sep="\t",keep_default_na=False,dtype=str,encoding="utf-8",compression="gzip")
+
+LOGGER.debug("Starting reading input")
+count=0
+
 for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VALUE"]].iterrows():
     chrID=row["CHR_ID"]
     chrPOS=row["CHR_POS"]
@@ -63,6 +67,10 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
     pmid=row["PUBMEDID"]
     pval=row["P-VALUE"]
 
+    count+=1
+    if count%10000==0:
+        LOGGER.debug("Record %d" % count)
+    
     # case 1: there is only one chr:pos, but several SNPs, because a haplotype is reported
     m1=re.search("^\d+$",chrPOS)
     m2=re.search("[;,x]",SNPs)
@@ -97,7 +105,6 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
     # case 4: both CHR and POS are empty
     m1=re.search("^\s*$",chrID)
     m2=re.search("^\s*$",chrPOS)
-    # if (/([XY\d]+)[:_.-]\s*(\d+)/i && !/\*/)
     if m1 and m2:
         m3=re.search("(rs\d+)",SNPs)
         if m3:
@@ -114,15 +121,48 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
                 if not d in L:
                     L.append(d)
             continue
-                
+
+LOGGER.debug("Done reading input")
 #=========================================================================================================================================================
 
-# all rsIDs
-#D={x["id"]:1 for x in L}
+# liftOver records with chr:pos present; if chr:pos==NA:NA, make a REST query
 
-for chunk in utils.chunks(list(set([x["id"] for x in L])),config.VARIANT_RECODER_POST_MAX):
-    p=variant.rsList2position(chunk,build="38",alleles=False)
+liftover_in=list()
+rest_in=set()
+LOGGER.debug("Preparing data")
+for x in L:
+    if x["chr"]=="NA" and x["pos"]=="NA":
+        rest_in.add(x["id"])
+    else:
+        c=x["chr"]
+        if not c.startswith("chr"):
+            c="chr"+c
+        liftover_in.append({"chr":c,"start":int(x["pos"])-1,"end":int(x["pos"]),"id":x["id"]})
+LOGGER.debug("Done")
 
-#=========================================================================================================================================================
+LOGGER.debug("Start liftOver")
+liftover_out=utils.runLiftOver(liftover_in,build="38")
+LOGGER.debug("Done")
+
+rest_out=dict()
+LOGGER.debug("Starting REST (%d records)" % len(rest_in))
+count=0
+for chunk in utils.chunks(list(rest_in),config.VARIANT_RECODER_POST_MAX):
+    res=variant.rsList2position(chunk,build="38",alleles=False)
+    for x in res:
+        rest_out[x]=res[x]
+    count+=1
+    LOGGER.debug("REST chunk 1")
+LOGGER.debug("Done")
+
+#============================================================= OUTPUT ====================================================================================
 
 print("CHR_ID","CHR_POS","SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID",sep="\t")
+for x in L:
+    if x["chr"]=="NA" and x["pos"]=="NA":
+        if x["id"] in rest_out:
+            print(rest_out[x["id"]]["chr"],rest_out[x["id"]]["pos"],x["id"],x["pval"],x["trait"],x["pmid"])
+    else:
+        z=next((a for a in liftover_out if a["id"]==x["id"]),None)
+        if z:
+            print(print(z["chr"],z["pos"],x["id"],x["pval"],x["trait"],x["pmid"]))
