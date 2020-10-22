@@ -21,8 +21,9 @@ Usage:
 ##
 VERSION = "3.0"
 
-## batch size for POST queries
-BATCHSIZE=100
+## batch sizes for POST queries
+VARIANT_RECODER_POST_MAX=200
+VARIATION_POST_MAX=200
 
 # window around a variant overlapping ENSEMBL regulatory elements (regulation::getRegulation())
 REG_WINDOW=2000

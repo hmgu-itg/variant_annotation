@@ -120,10 +120,7 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
 # all rsIDs
 #D={x["id"]:1 for x in L}
 
-# TODO: put it in the config.py
-VARIANT_RECODER_POST_MAX=200
-
-for chunk in utils.chunks(list(set([x["id"] for x in L])),VARIANT_RECODER_POST_MAX):
+for chunk in utils.chunks(list(set([x["id"] for x in L])),config.VARIANT_RECODER_POST_MAX):
     p=variant.rsList2position(chunk,build="38",alleles=False)
 
 #=========================================================================================================================================================

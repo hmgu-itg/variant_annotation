@@ -151,7 +151,7 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
     output=[]
     i=0
     df = pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Link"])
-    for L in utils.chunks(rsIDs,config.BATCHSIZE):
+    for L in utils.chunks(rsIDs,config.VARIATION_POST_MAX):
         r=query.restQuery(query.makeRSPhenotypeQueryURL(build=build),data=utils.list2string(L),qtype="post")
         if r:
             #print(json.dumps(r,indent=4,sort_keys=True))
