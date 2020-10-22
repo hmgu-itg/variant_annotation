@@ -35,9 +35,9 @@ def runLiftOver(input_data,build="38"):
         chain="/usr/local/bin/hg19ToHg38.over.chain.gz"
 
     in_bed=tf.NamedTemporaryFile(delete=False,mode="w",prefix="annotator_")
-    LOGGER.debug("Input b%s bed file: %s" % (build,in_bed.name))
+    LOGGER.debug("Input bed file: %s" % (in_bed.name))
     out_fname=tf.mktemp(prefix="annotator_")
-    LOGGER.debug("Output b%s bed file: %s" % (build,out_fname))
+    LOGGER.debug("Output bed file: %s" % (out_fname))
     unmapped_fname=tf.mktemp(prefix="annotator_")
     LOGGER.debug("Unmapped file: %s" % unmapped_fname)
 
@@ -51,7 +51,7 @@ def runLiftOver(input_data,build="38"):
         LOGGER.error("liftOver was not found in PATH")
         return None
         
-    LOGGER.debug("Calling: liftOver %s %s %s %s\n" %(in_bed.name,chain,out_fname,unmapped_fname))
+    LOGGER.debug("Calling: liftOver %s %s %s %s" %(in_bed.name,chain,out_fname,unmapped_fname))
     cmdline="liftOver %s %s %s %s" %(in_bed.name,chain,out_fname,unmapped_fname)
     subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT).communicate()
 
@@ -74,13 +74,13 @@ def runLiftOver(input_data,build="38"):
     unmapped=sum(1 for line in open(unmapped_fname) if not line.startswith("#"))
     LOGGER.debug("Unmapped: %d records" % unmapped)
     
-    # LOGGER.debug("Removing temporary files\n")
-    # if os.path.isfile(in_bed.name):
-    #     os.remove(in_bed.name)
-    # if os.path.isfile(out_fname):
-    #     os.remove(out_fname)
-    # if os.path.isfile(unmapped_fname):
-    #     os.remove(unmapped_fname)
+    LOGGER.debug("Removing temporary files")
+    if os.path.isfile(in_bed.name):
+        os.remove(in_bed.name)
+    if os.path.isfile(out_fname):
+        os.remove(out_fname)
+    if os.path.isfile(unmapped_fname):
+        os.remove(unmapped_fname)
         
     return L
 

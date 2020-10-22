@@ -54,8 +54,11 @@ logging.getLogger("varannot.utils").setLevel(verbosity)
 
 #=========================================================================================================================================================
 
-L=list() # list of dicts (from input): chr:pos:id:pval:trait:pmid
 T=pd.read_table(fname,header=0,sep="\t",keep_default_na=False,dtype=str,encoding="utf-8",compression="gzip")
+total=len(T)
+id2cp=dict() # ID --> chr:pos, to track ambiguous IDs
+ambiguous=set()
+S=set()
 
 LOGGER.debug("Start analyzing input")
 count=0
@@ -68,26 +71,32 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
     pmid=row["PUBMEDID"]
     pval=row["P-VALUE"]
 
-    count+=1
-    if count%10000==0:
-        LOGGER.debug("Record %d (%d)" % (count,len(T)))
+    # count+=1
+    # if count%10000==0:
+    #     LOGGER.debug("Record\t%d/%d" % (count,total))
     
     # case 1: there is only one chr:pos, but several SNPs, because a haplotype is reported
     m1=re.search("^\d+$",chrPOS)
     m2=re.search("[;,x]",SNPs)
     if m1 and m2:
         for x in re.split("\s*[;,x]\s*",SNPs):
-            d={"chr":chrID,"pos":chrPOS,"id":x,"trait":trait,"pval":pval,"pmid":pmid}
-            if not d in L:
-                L.append(d)
+            S.add(":".join([chrID,str(int(chrPOS)-1),chrPOS,x,pval,pmid,trait]))
+            s=chrID+":"+chrPOS
+            if not x in id2cp:
+                id2cp[x]=s
+            elif s!=id2cp[x]:
+                ambiguous.add(x)
         continue
 
     # case 2: only one field in CHR, no separators in SNPS
     m1=re.search("^[XY\d]+$",chrID,re.I)
     if m1 and not m2:
-        d={"chr":chrID,"pos":chrPOS,"id":SNPs,"trait":trait,"pval":pval,"pmid":pmid}
-        if not d in L:
-            L.append(d)
+        S.add(":".join([chrID,str(int(chrPOS)-1),chrPOS,SNPs,pval,pmid,trait]))
+        s=chrID+":"+chrPOS
+        if not SNPs in id2cp:
+            id2cp[SNPs]=s
+        elif s!=id2cp[SNPs]:
+            ambiguous.add(SNPs)
         continue
 
     # case 3: CHR has several fields separated by 'x' or ';'
@@ -96,11 +105,20 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
         L1=re.split("\s*[x;]\s*",chrID)
         L2=re.split("\s*[x;]\s*",chrPOS)
         L3=re.split("\s*[x;]\s*",SNPs)
-        # TODO: check lengths
+        
+        if len(L1)!=len(L2) or len(L1)!=len(L3):
+            LOGGER.warning("Input record for %s %s %s is malformed" % (chrID,chrPOS,SNPs))
+            for x in L3:
+                S.add(":".join(["NA","NA","NA",x,pval,pmid,trait]))
+            continue
+        
         for (c,p,x) in zip(L1,L2,L3):
-            d={"chr":c,"pos":p,"id":x,"trait":trait,"pval":pval,"pmid":pmid}
-            if not d in L:
-                L.append(d)
+            S.add(":".join([c,str(int(p)-1),p,x,pval,pmid,trait]))
+            s=c+":"+p
+            if not x in id2cp:
+                id2cp[x]=s
+            elif s!=id2cp[x]:
+                ambiguous.append(x)
         continue
 
     # case 4: both CHR and POS are empty
@@ -109,21 +127,35 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
     if m1 and m2:
         m3=re.search("(rs\d+)",SNPs)
         if m3:
-            d={"chr":"NA","pos":"NA","id":m3.group(1),"trait":trait,"pval":pval,"pmid":pmid}
-            if not d in L:
-                L.append(d)
+            S.add(":".join(["NA","NA","NA",m3.group(1),pval,pmid,trait]))
         continue
             
         m3=re.search("\*",SNPs)
         if not m3:
             m4=re.search("([XY\d]+)[:_.-]\s*(\d+)",SNPs,re.I)
             if m4:
-                d={"chr":m4.group(1),"pos":m4.group(2),"id":SNPs,"trait":trait,"pval":pval,"pmid":pmid}
-                if not d in L:
-                    L.append(d)
+                S.add(":".join([m4.group(1),str(int(m4.group(2))-1),str(int(m4.group(2))),SNPs,pval,pmid,trait]))
             continue
 
-LOGGER.debug("Done reading input")
+LOGGER.debug("Done analyzing input")
+#=========================================================================================================================================================
+
+id2cp.clear()
+
+# all ambiguous IDs should be queried
+LOGGER.debug("Found %d IDs with ambiguous chr:pos" % len(ambiguous))
+to_remove=list()
+to_replace=list()
+for x in S:
+    (c,s,e,ID,p,pmid,trait)=x.split(":",maxsplit=6)
+    if ID in ambiguous:
+        to_remove.append(x)
+        to_replace.append(":".join(["NA","NA","NA",ID,p,pmid,trait]))
+
+for (r1,r2) in zip(to_remove,to_replace):
+    S.remove(r1)
+    S.add(r2)
+    
 #=========================================================================================================================================================
 
 # liftOver records with chr:pos present; if chr:pos==NA:NA, make a REST query
@@ -131,25 +163,20 @@ LOGGER.debug("Done reading input")
 liftover_in=list()
 rest_in=set()
 LOGGER.debug("Preparing data")
-for x in L:
-    if x["chr"]=="NA" and x["pos"]=="NA":
-        rest_in.add(x["id"])
+for x in S:
+    (c,s,e,ID,p,pmid,trait)=x.split(":",maxsplit=6)
+    if c=="NA":
+        rest_in.add(ID)
     else:
-        c=x["chr"]
         if not c.startswith("chr"):
             c="chr"+c
-        liftover_in.append({"chr":c,"start":int(x["pos"])-1,"end":int(x["pos"]),"id":x["id"]})
-LOGGER.debug("Done")
+        liftover_in.append({"chr":c,"start":s,"end":e,"id":ID})
+LOGGER.debug("Done preparing data")
 
-LOGGER.debug("Start liftOver")
-liftover_out=utils.runLiftOver(liftover_in,build="37")
-LOGGER.debug("Done")
-
-# for x in L:
-#     print("%s\t%s\t%s" %(x["chr"],x["pos"],x["id"]))
-
-# for x in liftover_out:
-#     print("%s\t%s\t%s\t%s" %(x["chr"],x["start"],x["end"],x["id"]))
+# no need to liftOver, coordinates are already b38
+# LOGGER.debug("Start liftOver")
+# liftover_out=utils.runLiftOver(liftover_in,build="37")
+# LOGGER.debug("LiftOver Done")
 
 rest_out=dict()
 LOGGER.debug("Start REST (%d records)" % len(rest_in))
@@ -162,21 +189,41 @@ for chunk in utils.chunks(list(rest_in),config.VARIANT_RECODER_POST_MAX):
     LOGGER.debug("Done REST chunk %d" % count)
 LOGGER.debug("Done, REST output: %d records" % len(rest_out))
 
+#=========================================================================================================================================================
+
+# convert to a dictionary
+LOGGER.debug("Converting to a dictionary")
+D=dict()
+#for x in liftover_out:
+for x in liftover_in:
+    # if x["id"] in D:
+    #     LOGGER.warning("%s occurs multiple times" % x["id"])
+    D[x["id"]]=":".join([x["chr"],x["end"]])
+LOGGER.debug("Done")
+
 #============================================================= OUTPUT ====================================================================================
 
 LOGGER.debug("Start output")
 print("CHR_ID","CHR_POS","SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID",sep="\t")
-for x in L:
-    if x["chr"]=="NA" and x["pos"]=="NA":
-        if x["id"] in rest_out:
-            for a in rest_out[x["id"]]:
-                print("%s\t%s\t%s\t%s\t%s\t%s" % (a["chr"],a["pos"],x["id"],x["pval"],x["trait"],x["pmid"]))
+failed_rest=set()
+#failed_liftover=set()
+for x in S:
+    (c,s,e,ID,pval,pmid,trait)=x.split(":",maxsplit=6)
+    if c=="NA":
+        if ID in rest_out:
+            for a in rest_out[ID]:
+                print("%s\t%s\t%s\t%s\t%s\t%s" % (a["chr"],a["pos"],ID,pval,trait,pmid))
         else:
-            LOGGER.out("Could not find %s in REST output" % x["id"])
-#    else:
-        # z=next((a for a in liftover_out if a["id"]==x["id"]),None)
-        # if z:
-        #     print("%s\t%s\t%s\t%s\t%s\t%s" % (z["chr"],z["end"],x["id"],x["pval"],x["trait"],x["pmid"]))
+            failed_rest.add(ID)
+    else:
+        (c,pos)=D[ID].split(":")
+        print("%s\t%s\t%s\t%s\t%s\t%s" % (c[c.startswith("chr") and 3:],pos,ID,pval,trait,pmid))
+        # if ID in D:
+        #     (c,pos)=D[ID].split(":")
+        #     print("%s\t%s\t%s\t%s\t%s\t%s" % (c[c.startswith("chr") and 3:],pos,ID,pval,trait,pmid))
         # else:
-        #     LOGGER.debug("Could not find %s in liftOver output" % x["id"])
+        #     failed_liftover.add(ID)
+            
+LOGGER.debug("Failed in REST query: %d" % len(failed_rest))
+#LOGGER.debug("Failed in liftOver: %d" % len(failed_liftover))
 LOGGER.debug("Done")
