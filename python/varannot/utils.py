@@ -284,7 +284,7 @@ def checkGnomadID(var):
 # check if provided input is a valid variant ID
 # valid ID: either rsID or chr_pos_A1_A2
 def checkID(id):
-    m=re.search("^rs\d+",id)
+    m=re.search("^rs\d+$",id)
     if m:
         return True
     
@@ -293,6 +293,16 @@ def checkID(id):
         return True
     else:
         return False
+
+# ======================================================================================================================
+
+# check if provided input is an rs ID
+def isRS(id):
+    m=re.search("^rs\d+$",id)
+    if m:
+        return True
+
+    return False
 
 # ======================================================================================================================
 
