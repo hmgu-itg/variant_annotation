@@ -93,6 +93,16 @@ def checkDEL(R,build="38"):
 
 # ==============================================================================================================================
 
+# check if a1 or a2 match RefSeq
+
+def checkAlleles(ID,build="38"):
+    t=splitID(ID)
+    if not t:
+        return False
+    return query.getRefSeq(t["chr"],t["pos"],t["pos"]+len(t["a1"])-1,build)==t["a1"] or query.getRefSeq(t["chr"],t["pos"],t["pos"]+len(t["a2"])-1,build)==t["a2"]
+
+# ==============================================================================================================================
+
 # R:dict with "seq","pos","del","ins"
 
 def getVarType(R):
@@ -288,11 +298,21 @@ def checkID(id):
     if m:
         return True
     
-    m=re.search("^\d+_\d+_([ATGC]+)_([ATGC]+)",id)
+    m=re.search("^\d+_\d+_[ATGC]+_[ATGC]+",id)
     if m:
         return True
     else:
         return False
+
+# ======================================================================================================================
+
+# split variant ID into chr pos a1 a2
+def splitID(ID):
+    m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",ID)
+    if m:
+        return {"chr":m.group(1),"pos":m.group(2),"a1":m.group(3),"a2":m.group(4)}
+    else:
+        return None
 
 # ======================================================================================================================
 

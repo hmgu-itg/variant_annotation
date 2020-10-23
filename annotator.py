@@ -129,6 +129,10 @@ sys.stderr=open(logfile,"a")
 if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED]):
     sys.exit(1)
 
+if not utils.checkID(VAR_ID):
+    LOGGER.error("Provided ID (%s) is not valid" % VAR_ID)
+    sys.exit(1)
+
 # --------------------------------------------------------- MAIN ---------------------------------------------------------
 
 LOGGER.info("Retreiving rsIDs for %s" % VAR_ID)
@@ -136,6 +140,9 @@ rsIDs=variant.id2rs_mod(VAR_ID,build=build)
 LOGGER.info("Got %d rsIDs" % len(rsIDs))
 
 if len(rsIDs)==0:
+    if not checkAlleles(VAR_ID):
+        LOGGER.error("Alleles in %s don't match reference sequence")
+        sys.exit(1)
     rsIDs.add(VAR_ID)
 
 for rsID in rsIDs:
