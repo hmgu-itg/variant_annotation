@@ -130,15 +130,16 @@ if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS
     sys.exit(1)
 
 # --------------------------------------------------------- MAIN ---------------------------------------------------------
-# ---------------------------------------------------- ALL MAPPINGS ------------------------------------------------------
-
 
 LOGGER.info("Retreiving rsIDs for %s" % VAR_ID)
 rsIDs=variant.id2rs_mod(VAR_ID,build=build)
 LOGGER.info("Got %d rsIDs" % len(rsIDs))
 
+if len(rsIDs)==0:
+    rsIDs.add(VAR_ID)
+
 for rsID in rsIDs:
-    LOGGER.info("Retrieving variant data from ENSEMBL")
+    LOGGER.info("Retrieving variant data for %s from ENSEMBL" % rsID)
     variant_data=variant.getVariantInfo(rsID,build)
     if variant_data is None:
         LOGGER.error("Variant data for %s could not be retreived" % rsID)
@@ -156,6 +157,8 @@ for rsID in rsIDs:
     mapping_names=list()
     D=dict()
     D1=dict()
+
+#----------------------------------------------------------------------------------------------------------------------
 
     # loop over all chr:pos mappings
     for i in range(0,len(chrpos)):
@@ -182,9 +185,9 @@ for rsID in rsIDs:
         vepDFreg=temp["regulatory"]
         LOGGER.info("Creating populations dataframe")
         populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
-        populationFname=utils.df2svg(populationDF,VAR_ID)
+        populationFname=utils.df2svg(populationDF,rsID)
         LOGGER.info("Creating PubMed dataframe")
-        pubmedDF=pubmed.getPubmedDF(VAR_ID,variant_data["synonyms"])
+        pubmedDF=pubmed.getPubmedDF(rsID,variant_data["synonyms"])
         LOGGER.info("Retrieving genes around the variant")
         gene_list=gene.getGeneList(chrpos[i][0],chrpos[i][1],build=build)
         if gene_list:
@@ -193,8 +196,8 @@ for rsID in rsIDs:
         LOGGER.info("Creating gene dataframe")
         geneDF=gene.geneList2df(gene_list)
         LOGGER.info("Creating gnomAD dataframe")
-        gnomadDF=gnomad.getPopulationAF(VAR_ID)
-        gnomadFname=utils.df2svg(gnomadDF,VAR_ID)
+        gnomadDF=gnomad.getPopulationAF(rsID)
+        gnomadFname=utils.df2svg(gnomadDF,rsID)
         LOGGER.info("Creating GTEx dataframe")
         GTEx_genesDF=gtex.getGTExDF(mappings)    
         LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
@@ -235,6 +238,8 @@ for rsID in rsIDs:
             D1["phenotype_table%d" %i]=phenotypeDF.to_json(orient="records")
             D1["gene_table%d" %i]=geneDF.to_json(orient="records")
             D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json(orient="records")
+
+#----------------------------------------------------------------------------------------------------------------------
 
     gene_names=list()
     LOGGER.info("Total genes: %d" % len(all_genes))
@@ -298,10 +303,9 @@ for rsID in rsIDs:
             D1["gtex_variants_table_%s" %gene_ID]=gtexDF.to_json(orient="records")
             D1["mouse_table_%s" %gene_ID]=mouseDF.to_json(orient="records")
             D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
-
-
-
                 
+#----------------------------------------------------------------------------------------------------------------------
+
     if out_html:
         outfile=config.OUTPUT_DIR+"/%s.html" % rsID
         LOGGER.info("Saving HTML output to %s\n" % outfile)
