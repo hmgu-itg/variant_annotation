@@ -229,7 +229,7 @@ def getVariantInfo(rs,build="38"):
     if not utils.isRS(rs):
         t=utils.splitID(rs)
         if t:
-            return {"minor_allele":None,"MAF":None,"rsID":None,"class":rs,"synonyms":None,"consequence":None,"mappings":[{"chr":t["chr"],"pos":t["pos"],"ref":t["a1"],"alt":t["a2"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"},{"chr":t["chr"],"pos":t["pos"],"ref":t["a2"],"alt":t["a1"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"}],"population_data":None,"phenotype_data":None,"clinical_significance":None,"scores":None}
+            return {"minor_allele":None,"MAF":None,"rsID":None,"class":rs,"synonyms":[],"consequence":None,"mappings":[{"chr":t["chr"],"pos":t["pos"],"ref":t["a1"],"alt":t["a2"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"},{"chr":t["chr"],"pos":t["pos"],"ref":t["a2"],"alt":t["a1"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"}],"population_data":None,"phenotype_data":None,"clinical_significance":None,"scores":None}
         else:
             return None
 
@@ -588,6 +588,9 @@ def population2df(pop_data,ref):
     Output: dataframe
     '''
 
+    if not pop_data:
+        return None
+    
     all_alleles=set()
     for z in pop_data:
         for a in z["frequency"]:

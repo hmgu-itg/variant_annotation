@@ -10,6 +10,7 @@ import pandas as pd
 
 parser = argparse.ArgumentParser(description="Prepare GTEx BED file")
 parser.add_argument('--version','-v',default="8",action="store_true",help="GTEx version")
+parser.add_argument('--temp','-t',default="/tmp/",action="store_true",help="Temp dir")
 requiredArgs=parser.add_argument_group('required arguments')
 requiredArgs.add_argument('--input','-i', action="store",help="input GTEx.tar",required=True)
 requiredArgs.add_argument('--gencode','-g', action="store",help="input Gencode gtf.gz file",required=True)
@@ -26,8 +27,14 @@ except:
     sys.exit(0)
 
 version="8"
+tdir="/tmp/"
 if args.version:
     version=args.version
+if args.temp:
+    tdir=args.temp
+
+if not tdir.endswith("/"):
+    tdir+="/"
 
 fname=args.input
 gname=args.gencode
@@ -93,8 +100,8 @@ if version=="8":
         m=re.search("/([^.]+)\.v8\.signif_variant_gene_pairs\.txt\.gz",f.name)
         if m:
             tissue=m.group(1)
-            infile.extract(f,"/tmp")
-            T=pd.read_table("/tmp/"+f.name,compression="gzip",header=0)
+            infile.extract(f,tdir)
+            T=pd.read_table(tdir+f.name,compression="gzip",header=0)
             for index, row in T.iterrows():
                 var=row["variant_id"]
                 if var.endswith("_b38"):

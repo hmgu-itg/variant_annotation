@@ -140,7 +140,7 @@ rsIDs=variant.id2rs_mod(VAR_ID,build=build)
 LOGGER.info("Got %d rsIDs" % len(rsIDs))
 
 if len(rsIDs)==0:
-    if not checkAlleles(VAR_ID):
+    if not checkAlleles(VAR_ID,build):
         LOGGER.error("Alleles in %s don't match reference sequence")
         sys.exit(1)
     rsIDs.add(VAR_ID)

@@ -2,15 +2,9 @@ import subprocess
 import pandas as pd
 import logging
 
-from . import config
+from varannot import config
 
 LOGGER=logging.getLogger(__name__)
-# LOGGER.setLevel(logging.DEBUG)
-# ch=logging.StreamHandler()
-# ch.setLevel(logging.DEBUG)
-# formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
-# ch.setFormatter(formatter)
-# LOGGER.addHandler(ch)
 
 # ===============================================================================================================================
 
