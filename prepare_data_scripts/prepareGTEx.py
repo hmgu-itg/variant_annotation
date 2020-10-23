@@ -8,13 +8,12 @@ import io
 import gzip
 import pandas as pd
 
-parser = argparse.ArgumentParser(description="Prepare GTEx BED file")
-parser.add_argument('--version','-v',default="8",action="store_true",help="GTEx version")
-parser.add_argument('--temp','-t',default="/tmp/",action="store_true",help="Temp dir")
-requiredArgs=parser.add_argument_group('required arguments')
-requiredArgs.add_argument('--input','-i', action="store",help="input GTEx.tar",required=True)
-requiredArgs.add_argument('--gencode','-g', action="store",help="input Gencode gtf.gz file",required=True)
-requiredArgs.add_argument('--lookup','-l', action="store",help="input GTEx lookup txt.gz file",required=True)
+parser=argparse.ArgumentParser(description="Prepare GTEx BED file")
+parser.add_argument('--version','-v',default="8",action="store",help="GTEx version",required=False)
+parser.add_argument('--temp','-t',default="/tmp/",action="store",help="Temp dir",required=False)
+parser.add_argument('--input','-i', action="store",help="input GTEx.tar",required=True)
+parser.add_argument('--gencode','-g', action="store",help="input Gencode gtf.gz file",required=True)
+parser.add_argument('--lookup','-l', action="store",help="input GTEx lookup txt.gz file",required=True)
 
 if len(sys.argv[1:])==0:
     parser.print_help()
@@ -23,7 +22,6 @@ if len(sys.argv[1:])==0:
 try:
     args=parser.parse_args()
 except:
-    parser.print_help()
     sys.exit(0)
 
 version="8"

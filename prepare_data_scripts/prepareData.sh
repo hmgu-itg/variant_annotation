@@ -153,6 +153,6 @@ mv "$out/temp/tmp.gff.gz" "$out/gwava/source_data/encode/Gencodev10_TSS_May2012.
 # -------------------------------------------------------------------------
 
 echo $(date '+%d/%m/%Y %H:%M:%S') "Deleting temporary data"
-rm -rf "$out/temp/*"
+rm -rf "$out/temp/"
 
 exit 0
