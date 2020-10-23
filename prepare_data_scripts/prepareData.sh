@@ -78,7 +78,6 @@ mkdir -p "$out/regulation"
 mkdir -p "$out/temp"
 mkdir -p "$out/gwava"
 
-
 # ----------------------- DOWNLOADING DATA --------------------------------
 
 if [[ "$prepgtex" -eq 1 ]];then
@@ -128,7 +127,7 @@ fi
 if [[ "$prepgtex" -eq 1 ]];then
     gtex="$out/temp/GTEx.tar"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GTEx file"
-    "$gtex_script" -i "$gtex" -g "$out/gtex/gencode.gtf.gz" -l "$out/gtex/GTEx.lookup.txt.gz" | sort -k1,1 -k2,2n > "$out/gtex/gtex.bed"
+    "$gtex_script" -i "$gtex" -g "$out/gtex/gencode.gtf.gz" -l "$out/gtex/GTEx.lookup.txt.gz" -t "$out/temp" | sort -k1,1 -k2,2n > "$out/gtex/gtex.bed"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Compressing GTEx file"
     bgzip -f "$out/gtex/gtex.bed"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Indexing GTEx file"
