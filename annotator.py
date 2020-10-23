@@ -130,212 +130,195 @@ if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS
     sys.exit(1)
 
 # --------------------------------------------------------- MAIN ---------------------------------------------------------
-
-LOGGER.info("Retrieving variant data from ENSEMBL")
-variant_data=variant.getVariantInfo(VAR_ID,build)
-if variant_data is None:
-    LOGGER.error("Variant data could not be retreived")
-    sys.exit(1)
-
-LOGGER.info("Getting GWAVA scores")
-variant.getGwavaScore(variant_data)
-
-chrpos=variant.getChrPosList(variant_data["mappings"])
-
-all_genes=list()
-mapping_names=list()
-D=dict()
-D1=dict()
-
 # ---------------------------------------------------- ALL MAPPINGS ------------------------------------------------------
 
-for i in range(0,len(chrpos)):
-    mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
-    LOGGER.info("Current mapping: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
 
-    LOGGER.info("Creating variant dataframe")
-    variantDF=variant.variant2df(variant_data,mappings)
+LOGGER.info("Retreiving rsIDs for %s" % VAR_ID)
+rsIDs=variant.id2rs_mod(VAR_ID,build=build)
+LOGGER.info("Got %d rsIDs" % len(rsIDs))
+
+for rsID in rsIDs:
+    LOGGER.info("Retrieving variant data from ENSEMBL")
+    variant_data=variant.getVariantInfo(rsID,build)
+    if variant_data is None:
+        LOGGER.error("Variant data for %s could not be retreived" % rsID)
+        continue
+
+    LOGGER.info("Getting GWAVA scores")
+    variant.getGwavaScore(variant_data)
+
+    # a variant can have multiple chr:pos mappings
+    # each chr:pos mapping can have multiple ref:alt pairs
     
-    # Variants with phenotypes:
-    LOGGER.info("Retreiving nearby variants with phenotype annotation")
-    phenotypeDF=variant.getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
-    
-    # Get regulatory features
-    LOGGER.info("Retrieving overlapping regulatory features")
-    reg=regulation.getRegulation(chrpos[i][0],chrpos[i][1])
-    LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(reg)))
-    LOGGER.info("Creating regulatory dataframe")
-    regulationDF=regulation.regulation2df(reg)
-    
-    LOGGER.info("Looking for GWAS hits around the variant")
-    gwas_hits=gwas.getGwasHits(chrpos[i][0],chrpos[i][1])
-    LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
-    LOGGER.info("Creating GWAS dataframe")
-    gwasDF=gwas.gwas2df(gwas_hits)
-    
-    LOGGER.info("Creating VEP dataframe")
-    temp=vep.getVepDF(mappings)
-    vepDFtr=temp["transcript"]
-    vepDFreg=temp["regulatory"]
-    
-    LOGGER.info("Creating populations dataframe")
-    populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
-    populationFname=utils.df2svg(populationDF,VAR_ID)
+    chrpos=variant.getChrPosList(variant_data["mappings"])
 
-    LOGGER.info("Creating PubMed dataframe")
-    pubmedDF=pubmed.getPubmedDF(VAR_ID,variant_data["synonyms"])
+    all_genes=list()
+    mapping_names=list()
+    D=dict()
+    D1=dict()
 
-    # Get a list of genes close to the variation:
-    LOGGER.info("Retrieving genes around the variant")
-    gene_list=gene.getGeneList(chrpos[i][0],chrpos[i][1],build=build)
-    if gene_list:
-        all_genes.extend(gene_list)
-        LOGGER.info("Got %d gene(s)\n" %(len(gene_list)))
-    LOGGER.info("Creating gene dataframe")
-    geneDF=gene.geneList2df(gene_list)
-    
-    LOGGER.info("Creating gnomAD dataframe")
-    gnomadDF=gnomad.getPopulationAF(VAR_ID)
-    gnomadFname=utils.df2svg(gnomadDF,VAR_ID)
-    
-    LOGGER.info("Creating GTEx dataframe")
-    GTEx_genesDF=gtex.getGTExDF(mappings)    
-    LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
+    # loop over all chr:pos mappings
+    for i in range(0,len(chrpos)):
+        LOGGER.info("Current mapping: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
+        # all ref:alt etc. information corresponding to the current chr:pos
+        mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
+        LOGGER.info("Creating variant dataframe")
+        variantDF=variant.variant2df(variant_data,mappings)
+        LOGGER.info("Retreiving nearby variants with phenotype annotation")
+        phenotypeDF=variant.getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
+        LOGGER.info("Retrieving overlapping regulatory features")
+        reg=regulation.getRegulation(chrpos[i][0],chrpos[i][1])
+        LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(reg)))
+        LOGGER.info("Creating regulatory dataframe")
+        regulationDF=regulation.regulation2df(reg)
+        LOGGER.info("Looking for GWAS hits around the variant")
+        gwas_hits=gwas.getGwasHits(chrpos[i][0],chrpos[i][1])
+        LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
+        LOGGER.info("Creating GWAS dataframe")
+        gwasDF=gwas.gwas2df(gwas_hits)
+        LOGGER.info("Creating VEP dataframe")
+        temp=vep.getVepDF(mappings)
+        vepDFtr=temp["transcript"]
+        vepDFreg=temp["regulatory"]
+        LOGGER.info("Creating populations dataframe")
+        populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
+        populationFname=utils.df2svg(populationDF,VAR_ID)
+        LOGGER.info("Creating PubMed dataframe")
+        pubmedDF=pubmed.getPubmedDF(VAR_ID,variant_data["synonyms"])
+        LOGGER.info("Retrieving genes around the variant")
+        gene_list=gene.getGeneList(chrpos[i][0],chrpos[i][1],build=build)
+        if gene_list:
+            all_genes.extend(gene_list)
+            LOGGER.info("Got %d gene(s)" %(len(gene_list)))
+        LOGGER.info("Creating gene dataframe")
+        geneDF=gene.geneList2df(gene_list)
+        LOGGER.info("Creating gnomAD dataframe")
+        gnomadDF=gnomad.getPopulationAF(VAR_ID)
+        gnomadFname=utils.df2svg(gnomadDF,VAR_ID)
+        LOGGER.info("Creating GTEx dataframe")
+        GTEx_genesDF=gtex.getGTExDF(mappings)    
+        LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
 
-# -------
-
-    if out_html:
-        if len(variantDF)>0:
-            D["variant_table%d" %i]=variantDF.to_html(index=True,classes='utf8',table_id="common")
-        if len(regulationDF)>0:
-            D["regulation_table%d" %i]=regulationDF.to_html(index=False,classes='utf8',table_id="common")
-        if len(gwasDF)>0:
-            D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-        if len(vepDFtr)>0:
-            D["vep_table%d" %i]=vepDFtr.to_html(index=False,classes='utf8',table_id="common")
-        if len(vepDFreg)>0:
-            D["vepreg_table%d" %i]=vepDFreg.to_html(index=False,classes='utf8',table_id="common")
-        if populationFname:
-            D["population_table%d" %i]="<img src=\"%s\">" % populationFname
-        if gnomadFname:
-            D["gnomad_table%d" %i]="<img src=\"%s\">" % gnomadFname
-        if len(pubmedDF)>0:
-            D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-        if len(phenotypeDF)>0:
-            D["phenotype_table%d" %i]=phenotypeDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-        if len(geneDF)>0:
-            D["gene_table%d" %i]=geneDF.to_html(index=False,classes='utf8',table_id="common")
-        if len(GTEx_genesDF)>0:
-            D["gtex_genes_table%d" %i]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
-    
-        mapping_names.append(chrpos[i][0]+":"+str(chrpos[i][1]))
-    else:
-        D1["variant_table%d" %i]=variantDF.to_json(orient="records")
-        D1["gnomad_table%d" %i]=gnomadDF.to_json(orient="records")
-        D1["regulation_table%d" %i]=regulationDF.to_json(orient="records")
-        D1["gwas_table%d" %i]=gwasDF.to_json(orient="records")
-        D1["vep_table%d" %i]=vepDFtr.to_json(orient="records")
-        D1["vepreg_table%d" %i]=vepDFreg.to_json(orient="records")
-        D1["population_table%d" %i]=populationDF.to_json(orient="records") # <-- TODO: add barchart
-        D1["pubmed_table%d" %i]=pubmedDF.to_json(orient="records")
-        D1["phenotype_table%d" %i]=phenotypeDF.to_json(orient="records")
-        D1["gene_table%d" %i]=geneDF.to_json(orient="records")
-        D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json(orient="records")
-
-# --------------------------------------------------- ALL GENES -------------------------------------------------------
-
-gene_names=list()
-LOGGER.info("Total genes: %d" % len(all_genes))
-for i in range(0,len(all_genes)):
-    gene_ID=all_genes[i]["ID"]
-    gene_names.append(gene_ID)
-
-    LOGGER.info("Current gene: %s",gene_ID)
-    LOGGER.info("Retreiving general information")
-    info=gene.getGeneInfo(gene_ID,build=build)
-
-    LOGGER.info("Retreiveing cross-references")
-    xrefs=gene.getGeneXrefs(gene_ID)
-    if xrefs is None:
-        up=None
-    else:
-        LOGGER.info("Retreiving UniProt data")
-        if len(xrefs["UniProtKB/Swiss-Prot"])>0:
-            up=uniprot.getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
+        if out_html:
+            if len(variantDF)>0:
+                D["variant_table%d" %i]=variantDF.to_html(index=True,classes='utf8',table_id="common")
+            if len(regulationDF)>0:
+                D["regulation_table%d" %i]=regulationDF.to_html(index=False,classes='utf8',table_id="common")
+            if len(gwasDF)>0:
+                D["gwas_table%d" %i]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+            if len(vepDFtr)>0:
+                D["vep_table%d" %i]=vepDFtr.to_html(index=False,classes='utf8',table_id="common")
+            if len(vepDFreg)>0:
+                D["vepreg_table%d" %i]=vepDFreg.to_html(index=False,classes='utf8',table_id="common")
+            if populationFname:
+                D["population_table%d" %i]="<img src=\"%s\">" % populationFname
+            if gnomadFname:
+                D["gnomad_table%d" %i]="<img src=\"%s\">" % gnomadFname
+            if len(pubmedDF)>0:
+                D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+            if len(phenotypeDF)>0:
+                D["phenotype_table%d" %i]=phenotypeDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+            if len(geneDF)>0:
+                D["gene_table%d" %i]=geneDF.to_html(index=False,classes='utf8',table_id="common")
+            if len(GTEx_genesDF)>0:
+                D["gtex_genes_table%d" %i]=GTEx_genesDF.to_html(index=False,classes='utf8',table_id="common")
+            mapping_names.append(chrpos[i][0]+":"+str(chrpos[i][1]))
         else:
+            D1["variant_table%d" %i]=variantDF.to_json(orient="records")
+            D1["gnomad_table%d" %i]=gnomadDF.to_json(orient="records")
+            D1["regulation_table%d" %i]=regulationDF.to_json(orient="records")
+            D1["gwas_table%d" %i]=gwasDF.to_json(orient="records")
+            D1["vep_table%d" %i]=vepDFtr.to_json(orient="records")
+            D1["vepreg_table%d" %i]=vepDFreg.to_json(orient="records")
+            D1["population_table%d" %i]=populationDF.to_json(orient="records")
+            D1["pubmed_table%d" %i]=pubmedDF.to_json(orient="records")
+            D1["phenotype_table%d" %i]=phenotypeDF.to_json(orient="records")
+            D1["gene_table%d" %i]=geneDF.to_json(orient="records")
+            D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json(orient="records")
+
+    gene_names=list()
+    LOGGER.info("Total genes: %d" % len(all_genes))
+    for i in range(0,len(all_genes)):
+        gene_ID=all_genes[i]["ID"]
+        gene_names.append(gene_ID)
+        LOGGER.info("Current gene: %s",gene_ID)
+        LOGGER.info("Retreiving general information")
+        info=gene.getGeneInfo(gene_ID,build=build)
+        LOGGER.info("Retreiveing cross-references")
+        xrefs=gene.getGeneXrefs(gene_ID)
+        if xrefs is None:
             up=None
+        else:
+            LOGGER.info("Retreiving UniProt data")
+            if len(xrefs["UniProtKB/Swiss-Prot"])>0:
+                up=uniprot.getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
+            else:
+                up=None
 
-    LOGGER.info("Retreiving GWAS data")
-    gw=gwas.gene2gwas(info["name"])
+        LOGGER.info("Retreiving GWAS data")
+        gw=gwas.gene2gwas(info["name"])
+        LOGGER.info("Retreiving GTEx data")
+        gt=gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
+        LOGGER.info("Retreiving mouse data")
+        mouseDF=mouse.getMousePhenotypes(gene_ID)
+        LOGGER.info("Creating general info dataframe")
+        infoDF=gene.geneInfo2df(info)
+        LOGGER.info("Creating GTEx dataframe")
+        gtexDF=gtex.gtex2df(gt)
+        LOGGER.info("Creating GWAS dataframe")
+        gwasDF=gwas.geneGwas2df(gw)
+        LOGGER.info("Creating GXA dataframe")
+        gxaDF=gxa.getGxaDF(gene_ID)
+        gxaFname=gxa.df2svg(gxaDF)
+        LOGGER.info("Creating UniProt dataframe")
+        uniprotDF=uniprot.uniprot2df(up)
+        LOGGER.info("Creating GO terms dataframe")
+        goDF=gene.goterms2df(xrefs)
+        LOGGER.info("")
 
-    LOGGER.info("Retreiving GTEx data")
-    gt=gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
+        if out_html:
+            if len(infoDF)>0:
+                D["gene_table_%s" % gene_ID]=infoDF.to_html(index=False,classes='utf8',table_id="common")
+            if len(goDF):
+                D["go_table_%s" % gene_ID]=goDF.to_html(index=False,classes='utf8',table_id="common")
+            if len(uniprotDF)>0:
+                D["uniprot_table_%s" % gene_ID]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
+            if len(gwasDF)>0:
+                D["gwas_table_%s" % gene_ID]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
+            D["gxa_heatmap_%s" % gene_ID]="<img src=\"%s\">" % gxaFname
+            if len(gtexDF)>0:
+                D["gtexVariants_table_%s" % gene_ID]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
+            if len(mouseDF)>0:
+                D["mouse_table_%s" % gene_ID]=mouseDF.to_html(index=False,classes='utf8',table_id="common")
+        else:
+            D1["gene2_table_%s" %gene_ID]=infoDF.to_json(orient="records")
+            D1["uniprot_table_%s" %gene_ID]=uniprotDF.to_json(orient="records")
+            D1["gwas2_table_%s" %gene_ID]=gwasDF.to_json(orient="records")
+            D1["gxa_table_%s" %gene_ID]=gxaDF.to_json(orient="records")
+            D1["gtex_variants_table_%s" %gene_ID]=gtexDF.to_json(orient="records")
+            D1["mouse_table_%s" %gene_ID]=mouseDF.to_json(orient="records")
+            D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
 
-    LOGGER.info("Retreiving mouse data")
-    mouseDF=mouse.getMousePhenotypes(gene_ID)
 
-    LOGGER.info("Creating general info dataframe")
-    infoDF=gene.geneInfo2df(info)
 
-    LOGGER.info("Creating GTEx dataframe")
-    gtexDF=gtex.gtex2df(gt)
-
-    LOGGER.info("Creating GWAS dataframe")
-    gwasDF=gwas.geneGwas2df(gw)
-
-    LOGGER.info("Creating GXA dataframe")
-    gxaDF=gxa.getGxaDF(gene_ID)
-    gxaFname=gxa.df2svg(gxaDF)
-
-    LOGGER.info("Creating UniProt dataframe")
-    uniprotDF=uniprot.uniprot2df(up)
-
-    LOGGER.info("Creating GO terms dataframe")
-    goDF=gene.goterms2df(xrefs)
-    LOGGER.info("")
-
-# -----
-
+                
     if out_html:
-        if len(infoDF)>0:
-            D["gene_table_%s" % gene_ID]=infoDF.to_html(index=False,classes='utf8',table_id="common")
-        if len(goDF):
-            D["go_table_%s" % gene_ID]=goDF.to_html(index=False,classes='utf8',table_id="common")
-        if len(uniprotDF)>0:
-            D["uniprot_table_%s" % gene_ID]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
-        if len(gwasDF)>0:
-            D["gwas_table_%s" % gene_ID]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-        D["gxa_heatmap_%s" % gene_ID]="<img src=\"%s\">" % gxaFname
-        if len(gtexDF)>0:
-            D["gtexVariants_table_%s" % gene_ID]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
-        if len(mouseDF)>0:
-            D["mouse_table_%s" % gene_ID]=mouseDF.to_html(index=False,classes='utf8',table_id="common")
+        outfile=config.OUTPUT_DIR+"/%s.html" % rsID
+        LOGGER.info("Saving HTML output to %s\n" % outfile)
+        template_fname=config.OUTPUT_DIR+"/template.html"
+        utils.generateTemplate(mapping_names,gene_names,template_fname)
+        f = open(outfile,"w")
+        f.write(utils.generateHTML(template_fname,D))
+        f.close()
+        if os.path.isfile(template_fname):
+            os.remove(template_fname)
     else:
-        D1["gene2_table_%s" %gene_ID]=infoDF.to_json(orient="records")
-        D1["uniprot_table_%s" %gene_ID]=uniprotDF.to_json(orient="records")
-        D1["gwas2_table_%s" %gene_ID]=gwasDF.to_json(orient="records")
-        D1["gxa_table_%s" %gene_ID]=gxaDF.to_json(orient="records")
-        D1["gtex_variants_table_%s" %gene_ID]=gtexDF.to_json(orient="records")
-        D1["mouse_table_%s" %gene_ID]=mouseDF.to_json(orient="records")
-        D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
+        outfile=config.OUTPUT_DIR+"/%s.json.gz" %rsID
+        LOGGER.info("Saving JSON output to %s\n" % outfile)
+        with gzip.GzipFile(outfile,"w") as fout:
+            fout.write(json.dumps(D1).encode('utf-8'))
 
-# ---------------------------------------------------- OUTPUT and CLEANUP  ---------------------------------------------------
-
-if out_html:
-    outfile=config.OUTPUT_DIR+"/%s.html" % VAR_ID
-    LOGGER.info("Saving HTML output to %s\n" % outfile)
-    template_fname=config.OUTPUT_DIR+"/template.html"
-    utils.generateTemplate(mapping_names,gene_names,template_fname)
-    f = open(outfile,"w")
-    f.write(utils.generateHTML(template_fname,D))
-    f.close()
-    if os.path.isfile(template_fname):
-        os.remove(template_fname)
-else:
-    outfile=config.OUTPUT_DIR+"/%s.json.gz" %VAR_ID
-    LOGGER.info("Saving JSON output to %s\n" % outfile)
-    with gzip.GzipFile(outfile,"w") as fout:
-        fout.write(json.dumps(D1).encode('utf-8'))
+#----------------------------------------------------------------------------------------------------------------------
 
 if os.path.isfile(config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv"):
     os.remove(config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv")
