@@ -11,6 +11,8 @@ from varannot import variant
 from varannot import utils
 from varannot import config
 
+# --------------------------- GWAS Catalog has b38 coordinates ---------------------------
+
 sys.stdout=open(sys.stdout.fileno(),mode='w',encoding='utf8',buffering=1)
 
 verbosity=logging.INFO
@@ -61,7 +63,6 @@ ambiguous=set()
 S=set()
 
 LOGGER.debug("Start analyzing input")
-count=0
 
 for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VALUE"]].iterrows():
     chrID=row["CHR_ID"]
@@ -71,10 +72,6 @@ for index, row in T[["SNPS","PUBMEDID","CHR_ID","CHR_POS","DISEASE/TRAIT","P-VAL
     pmid=row["PUBMEDID"]
     pval=row["P-VALUE"]
 
-    # count+=1
-    # if count%10000==0:
-    #     LOGGER.debug("Record\t%d/%d" % (count,total))
-    
     # case 1: there is only one chr:pos, but several SNPs, because a haplotype is reported
     m1=re.search("^\d+$",chrPOS)
     m2=re.search("[;,x]",SNPs)
@@ -161,13 +158,17 @@ LOGGER.debug("Done preparing data")
 
 rest_out=dict()
 LOGGER.debug("Start REST (%d records)" % len(rest_in))
-count=0
+count=1
 for chunk in utils.chunks(list(rest_in),config.VARIANT_RECODER_POST_MAX):
     res=variant.rsList2position(chunk,build="38",alleles=False)
-    for x in res:
-        rest_out[x]=res[x]
+    if res:
+        LOGGER.debug("Done REST chunk %d" % count)
+        for x in res:
+            rest_out[x]=res[x]
+    else:
+        LOGGER.error("REST query for chunk %d failed" % count)
     count+=1
-    LOGGER.debug("Done REST chunk %d" % count)
+    
 LOGGER.debug("Done, REST output: %d records" % len(rest_out))
 
 #============================================================= OUTPUT ====================================================================================
