@@ -44,14 +44,19 @@ searchAtlasBaselineExperiments <- function (species = NULL)
             "organism")$organism)
         expType <- XML::xmlValue(XML::xmlElementsByTagName(experimentNode,
             "experimenttype")$experimenttype)
+        expDesign <- XML::xmlValue(XML::xmlElementsByTagName(experimentNode,
+            "experimentdesign")$experimentdesign)
         list(accession = expAcc, title = expTitle, species = species,
-            expType = expType)
+            expType = expType,expDesign=expDesign)
     })
     allAccessions <- sapply(resultsList, function(x) {
         x$accession
     })
     allExpTypes <- sapply(resultsList, function(x) {
         x$expType
+    })
+    allExpDesign <- sapply(resultsList, function(x) {
+        x$expDesign
     })
     allSpecies <- sapply(resultsList, function(x) {
         x$species
@@ -61,11 +66,12 @@ searchAtlasBaselineExperiments <- function (species = NULL)
     })
     names(allAccessions) <- NULL
     names(allExpTypes) <- NULL
+    names(allExpDesigns) <- NULL
     names(allSpecies) <- NULL
     names(allTitles) <- NULL
     resultsSummary <- DataFrame(Accession = allAccessions, Species = allSpecies,
-        Type = allExpTypes, Title = allTitles)
+        Type = allExpTypes,Design = allExpDesigns, Title = allTitles)
     resultsSummary <- resultsSummary[order(resultsSummary$Species,
-        resultsSummary$Type, resultsSummary$Accession), ]
+        resultsSummary$Type,resultsSummary$Design, resultsSummary$Accession), ]
     return(resultsSummary)
 }
