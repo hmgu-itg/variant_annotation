@@ -71,7 +71,7 @@ if args.verbose is not None:
     elif args.verbose=="error":
         verbosity=logging.ERROR
 
-outdir=os.getcwd()
+outdir=os.getcwd()+"/"+VAR_ID
 if args.output:
     outdir=args.output
     
@@ -192,7 +192,8 @@ for rsID in rsIDs:
         vepDFreg=temp["regulatory"]
         LOGGER.info("Creating populations dataframe")
         populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
-        populationFname=utils.df2svg(populationDF,rsID)
+        # relative to the output dir
+        gxaFname="./"+os.path.relpath(utils.df2svg(populationDF,rsID),config.OUTPUT_DIR)
         LOGGER.info("Creating PubMed dataframe")
         pubmedDF=pubmed.getPubmedDF(rsID,variant_data["synonyms"])
         LOGGER.info("Retrieving genes around the variant")
@@ -204,7 +205,8 @@ for rsID in rsIDs:
         geneDF=gene.geneList2df(gene_list)
         LOGGER.info("Creating gnomAD dataframe")
         gnomadDF=gnomad.getPopulationAF(rsID)
-        gnomadFname=utils.df2svg(gnomadDF,rsID)
+        # relative to the output dir
+        gxaFname="./"+os.path.relpath(utils.df2svg(gnomadDF,rsID),config.OUTPUT_DIR)
         LOGGER.info("Creating GTEx dataframe")
         GTEx_genesDF=gtex.getGTExDF(mappings)    
         LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
@@ -281,7 +283,8 @@ for rsID in rsIDs:
         gwasDF=gwas.geneGwas2df(gw)
         LOGGER.info("Creating GXA dataframe")
         gxaDF=gxa.getGxaDF(gene_ID)
-        gxaFname=gxa.df2svg(gxaDF)
+        # relative to the output dir
+        gxaFname="./"+os.path.relpath(gxa.df2svg(gxaDF),config.OUTPUT_DIR)
         LOGGER.info("Creating UniProt dataframe")
         uniprotDF=uniprot.uniprot2df(up)
         LOGGER.info("Creating GO terms dataframe")
