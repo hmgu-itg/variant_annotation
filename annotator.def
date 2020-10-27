@@ -40,10 +40,20 @@ From: ubuntu:18.04
 	cd /usr/local/bin
 	git clone https://github.com/hmgu-itg/variant_annotation
 
+	# liftOver
 	wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v385/liftOver
 	chmod +x liftOver
 	wget ftp://hgdownload.cse.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHg19.over.chain.gz
 	wget ftp://hgdownload.cse.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz
+
+	# # R packages needed for shiny app
+	# apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+	# add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran40/'
+	# DEBIAN_FRONTEND="noninteractive" apt-get install -y r-base
+	# apt-get install -y libcurl4-openssl-dev libssl-dev
+	# Rscript --vanilla -e "install.packages(c(\"shiny\",\"plotly\",\"shinyjs\",\"jsonlite\"),repos = \"http://cran.us.r-project.org\")"
+
+
 
 	CREATIONDATE=`date`
 
