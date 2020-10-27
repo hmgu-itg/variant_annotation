@@ -2,7 +2,6 @@
 
 import time
 import sys
-import os
 
 from selenium.webdriver.firefox.options import Options
 from selenium import webdriver
@@ -29,23 +28,20 @@ browser = webdriver.Firefox(firefox_profile=profile,firefox_options=options)
 browser.get("https://www.ebi.ac.uk/gxa/experiments?species=homo%20sapiens&experimentType=baseline")
 element=None
 try:
-    element=WebDriverWait(browser,10).until(EC.presence_of_element_located((By.XPATH, "//label[text()='Entries per page:']")))
-#element = browser.find_element((By.XPATH, "//label[text()='Entries per page:']"))
+    element=WebDriverWait(browser,15).until(EC.presence_of_element_located((By.XPATH, "//label[text()='Entries per page:']")))
     if not element is None:
-        print("Found element")
+        #print("Found element")
         children=element.find_elements_by_xpath(".//select")
-        print("Found %d children" % len(children))
+        #print("Found %d children" % len(children))
         sel=Select(children[0])
-        print("Created Select")
+        #print("Created Select")
         sel.select_by_visible_text('All')
-        print("Selected")
-        time.sleep(10)
+        #print("Selected")
+        time.sleep(15)
         print(browser.page_source)
-
-    # element.click()
     browser.quit()
 except Exception as e:
-    print("Exception occured: "+type(e).__name__)
+    print("Exception occured: "+type(e).__name__,file=sys.stderr)
     browser.quit()
 
 
