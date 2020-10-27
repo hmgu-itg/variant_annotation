@@ -409,8 +409,8 @@ def id2rs_mod(varid,build="38"):
 
     S=set()
 
-    if varid.startswith("rs"):
-        return varid
+    if utils.isRS(varid):
+        return {varid}
 
     if not utils.checkID(varid):
         LOGGER.error("Variant ID %s is malformed" % varid)
