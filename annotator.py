@@ -137,7 +137,8 @@ if not utils.checkID(VAR_ID):
 
 LOGGER.info("Retreiving rsIDs for %s" % VAR_ID)
 rsIDs=variant.id2rs_mod(VAR_ID,build=build)
-LOGGER.info("Got %d rsIDs" % len(rsIDs))
+LOGGER.info("Got %d rsID(s)" % len(rsIDs))
+LOGGER.info("%s",", ".join(rsIDs))
 
 if len(rsIDs)==0:
     if not checkAlleles(VAR_ID,build):

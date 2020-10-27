@@ -144,11 +144,13 @@ fi
 
 # ------------------------ POST-PROCESSING GWAVA --------------------------
 
-echo $(date '+%d/%m/%Y %H:%M:%S') "Patching GWAVA"
-patch -b $out/gwava/src/gwava_annotate.py /usr/bin/variant_annotation/patches/gwava_annotate.py.patch
-patch -b $out/gwava/src/gwava.py /usr/bin/variant_annotation/patches/gwava.py.patch
-zcat "$out/gwava/source_data/encode/Gencodev10_TSS_May2012.gff.gz" | sort -k1,1 -k4,5n | gzip - > "$out/temp/tmp.gff.gz"
-mv "$out/temp/tmp.gff.gz" "$out/gwava/source_data/encode/Gencodev10_TSS_May2012.gff.gz"
+if [[ "$prepgwava" -eq 1 ]];then
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Patching GWAVA"
+    patch -b $out/gwava/src/gwava_annotate.py /usr/bin/variant_annotation/patches/gwava_annotate.py.patch
+    patch -b $out/gwava/src/gwava.py /usr/bin/variant_annotation/patches/gwava.py.patch
+    zcat "$out/gwava/source_data/encode/Gencodev10_TSS_May2012.gff.gz" | sort -k1,1 -k4,5n | gzip - > "$out/temp/tmp.gff.gz"
+    mv "$out/temp/tmp.gff.gz" "$out/gwava/source_data/encode/Gencodev10_TSS_May2012.gff.gz"
+fi
 
 # -------------------------------------------------------------------------
 
