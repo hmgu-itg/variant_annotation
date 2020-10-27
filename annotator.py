@@ -138,7 +138,7 @@ if not utils.checkID(VAR_ID):
 LOGGER.info("Retreiving rsIDs for %s" % VAR_ID)
 rsIDs=variant.id2rs_mod(VAR_ID,build=build)
 LOGGER.info("Got %d rsID(s)" % len(rsIDs))
-LOGGER.info("%s",", ".join(rsIDs))
+LOGGER.info("rs ID(s): %s",", ".join(rsIDs))
 
 if len(rsIDs)==0:
     if not checkAlleles(VAR_ID,build):
@@ -153,8 +153,8 @@ for rsID in rsIDs:
         LOGGER.error("Variant data for %s could not be retreived" % rsID)
         continue
 
-    LOGGER.info("Getting GWAVA scores")
-    variant.getGwavaScore(variant_data)
+    #LOGGER.info("Getting GWAVA scores")
+    #variant.getGwavaScore(variant_data)
 
     # a variant can have multiple chr:pos mappings
     # each chr:pos mapping can have multiple ref:alt pairs
@@ -291,7 +291,7 @@ for rsID in rsIDs:
         LOGGER.info("Creating GXA dataframe")
         gxaDF=gxa.getGxaDF(gene_ID)
         # relative to the output dir
-        tmp_name=gxa.df2svg(gxadDF)
+        tmp_name=gxa.df2svg(gxaDF)
         gxaFname=None
         if not tmp_name is None:
             gxaFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)

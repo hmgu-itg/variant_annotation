@@ -15,14 +15,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from . import config
-from . import utils
+from varannot import config
+from varannot import utils
 
 LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
 def df2svg(df):
+    if df is None:
+        return None
+    
     if len(df)==0:
         return None
 
