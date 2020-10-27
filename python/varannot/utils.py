@@ -218,7 +218,7 @@ def convertVariantID(varid,reverse=False):
 
 def df2svg(df,var):
 
-    if not df:
+    if not df is None:
         return None
     
     if len(df)==0:

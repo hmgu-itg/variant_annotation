@@ -194,7 +194,10 @@ for rsID in rsIDs:
         LOGGER.info("Creating populations dataframe")
         populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
         # relative to the output dir
-        gxaFname="./"+os.path.relpath(utils.df2svg(populationDF,rsID),config.OUTPUT_DIR)
+        tmp_name=utils.df2svg(populationDF,rsID)
+        populationFname=None
+        if not tmp_name is None:
+            populationFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
         LOGGER.info("Creating PubMed dataframe")
         pubmedDF=pubmed.getPubmedDF(rsID,variant_data["synonyms"])
         LOGGER.info("Retrieving genes around the variant")
@@ -207,7 +210,10 @@ for rsID in rsIDs:
         LOGGER.info("Creating gnomAD dataframe")
         gnomadDF=gnomad.getPopulationAF(rsID)
         # relative to the output dir
-        gxaFname="./"+os.path.relpath(utils.df2svg(gnomadDF,rsID),config.OUTPUT_DIR)
+        tmp_name=utils.df2svg(gnomadDF,rsID)
+        gnomadFname=None
+        if not tmp_name is None:
+            gnomadFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
         LOGGER.info("Creating GTEx dataframe")
         GTEx_genesDF=gtex.getGTExDF(mappings)    
         LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
@@ -223,9 +229,9 @@ for rsID in rsIDs:
                 D["vep_table%d" %i]=vepDFtr.to_html(index=False,classes='utf8',table_id="common")
             if len(vepDFreg)>0:
                 D["vepreg_table%d" %i]=vepDFreg.to_html(index=False,classes='utf8',table_id="common")
-            if populationFname:
+            if not populationFname is None:
                 D["population_table%d" %i]="<img src=\"%s\">" % populationFname
-            if gnomadFname:
+            if not gnomadFname is None:
                 D["gnomad_table%d" %i]="<img src=\"%s\">" % gnomadFname
             if len(pubmedDF)>0:
                 D["pubmed_table%d" %i]=pubmedDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
@@ -285,7 +291,10 @@ for rsID in rsIDs:
         LOGGER.info("Creating GXA dataframe")
         gxaDF=gxa.getGxaDF(gene_ID)
         # relative to the output dir
-        gxaFname="./"+os.path.relpath(gxa.df2svg(gxaDF),config.OUTPUT_DIR)
+        tmp_name=gxa.df2svg(gxadDF)
+        gxaFname=None
+        if not tmp_name is None:
+            gxaFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
         LOGGER.info("Creating UniProt dataframe")
         uniprotDF=uniprot.uniprot2df(up)
         LOGGER.info("Creating GO terms dataframe")
@@ -301,7 +310,8 @@ for rsID in rsIDs:
                 D["uniprot_table_%s" % gene_ID]=uniprotDF.to_html(index=False,classes='utf8',table_id="common")
             if len(gwasDF)>0:
                 D["gwas_table_%s" % gene_ID]=gwasDF.to_html(index=False,classes='utf8',table_id="common",render_links=True,escape=False)
-            D["gxa_heatmap_%s" % gene_ID]="<img src=\"%s\">" % gxaFname
+            if not gxaFname is None:
+                D["gxa_heatmap_%s" % gene_ID]="<img src=\"%s\">" % gxaFname
             if len(gtexDF)>0:
                 D["gtexVariants_table_%s" % gene_ID]=gtexDF.to_html(index=False,classes='utf8',table_id="common")
             if len(mouseDF)>0:
