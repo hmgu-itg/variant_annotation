@@ -2,9 +2,9 @@
 
 function usage {
     echo ""
-    echo "Usage:" $(basename $0) "-o <output dir> { -h -g -x -r -w}"
+    echo "Usage:" $(basename $0) "-o <output dir> { -h -g -x -r -w -a}"
     echo " -h : this help message"
-    echo " -g -x -r -w are optional, for selecting which data to prepare (GWAS, GTEx, Regulation or GWAVA), by default all."
+    echo " -g -x -r -w -a are optional, for selecting which data to prepare (GWAS, GTEx, Regulation, GWAVA or GXA), by default all."
 
     exit 0
 }
@@ -14,15 +14,17 @@ OPTIND=1
 prepgwas=0
 prepgtex=0
 prepreg=0
+prepgxa=0
 prepgwava=0
 
-while getopts "gxrwo:h" optname; do
+while getopts "gxrwoa:h" optname; do
     case "$optname" in
         "g" ) prepgwas=1;;
         "x" ) prepgtex=1;;
         "r" ) prepreg=1;;
         "w" ) prepgwava=1;;
         "o" ) out="${OPTARG}";;
+        "a" ) prepgxa=1;;
         "h" ) usage ;;
         "?" ) usage ;;
         *) usage ;;
@@ -33,14 +35,14 @@ if [[ $# -eq 0 ]];then
     usage
 fi
 
-if [ "$prepgwas" -eq 0 ] && [ "$prepgtex" -eq 0 ] && [ "$prepreg" -eq 0 ] && [ "$prepgwava" -eq 0 ];then
+if [ "$prepgxa" -eq 0 ] &&[ "$prepgwas" -eq 0 ] && [ "$prepgtex" -eq 0 ] && [ "$prepreg" -eq 0 ] && [ "$prepgwava" -eq 0 ];then
     prepgwas=1
     prepgtex=1
     prepreg=1
     prepgwava=1
+    prepgxa=1
 fi
 
-#DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 pushd . > /dev/null
 SCRIPT_PATH="${BASH_SOURCE[0]}"
 if ([ -h "${SCRIPT_PATH}" ]); then
@@ -56,6 +58,7 @@ CDIR=$(pwd)
 reg_script="$DIR"/"prepareRegulation.sh"
 gwas_script="$DIR"/"prepareGWAS.py"
 gtex_script="$DIR"/"prepareGTEx.py"
+gxa_script="$DIR"/"prepareGXA.sh"
 
 regdir=${regdir/%\/}
 out=${out/%\/}
@@ -77,6 +80,7 @@ mkdir -p "$out/gtex"
 mkdir -p "$out/regulation"
 mkdir -p "$out/temp"
 mkdir -p "$out/gwava"
+mkdir -p "$out/gxa"
 
 # ----------------------- DOWNLOADING DATA --------------------------------
 
@@ -150,6 +154,13 @@ if [[ "$prepgwava" -eq 1 ]];then
     patch -b $out/gwava/src/gwava.py /usr/bin/variant_annotation/patches/gwava.py.patch
     zcat "$out/gwava/source_data/encode/Gencodev10_TSS_May2012.gff.gz" | sort -k1,1 -k4,5n | gzip - > "$out/temp/tmp.gff.gz"
     mv "$out/temp/tmp.gff.gz" "$out/gwava/source_data/encode/Gencodev10_TSS_May2012.gff.gz"
+fi
+
+# ----------------------------- GXA ---------------------------------------
+
+if [[ "$prepgxa" -eq 1 ]];then
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GXA file"
+    "$gxa_script" -o "$out/gxa"
 fi
 
 # -------------------------------------------------------------------------
