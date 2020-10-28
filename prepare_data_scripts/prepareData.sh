@@ -17,14 +17,14 @@ prepreg=0
 prepgxa=0
 prepgwava=0
 
-while getopts "gxrwoa:h" optname; do
+while getopts "gxrwao:h" optname; do
     case "$optname" in
         "g" ) prepgwas=1;;
         "x" ) prepgtex=1;;
         "r" ) prepreg=1;;
         "w" ) prepgwava=1;;
-        "o" ) out="${OPTARG}";;
         "a" ) prepgxa=1;;
+        "o" ) out="${OPTARG}";;
         "h" ) usage ;;
         "?" ) usage ;;
         *) usage ;;
