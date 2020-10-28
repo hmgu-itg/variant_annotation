@@ -27,6 +27,7 @@ options.add_argument("--headless")
 browser = webdriver.Firefox(firefox_profile=profile,firefox_options=options)
 browser.get("https://www.ebi.ac.uk/gxa/experiments?species=homo%20sapiens&experimentType=baseline")
 element=None
+
 try:
     element=WebDriverWait(browser,15).until(EC.presence_of_element_located((By.XPATH, "//label[text()='Entries per page:']")))
     if not element is None:
@@ -39,9 +40,14 @@ try:
         #print("Selected")
         time.sleep(15)
         print(browser.page_source)
-    browser.quit()
+        browser.quit()
+        sys.exit(0)
+    else:
+        browser.quit()
+        sys.exit(1)
 except Exception as e:
     print("Exception occured: "+type(e).__name__,file=sys.stderr)
     browser.quit()
+    sys.exit(1)
 
 
