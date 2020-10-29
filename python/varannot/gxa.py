@@ -96,6 +96,56 @@ def getGxaDF(ID):
 
 # ======================================================================================================================
 
+def saveGxaDataNEW(ID):
+    """
+    Saves GXA baseline expression values for a given gene ID
+
+    Input  : gene ID
+    Output : name of the file where the data are stored
+    """
+
+    try:
+        os.remove("/tmp/expression_atlas-homo_sapiens.tsv")
+    except OSError:
+        pass
+
+    profile = webdriver.FirefoxProfile()
+    profile.set_preference("browser.download.panel.shown", False)
+    profile.set_preference("browser.helperApps.neverAsk.openFile","text/plain")
+    profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/plain")
+    profile.set_preference("browser.download.folderList", 2);
+    profile.set_preference('browser.download.dir', '/tmp')
+    profile.set_preference('browser.download.manager.showWhenStarting', False)
+
+    options = Options()
+    options.add_argument("--headless")
+
+    browser = webdriver.Firefox(firefox_profile=profile,firefox_options=options)
+    browser.get(utils.getGxaURL(ID))
+    element=None
+    try:
+        # 60 seconds to load
+        element = WebDriverWait(browser, 60).until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Download"]')))
+    except Exception as e:
+        LOGGER.error(type(e).__name__)
+        browser.quit()
+        return None
+
+    element.click()
+    time.sleep(5)
+    browser.quit()
+
+    try:
+        os.remove(config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv")
+    except OSError:
+        pass
+
+    shutil.move("/tmp/expression_atlas-homo_sapiens.tsv",config.OUTPUT_DIR)
+
+    return config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv"
+
+# ======================================================================================================================
+
 def saveGxaData(ID):
     """
     Retreives and saves GXA baseline expression values for a given gene ID

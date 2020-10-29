@@ -67,6 +67,7 @@ REGULATORY_FILE_SFX="regulation/regulation.bed.gz"
 GWAS_FILE_VAR_SFX="gwas/gwas.tsv.gz"
 GWAS_FILE_SFX="gwas/gwas_full.tsv.gz"
 GTEX_BED_SFX="gtex/gtex.bed.gz"
+GXA_TSV_SFX="gxa/GXA.tsv.gz"
 
 GnomadPopulations={
     "AFR": "African American",
