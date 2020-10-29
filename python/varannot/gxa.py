@@ -65,6 +65,7 @@ def getGxaHeatmap(ID):
 
 # ==============================================================================================================================
 
+# deprecated
 def getGxaDF(ID):
     '''
     Given a gene ID, get data from GXA (baseline expression)
@@ -108,7 +109,7 @@ def getGxaDFLocal(ID):
 
     df=pd.read_table(config.GXA_FILE,header=0,compression="gzip")
     df2=df.loc[df["Gene ID"]==ID].drop(["Gene ID","Gene Name"],axis=1)
-    isn=df2.drop("Gene ID",axis=1).isnull()
+    isn=df2.drop("Experiment",axis=1).isnull()
     df3=df2[~isn.all(axis=1)]
 
     # # tissues with highest values
@@ -127,6 +128,7 @@ def getGxaDFLocal(ID):
 
 # ======================================================================================================================
 
+# deprecated
 def saveGxaData(ID):
     """
     Retreives and saves GXA baseline expression values for a given gene ID

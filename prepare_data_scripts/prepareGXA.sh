@@ -43,10 +43,14 @@ cat $tmpfile1 | sed 's/ class="[^"]*"//g' | sed 's/<\/div><\/div>/\n/g'|sed 's/<
 echo $(date '+%d/%m/%Y %H:%M:%S') "Concatenating" $(cat $tmpfile2 | wc -l) "file(s)"
 concat.py $(cat $tmpfile2| tr '\n' ' ') | gzip - > $out/GXA.tsv.gz
 
+echo $(date '+%d/%m/%Y %H:%M:%S') "Splitting"
+splitByGene.py $out/GXA.tsv.gz
+
 echo $(date '+%d/%m/%Y %H:%M:%S') "Removing temporary files"
 find $out -name "*.tsv" -delete
 rm -f $tmpfile1
 rm -f $tmpfile2
+rm -f $out/GXA.tsv.gz
 
 echo $(date '+%d/%m/%Y %H:%M:%S') "Done"
 
