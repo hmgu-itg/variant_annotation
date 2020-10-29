@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import gzip
+import pandas as pd
 
 from varannot import config
 from varannot import utils
@@ -134,6 +135,9 @@ if not utils.checkID(VAR_ID):
     LOGGER.error("Provided ID (%s) is not valid" % VAR_ID)
     sys.exit(1)
 
+LOGGER.info("Reading in GXA file")
+config.GXA_DF=pd.read_table(config.GXA_FILE,header=0,compression="gzip")
+    
 # --------------------------------------------------------- MAIN ---------------------------------------------------------
 
 LOGGER.info("Retreiving rsIDs for %s" % VAR_ID)

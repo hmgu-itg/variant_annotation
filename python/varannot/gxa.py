@@ -102,26 +102,15 @@ def getGxaDFLocal(ID):
     Given a gene ID, get data from GXA (baseline expression)
 
     Input: gene ID
-    Output: none, data is saved in temporary files (their names saved in "config.GXA_FILES")
+    Output: dataframe
     '''
 
     LOGGER.debug("Input: %s" % ID)
 
-    df=pd.read_table(config.GXA_FILE,header=0,compression="gzip")
+    df=config.GXA_DF
     df2=df.loc[df["Gene ID"]==ID].drop(["Gene ID","Gene Name"],axis=1)
     isn=df2.drop("Experiment",axis=1).isnull()
     df3=df2[~isn.all(axis=1)]
-
-    # # tissues with highest values
-    # tissues=set()
-    # idxs=list()
-    # for idx in df.index:
-    #     idxs.append(idx)
-    #     z=df.loc[idx,:].nlargest(n=int(config.GXA_HIGHEST))
-    #     tissues.update(set(z.index.format()))
-            
-    # df2=df.loc[idxs,list(tissues)]
-    # df2["Experiment"]=df2.index
 
     LOGGER.debug("Output: %d records" % len(df3))
     return df3

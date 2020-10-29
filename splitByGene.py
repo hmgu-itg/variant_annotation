@@ -9,10 +9,10 @@ if len(sys.argv[1:])!=1:
 
 fname=sys.argv[1]
 dname=os.path.dirname(fname)
-df=pd.read_table(fname,header=0,low_memory=False,compression="gzip")
+df=pd.read_table(fname,header=0,low_memory=False)
 count=1
 for gene in df["Gene ID"].unique():
-    df2=df.loc[df["Gene ID"]==ID].drop(["Gene ID","Gene Name"],axis=1)
+    df2=df.loc[df["Gene ID"]==gene].drop(["Gene ID","Gene Name"],axis=1)
     isn=df2.drop("Experiment",axis=1).isnull()
     df3=df2[~isn.all(axis=1)]
     df3.to_csv(dname+"/"+gene+".tsv.gz",sep="\t",index=False,compression="gzip")
