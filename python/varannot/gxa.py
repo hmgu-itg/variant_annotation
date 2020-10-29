@@ -94,55 +94,33 @@ def getGxaDF(ID):
     df2["Experiment"]=df2.index
     return df2
 
-# ======================================================================================================================
+# ==============================================================================================================================
 
-def saveGxaDataNEW(ID):
-    """
-    Saves GXA baseline expression values for a given gene ID
+def getGxaDFLocal(ID):
+    '''
+    Given a gene ID, get data from GXA (baseline expression)
 
-    Input  : gene ID
-    Output : name of the file where the data are stored
-    """
+    Input: gene ID
+    Output: none, data is saved in temporary files (their names saved in "config.GXA_FILES")
+    '''
 
-    try:
-        os.remove("/tmp/expression_atlas-homo_sapiens.tsv")
-    except OSError:
-        pass
+    LOGGER.debug("Input: %s" % ID)
 
-    profile = webdriver.FirefoxProfile()
-    profile.set_preference("browser.download.panel.shown", False)
-    profile.set_preference("browser.helperApps.neverAsk.openFile","text/plain")
-    profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/plain")
-    profile.set_preference("browser.download.folderList", 2);
-    profile.set_preference('browser.download.dir', '/tmp')
-    profile.set_preference('browser.download.manager.showWhenStarting', False)
+    df=pd.read_table(config.GXA_FILE,header=0)
+    df2=df.loc[df["Gene ID"]==ID,df.columns!="Gene ID"]
 
-    options = Options()
-    options.add_argument("--headless")
+    # # tissues with highest values
+    # tissues=set()
+    # idxs=list()
+    # for idx in df.index:
+    #     idxs.append(idx)
+    #     z=df.loc[idx,:].nlargest(n=int(config.GXA_HIGHEST))
+    #     tissues.update(set(z.index.format()))
+            
+    # df2=df.loc[idxs,list(tissues)]
+    # df2["Experiment"]=df2.index
 
-    browser = webdriver.Firefox(firefox_profile=profile,firefox_options=options)
-    browser.get(utils.getGxaURL(ID))
-    element=None
-    try:
-        # 60 seconds to load
-        element = WebDriverWait(browser, 60).until(EC.element_to_be_clickable((By.XPATH, '//button[text()="Download"]')))
-    except Exception as e:
-        LOGGER.error(type(e).__name__)
-        browser.quit()
-        return None
-
-    element.click()
-    time.sleep(5)
-    browser.quit()
-
-    try:
-        os.remove(config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv")
-    except OSError:
-        pass
-
-    shutil.move("/tmp/expression_atlas-homo_sapiens.tsv",config.OUTPUT_DIR)
-
-    return config.OUTPUT_DIR+"/expression_atlas-homo_sapiens.tsv"
+    return df2
 
 # ======================================================================================================================
 
