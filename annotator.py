@@ -111,7 +111,7 @@ ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
-modules=["variant","gene","regulation","gwas","gtex","pubmed","uniprot","utils","mouse","vep","gnomad","query"]
+modules=["variant","gene","regulation","gwas","gtex","pubmed","uniprot","utils","mouse","vep","gnomad","query","gxa"]
 for m in modules:
     logging.getLogger("varannot."+m).addHandler(ch)
     logging.getLogger("varannot."+m).addHandler(logging.StreamHandler(sys.stdout))
