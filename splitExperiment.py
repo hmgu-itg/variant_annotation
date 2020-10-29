@@ -8,16 +8,16 @@ import os
 # this script splits one input file into several, one for each stage/age
 
 if len(sys.argv[1:])!=1:
-    print("No argument provided",file=sys.stderr)
+    #print("No argument provided",file=sys.stderr)
     sys.exit(1)
 
 fname=sys.argv[1]
 df=pd.read_table(fname,header=0,comment="#",low_memory=False)
 ccols=list(filter(lambda x: "," in x,df.columns))
 
-print(fname)
 # if no commas in header, just exit
 if len(ccols)==0:
+    print(fname)
     sys.exit(0)
 
 ncols=list(filter(lambda x: not "," in x,df.columns))
@@ -35,9 +35,9 @@ for s in df.columns:
     else:
         D[s]=s
 
-# one output for each prefix (stage/age)
+# one output file for each prefix (stage/age)
 for px in pxs:
-    fname1=fname[:-4]+"_"+px+".tsv"
+    fname1=fname[:-4]+"_"+px.replace(" ","_")+".tsv"
     C=list()
     for c in df.columns:
         if c in ncols or c.startswith(px):
