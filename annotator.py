@@ -290,7 +290,7 @@ for rsID in rsIDs:
         LOGGER.info("Creating GWAS dataframe")
         gwasDF=gwas.geneGwas2df(gw)
         LOGGER.info("Creating GXA dataframe")
-        gxaDF=gxa.getGxaDF(gene_ID)
+        gxaDF=gxa.getGxaDFLocal(gene_ID)
         # relative to the output dir
         tmp_name=gxa.df2svg(gxaDF)
         gxaFname=None

@@ -107,7 +107,7 @@ def getGxaDFLocal(ID):
     LOGGER.debug("Input: %s" % ID)
 
     df=pd.read_table(config.GXA_FILE,header=0)
-    df2=df.loc[df["Gene ID"]==ID,df.columns!="Gene ID"]
+    df2=df.loc[df["Gene ID"]==ID].drop(["Gene ID","Gene Name"],axis=1)
 
     # # tissues with highest values
     # tissues=set()
