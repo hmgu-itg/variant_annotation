@@ -59,6 +59,7 @@ config.GWAS_FILE_VAR=datadir+config.GWAS_FILE_VAR_SFX
 config.GWAS_FILE=datadir+config.GWAS_FILE_SFX
 config.GTEX_BED=datadir+config.GTEX_BED_SFX
 config.GWAVA_DIR=datadir+"gwava"
+config.GXA_FILE=datadir+config.GXA_TSV_SFX
 
 if args.build!=None:
     build=args.build
@@ -126,7 +127,7 @@ sys.stderr=open(logfile,"a")
 
 # ------------------------------------------------------------------------------------------------------------------------
 
-if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED]):
+if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED,config.GXA_FILE]):
     sys.exit(1)
 
 if not utils.checkID(VAR_ID):
