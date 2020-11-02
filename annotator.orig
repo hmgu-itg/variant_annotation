@@ -16,7 +16,7 @@ From: ubuntu:18.04
 	apt update
 	ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 	apt-get install -y r-base libcurl4-openssl-dev libxml2-dev libmariadbclient-dev libssl-dev
-apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-ping git yum gcc gfortran libc6 libc-bin libc-dev-bin make libblas-dev liblapack-dev libatlas-base-dev curl zlib1g zlib1g-dev libbz2-1.0 libbz2-dev libbz2-ocaml libbz2-ocaml-dev liblzma-dev lzma lzma-dev unzip
+	apt-get install -y apt python python-pip python3 python3-pip wget iputils-ping git gcc gfortran libc6 libc-bin libc-dev-bin make libblas-dev liblapack-dev libatlas-base-dev curl zlib1g zlib1g-dev libbz2-1.0 libbz2-dev libbz2-ocaml libbz2-ocaml-dev liblzma-dev lzma lzma-dev unzip
 
 	cd /usr/local/bin
 	wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v385/liftOver
@@ -24,57 +24,24 @@ apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-p
 	wget ftp://hgdownload.cse.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHg19.over.chain.gz
 	wget ftp://hgdownload.cse.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz
 	
-	cd /usr/bin
-	wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20191130.zip
-	unzip plink_linux_x86_64_20191130.zip
-	rm LICENSE toy.* prettify
 	cd /
 	git clone git://github.com/samtools/htslib.git
-	git clone git://github.com/samtools/bcftools.git
-	git clone https://github.com/samtools/samtools.git
-	cd bcftools
-	make
-	cd ../htslib
+	cd /htslib
 	make tabix
 	make bgzip
-	cd ../samtools
-	make samtools
 	cd /
-	mv /samtools/samtools /usr/bin
-	mv /bcftools/bcftools /usr/bin
 	mv /htslib/bgzip /usr/bin
 	mv /htslib/tabix /usr/bin
 
-	rm -r samtools bcftools htslib
-	
-	wget http://www.well.ox.ac.uk/~gav/resources/snptest_v2.5.2_linux_x86_64_dynamic.tgz
-	tar -xvzf snptest_v2.5.2_linux_x86_64_dynamic.tgz
-	cp /snptest_v2.5.2_linux_x86_64_dynamic/snptest_v2.5.2 /usr/bin
-	rm -r /snptest_v2.5.2_linux_x86_64_dynamic /snptest_v2.5.2_linux_x86_64_dynamic.tgz
-
-	cd /
-	git clone https://github.com/xianyi/OpenBLAS.git
-	cd OpenBLAS
-	echo "/opt/OpenBLAS/lib" > /etc/ld.so.conf.d/openblas.conf
-	make DYNAMIC_ARCH=1 NO_AFFINITY=1 NUM_THREADS=32
-	make install
-	ldconfig
+	rm -r htslib
 	
 	export DEBIAN_FRONTEND=noninteractive
 	
 	apt-get install -y libcairo2-dev libxt-dev
 	apt-get install -y python3-pip
-	pip3 install h5py scipy plinkio
+	pip3 install h5py scipy
 
-	cd /home
 	apt-get update
-	apt-get install -y apt-transport-https software-properties-common
-	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
-	add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran40/'
-	apt-get update
-	apt-get install -y r-base libcurl4-openssl-dev libxml2-dev libmariadbclient-dev libssl-dev
-	Rscript --vanilla -e "install.packages(c(\"BiocManager\"),repos = \"http://cran.us.r-project.org\");BiocManager::install(c(\"ExpressionAtlas\"))"
-
 
 	pip install virtualenv powerline-status bitarray nose pybedtools scipy pandas numpy
 	cd /
@@ -109,19 +76,6 @@ apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-p
 	apt install -y source-highlight
 	cd /
 	git clone https://github.com/zd1/telseq && cd telseq/src && chmod +x autogen.sh && ./autogen.sh && ./configure --with-bamtools=/bamtools && make && cp Telseq/telseq /usr/bin
-	wget -qO - https://packages.irods.org/irods-signing-key.asc | apt-key add -
-	echo "deb [arch=amd64] https://packages.irods.org/apt/ xenial main" | tee /etc/apt/sources.list.d/renci-irods.list
-	apt-get update
-
-	apt install -y irods-icommands tofrodos axel
-	pip install spython
-	apt install -y tree
-	apt install -y tofrodos
-	cd /
-	wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20200428.zip
-	unzip plink_linux_x86_64_20200428.zip
-	rm LICENSE toy.* prettify
-	mv plink /usr/bin
 
 	pip3 install bokeh jinja2
 
@@ -132,7 +86,7 @@ apt-get install -y apt python python-pip python3 python3-pip nano wget iputils-p
 	git clone https://github.com/hmgu-itg/variant_annotation.git
 
 	pip3 install selenium dash plotly kaleido
-	apt-get install -y firefox lftp
+	apt-get install -y firefox
 
 	cd /usr/bin
 	wget https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz
