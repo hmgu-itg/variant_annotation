@@ -1,5 +1,4 @@
 Bootstrap: docker
-#From: ubuntu:20.04
 From: ubuntu:18.04
 
 %environment
@@ -54,17 +53,15 @@ From: ubuntu:18.04
 	# DEBIAN_FRONTEND="noninteractive" apt-get install -y r-base
 	# apt-get install -y libcurl4-openssl-dev libssl-dev
 	# Rscript --vanilla -e "install.packages(c(\"shiny\",\"plotly\",\"shinyjs\",\"jsonlite\"),repos = \"http://cran.us.r-project.org\")"
+
 	apt-get install -y zlib1g zlib1g-dev firefox python-dev
 	
-	#ln -s /usr/bin/python2.7 /usr/bin/python
-
 	cd /
 	git clone https://github.com/arq5x/bedtools2.git
 	cd /bedtools2
 	# gwava needs a version without "sam header" error messages
 	git checkout tags/v2.27.1
-	make
-	make install
+	make && make install
 
 	pip2 install pybedtools scipy pandas numpy scikit-learn==0.14.1
 
