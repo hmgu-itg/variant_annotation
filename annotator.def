@@ -21,7 +21,7 @@ From: ubuntu:18.04
 	locale-gen
 	dpkg-reconfigure --frontend=noninteractive locales
 
-	DEBIAN_FRONTEND="noninteractive" apt install -y software-properties-common build-essential git python3 python3-pip wget tabix moreutils 
+	DEBIAN_FRONTEND="noninteractive" apt install -y software-properties-common build-essential git python python-pip python3 python3-pip wget tabix moreutils 
 	#libraries for orca
 	DEBIAN_FRONTEND="noninteractive" apt install -y curl libgtk2.0-0 libx11-xcb-dev libxtst6 libxss1 libgconf-2-4 libnss3 libasound2 xvfb xauth firefox-geckodriver
 
@@ -52,7 +52,17 @@ From: ubuntu:18.04
 	# DEBIAN_FRONTEND="noninteractive" apt-get install -y r-base
 	# apt-get install -y libcurl4-openssl-dev libssl-dev
 	# Rscript --vanilla -e "install.packages(c(\"shiny\",\"plotly\",\"shinyjs\",\"jsonlite\"),repos = \"http://cran.us.r-project.org\")"
+	apt-get install -y zlib1g zlib1g-dev
 
+	cd /
+	git clone https://github.com/arq5x/bedtools2.git
+	cd /bedtools2
+	# gwava needs a version without "sam header" error messages
+	git checkout tags/v2.27.1
+	make
+	make install
+
+	pip install pybedtools scipy pandas numpy scikit-learn==0.14.1
 
 
 	CREATIONDATE=`date`

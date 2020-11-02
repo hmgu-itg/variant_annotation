@@ -158,8 +158,8 @@ for rsID in rsIDs:
         LOGGER.error("Variant data for %s could not be retreived" % rsID)
         continue
 
-    #LOGGER.info("Getting GWAVA scores")
-    #variant.getGwavaScore(variant_data)
+    LOGGER.info("Getting GWAVA scores")
+    variant.getGwavaScore(variant_data)
 
     # a variant can have multiple chr:pos mappings
     # each chr:pos mapping can have multiple ref:alt pairs
