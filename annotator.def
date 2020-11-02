@@ -63,7 +63,7 @@ From: ubuntu:20.04
 	make
 	make install
 
-	pip install pybedtools scipy pandas numpy scikit-learn==0.14.1
+	pip2 install pybedtools scipy pandas numpy scikit-learn==0.14.1
 
 	CREATIONDATE=`date`
 
