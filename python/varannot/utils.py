@@ -42,7 +42,7 @@ def runLiftOver(input_data,build="38"):
     LOGGER.debug("Unmapped file: %s" % unmapped_fname)
 
     for x in input_data:
-        in_bed.write("%s\t%d\t%d\t%s\n" %(x["chr"],int(x["start"]),int(x["end"]),x["id"],))
+        in_bed.write("%s\t%d\t%d\t%s\n" %(x["chr"],int(x["start"]),int(x["end"]),x["id"]))
     in_bed.close()
 
     LOGGER.debug("Input: %d record(s)" % len(input_data))
