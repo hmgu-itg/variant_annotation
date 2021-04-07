@@ -49,13 +49,24 @@ logging.getLogger("varannot.utils").setLevel(verbosity)
 
 def f(ID):
     L=ID.split("_")
-    L.insert(2,".")
+    L.insert(2,ID)
     return " ".join(L)+" . . ."
 
 #---------------------------------------------------------------------------------------------------------------------------
 
-for L in utils.chunks(sys.stdin.readlines(),config.VEP_POST_MAX):
-    r=query.restQuery(query.makeVepListQueryURL(build=build),data="{\"variants\":["+",".join(list(map(lambda x:f(x),L)))+"]}",qtype="post")
+for L in utils.chunks([line.rstrip() for line in sys.stdin.readlines()],config.VEP_POST_MAX):
+    string="{\"variants\":[\""+"\",\"".join(list(map(lambda x:f(x),L)))+"\"]}"
+    LOGGER.debug("data: %s" %(string))
+    r=query.restQuery(query.makeVepListQueryURL(build=build),data=string,qtype="post")
     if r:
         print(json.dumps(r,indent=4,sort_keys=True))
+        for x in r:
+            rsid="NA"
+            if "colocated_variants" in x:
+                if "id" in x["colocated_variants"][0]:
+                    rsid=x["colocated_variants"][0]["id"]
+            for g in x["transcript_consequences"]:
+                gene_id=g["gene_id"]
+                csq=g["consequence_terms"][0]
+                print("%s\t%s\t%s\t%s" %(x["id"],rsid,gene_id,csq))
 
