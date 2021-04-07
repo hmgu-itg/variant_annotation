@@ -103,6 +103,22 @@ def checkAlleles(ID,build="38"):
 
 # ==============================================================================================================================
 
+# get the most severe VEP consequence from a list
+
+def getMostSevereConsequence(L):
+    c=0
+    cons="NA"
+    for x in L:
+        if not x in config.VEP_CONSEQUENCES:
+            LOGGER.warning("input consequence %s is not in the dict" %(x))
+        else:
+            if config.VEP_CONSEQUENCES[x]>c:
+                c=config.VEP_CONSEQUENCES[x]
+                cons=x
+    return cons
+
+# ==============================================================================================================================
+
 # R:dict with "seq","pos","del","ins"
 
 def getVarType(R):
