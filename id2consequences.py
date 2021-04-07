@@ -8,6 +8,7 @@ import logging
 
 from varannot import utils
 from varannot import query
+from varannot import config
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
