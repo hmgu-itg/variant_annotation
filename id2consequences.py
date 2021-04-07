@@ -18,10 +18,6 @@ parser = argparse.ArgumentParser(description="Get VEP consequences for variant I
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38",required=False)
 parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 
-if len(sys.argv[1:])==0:
-    parser.print_help()
-    sys.exit(0)
-
 try:
     args=parser.parse_args()
 except:
@@ -30,8 +26,6 @@ except:
 
 if args.build!=None:
     build=args.build
-
-varID=args.id
 
 if args.verbose is not None:
     if args.verbose=="debug":
