@@ -59,14 +59,25 @@ for L in utils.chunks([line.rstrip() for line in sys.stdin.readlines()],config.V
     LOGGER.debug("data: %s" %(string))
     r=query.restQuery(query.makeVepListQueryURL(build=build),data=string,qtype="post")
     if r:
-        print(json.dumps(r,indent=4,sort_keys=True))
+        #print(json.dumps(r,indent=4,sort_keys=True))
         for x in r:
             rsid="NA"
             if "colocated_variants" in x:
                 if "id" in x["colocated_variants"][0]:
                     rsid=x["colocated_variants"][0]["id"]
-            for g in x["transcript_consequences"]:
-                gene_id=g["gene_id"]
-                csq=g["consequence_terms"][0]
-                print("%s\t%s\t%s\t%s" %(x["id"],rsid,gene_id,csq))
+            mcsq=x["most_severe_consequence"] if "most_severe_consequence" in x else "NA";
+            H={}
+            if "transcript_consequences" in x:
+                for g in x["transcript_consequences"]:
+                    gene_id=g["gene_id"]
+                    csq=g["consequence_terms"][0]
+                    if gene_id in H:
+                        H[gene_id].append(csq)
+                    else:
+                        H[gene_id]=[csq]
+                    LOGGER.debug("%s\t%s\t%s\t%s" %(x["id"],rsid,gene_id,csq))
+                for g in H:
+                    print("%s\t%s\t%s\t%s" %(x["id"],rsid,g,utils.getMostSevereConsequence(H[g])))
+            else:
+                print("%s\t%s\t%s\t%s" %(x["id"],rsid,"NA",mcsq))
 
