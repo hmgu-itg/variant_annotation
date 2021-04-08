@@ -75,7 +75,17 @@ From: ubuntu:18.04
 	wget https://statgen.sph.umich.edu/locuszoom/download/locuszoom_1.4_srconly.tgz
 	tar -zxf locuszoom_1.4_srconly.tgz
 	rm locuszoom_1.4_srconly.tgz
-
+	mkdir locuszoom/data
+	cd locuszoom/data
+	wget http://hgdownload.cse.ucsc.edu/goldenpath/hg38/database/refFlat.txt.gz
+	echo -e "geneName\tname\tchrom\tstrand\ttxStart\ttxEnd\tcdsStart\tcdsEnd\texonCount\texonStarts\texonEnds" > refFlat.b38.txt
+	gunzip -c refFlat.txt.gz >> refFlat.b38.txt
+	rm refFlat.txt.gz
+	wget https://data.broadinstitute.org/alkesgroup/Eagle/downloads/tables/genetic_map_hg38_withX.txt.gz
+	echo -e "chr\tpos\trecomb\tcm_pos" > recomb_rate_b38.txt
+	gunzip -c genetic_map_hg38_withX.txt.gz | tail -n +2 >> recomb_rate_b38.txt
+	rm genetic_map_hg38_withX.txt.gz
+	
 	# PLINK
 	cd /opt
 	mkdir plink
@@ -84,7 +94,6 @@ From: ubuntu:18.04
 	unzip plink2_linux_x86_64_20210406.zip
 	rm plink2_linux_x86_64_20210406.zip
 	
-
 	CREATIONDATE=`date`
 
 %runscript
