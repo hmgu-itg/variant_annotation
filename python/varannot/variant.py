@@ -465,6 +465,72 @@ def id2rs_mod(varid,build="38"):
                         
     return S
 
+# ===========================================================================================================================
+
+def id2rs_spdi(varid,build="38"):
+    '''
+    For a given variant ID (chr_pos_A1_A2), return a set of matching rs IDs
+    Variant ID is converted to SPDI which is used in a variant_recoder query
+
+    Input: variant ID, build (default: 38)
+    Output: set of rs IDs
+    '''
+
+    S=set()
+
+    if utils.isRS(varid):
+        return {varid}
+
+    if not utils.checkID(varid):
+        LOGGER.error("Variant ID %s is malformed" % varid)
+        return S
+
+    # convert ID to dict 
+    V=utils.convertVariantID(varid)
+    V1=utils.convertVariantID(varid,reverse=True)
+    b=utils.checkDEL(V,build=build)
+    b1=utils.checkDEL(V1,build=build)
+        
+    if utils.getVarType(V)=="SNP":
+        r=query.restQuery(query.makeRSQueryURL(V["seq"],V["pos"],V["pos"],build=build))
+        if not r:
+            return S
+
+        for v in r:
+            if V["del"] in v["alleles"] and V["ins"] in v["alleles"] and v["strand"]==1 and v["start"]==v["end"]:
+                S.add(v["id"])
+
+    else:
+        r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"]-window,V["pos"]+window,build=build))
+        if not r:
+            return S
+
+        LOGGER.debug("Got %d variants around %s:%d\n" %(len(r),V["seq"],V["pos"]))
+        for v in r:
+            LOGGER.debug("Current variant: %s" % v["id"])
+            z=query.restQuery(query.makeRSQueryURL(v["id"],build=build))
+            if not z:
+                continue
+
+            for x in z:
+                spdis=x["spdi"]
+                var=x["id"][0]
+                for spdi in spdis:
+                    LOGGER.debug("SPDI: %s" % spdi)
+                    V2=utils.convertSPDI(spdi,build=build)
+                    LOGGER.debug("V2: %s" % V2)
+                    if b:
+                        if utils.equivalentVariants(V,V2,build=build):
+                            S.add(var)
+                            break
+                    if b1:
+                        if utils.equivalentVariants(V1,V2,build=build):
+                            S.add(var)
+                            break
+                    
+                        
+    return S
+
 # ==============================================================================================================================
 
 def getGwavaScore(variant_data):

@@ -134,6 +134,22 @@ def getVarType(R):
 
 # ==============================================================================================================================
 
+# R:dict with "seq","pos","del","ins", VCF style
+# pos is 1-based
+
+def var2spdi(R):
+    t=getVarType(R)
+    if t=="SNP":
+        return R["seq"]+":"+str(R["pos"]-1)+":"+R["del"]+":"+R["ins"]
+    elif t=="DEL":
+        return R["seq"]+":"+str(R["pos"])+":"+R["del"][1:]+":"
+    elif t=="INS":
+        return R["seq"]+":"+str(R["pos"])+"::"+R["ins"][1:]
+    else:
+        return R["seq"]+":"+str(R["pos"]-1)+":"+R["del"]+":"+R["ins"]
+
+# ==============================================================================================================================
+
 # returns True if both variants result in the same altered sequence
 
 def equivalentVariants(r1,r2,build="38"):
