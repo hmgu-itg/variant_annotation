@@ -49,11 +49,6 @@ pvalcoli=$(getColNum $cat $assocfile $pvalcol)
 a1coli=$(getColNum $cat $assocfile $a1col)
 a2coli=$(getColNum $cat $assocfile $a2col)
 
-# refFlat
-# http://hgdownload.cse.ucsc.edu/goldenpath/hg38/database/refFlat.txt.gz
-# genetic map
-# https://data.broadinstitute.org/alkesgroup/Eagle/downloads/tables/genetic_map_hg38_withX.txt.gz
-
 echo COLUMNS "CHR: "$chrcoli . "POS: "$pscoli . "rsID: "$rscoli . "Pval: "$pvalcoli . "A1: "$a1coli . "A2: "$a2coli
 
 echo "Looking for peaks..."
@@ -61,6 +56,9 @@ echo "===================="
 echo "(p-value $pvalcol - $pvalcoli; $signif ; $assocfile ; $cat)"
 echo
 echo
+
+selectPeaks.py -i "$assocfile" -c "$chrcol" -p "$pscol" -v '$pvalcol' -f "$flank_bp" -t "$signif" -o ""
+
 curpeak_p=1
 first=1
 
