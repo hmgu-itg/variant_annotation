@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import sys
+import os
 import argparse
 import pandas as pd
 
@@ -13,6 +14,7 @@ parser.add_argument('--flank','-f',type=int,action="store",help="flank size (bp)
 parser.add_argument('--chr','-c',type=str,action="store",help="Chromosome label column",required=True)
 parser.add_argument('--pos','-p',type=str,action="store",help="Variant position column",required=True)
 parser.add_argument('--pval','-v',type=str,action="store",help="P-value column",required=True)
+parser.add_argument('--output','-o',type=str,action="store",help="Output directory; default: same directory as the input file",required=False)
 
 if len(sys.argv[1:])==0:
     parser.print_help()
@@ -30,6 +32,10 @@ flank=args.flank
 chrname=args.chr
 posname=args.pos
 pvalname=args.pval
+if args.output is None:
+    outdir=os.path.dirname(infile)
+else:
+    outdir=args.output
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -69,6 +75,6 @@ df=df.astype({pvalname:float,posname:int})
 for c,tab in df.groupby(chrname):
     r=find_peaks(tab.sort_values(by=posname),flank,posname,pvalname)
     print(r.to_string())
-    r.to_csv("peaks_chr"+str(c)+".txt",sep="\t",index=False)
+    r.to_csv(os.path.join(outdir,"peaks_chr"+str(c)+".txt"),sep="\t",index=False)
 
 sys.exit(0)
