@@ -488,47 +488,26 @@ def id2rs_spdi(varid,build="38"):
     # convert ID to dict 
     V=utils.convertVariantID(varid)
     V1=utils.convertVariantID(varid,reverse=True)
-    b=utils.checkDEL(V,build=build)
-    b1=utils.checkDEL(V1,build=build)
-        
-    if utils.getVarType(V)=="SNP":
-        r=query.restQuery(query.makeRSQueryURL(V["seq"],V["pos"],V["pos"],build=build))
-        if not r:
-            return S
+    # get SPDI records
+    spdi=utils.var2spdi(V)
+    spdi1=utils.var2spdi(V1)
+    
+    r=query.restQuery(query.makeRSQueryURL(spdi,build=build))
+    # r is a list of dicts
+    if not r is None:
+        for x1 in r:
+            for x2 in x1:
+                if "id" in x1[x2]:
+                    for rs in x1[x2]["id"]:
+                        S.add(rs)
 
-        for v in r:
-            if V["del"] in v["alleles"] and V["ins"] in v["alleles"] and v["strand"]==1 and v["start"]==v["end"]:
-                S.add(v["id"])
-
-    else:
-        r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"]-window,V["pos"]+window,build=build))
-        if not r:
-            return S
-
-        LOGGER.debug("Got %d variants around %s:%d\n" %(len(r),V["seq"],V["pos"]))
-        for v in r:
-            LOGGER.debug("Current variant: %s" % v["id"])
-            z=query.restQuery(query.makeRSQueryURL(v["id"],build=build))
-            if not z:
-                continue
-
-            for x in z:
-                spdis=x["spdi"]
-                var=x["id"][0]
-                for spdi in spdis:
-                    LOGGER.debug("SPDI: %s" % spdi)
-                    V2=utils.convertSPDI(spdi,build=build)
-                    LOGGER.debug("V2: %s" % V2)
-                    if b:
-                        if utils.equivalentVariants(V,V2,build=build):
-                            S.add(var)
-                            break
-                    if b1:
-                        if utils.equivalentVariants(V1,V2,build=build):
-                            S.add(var)
-                            break
-                    
-                        
+    r=query.restQuery(query.makeRSQueryURL(spdi1,build=build))
+    if not r is None:
+        for x1 in r:
+            for x2 in x1:
+                if "id" in x1[x2]:
+                    for rs in x1[x2]["id"]:
+                        S.add(rs)
     return S
 
 # ==============================================================================================================================
