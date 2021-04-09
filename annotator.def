@@ -78,7 +78,7 @@ From: ubuntu:18.04
 	mkdir locuszoom/data
 	cd locuszoom/data
 	wget http://hgdownload.cse.ucsc.edu/goldenpath/hg38/database/refFlat.txt.gz
-	echo -e "geneName\tname\tchrom\tstrand\ttxStart\ttxEnd\tcdsStart\tcdsEnd\texonCount\texonStarts\texonEnds" > refFlat.b38.txt
+	echo -e "geneName\tname\tchrom\tstrand\ttxStart\ttxEnd\tcdsStart\tcdsEnd\texonCount\texonStarts\texonEnds" > refFlat_b38.txt
 	gunzip -c refFlat.txt.gz >> refFlat.b38.txt
 	rm refFlat.txt.gz
 	wget https://data.broadinstitute.org/alkesgroup/Eagle/downloads/tables/genetic_map_hg38_withX.txt.gz
@@ -90,9 +90,9 @@ From: ubuntu:18.04
 	cd /opt
 	mkdir plink
 	cd plink
-	wget http://s3.amazonaws.com/plink2-assets/plink2_linux_x86_64_20210406.zip
-	unzip plink2_linux_x86_64_20210406.zip
-	rm plink2_linux_x86_64_20210406.zip
+	wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20201019.zip
+	unzip plink_linux_x86_64_20201019.zip
+	rm plink_linux_x86_64_20201019.zip
 	
 	CREATIONDATE=`date`
 

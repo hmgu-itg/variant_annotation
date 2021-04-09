@@ -32,9 +32,8 @@ if [ -z "$flank_bp" ]; then
 	flank_bp=500000
 fi
 
-ext_flank_bp=$((flank_bp+100000))
-flank_kb=$(echo $flank_bp | sed 's/...$//')
-ext_flank_kb=$((flank_kb+100))
+flank_kb=$(echo "$flank_bp/1000" | bc)
+ext_flank_kb=$((flank_kb+100)) # TODO: ?
 if [[ "$assocfile"~/gz$/ ]];then
 	cat=zcat
 else
@@ -57,10 +56,69 @@ echo "(p-value $pvalcol - $pvalcoli; $signif ; $assocfile ; $cat)"
 echo
 echo
 
-selectPeaks.py -i "$assocfile" -c "$chrcol" -p "$pscol" -v '$pvalcol' -f "$flank_bp" -t "$signif" -o ""
+tmp_outdir=$(mktemp -d -p $(pwd) temp_plotpeaks_XXXXXXXX)
+if [[ -z "$tmp_outdir" ]];then
+    echo "ERROR: failed to create temporary output dir"
+    exit 1
+fi
 
-curpeak_p=1
-first=1
+selectPeaks.py -i "$assocfile" -c "$chrcol" -p "$pscol" -v '$pvalcol' -f "$flank_bp" -t "$signif" -o "$tmp_outdir"
+if [[ $? -ne 0 ]];then
+    echo "ERROR: selectPeaks.py returned non-zero status"
+    exit 1
+fi
+
+for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
+    echo "INFO: current peak file: $fname"
+    tail -n +2 "$fname" | while read peakline;do
+	echo "INFO: current peak line: $peakline" 
+	read -r peak_chr peak_pos peak_rs <<<$(echo "$peakline" | awk -v i="$chrcoli" -v j="$pscoli" -v k="$rscoli" "print $i,$j,$k")
+	start_bp=$((peak_pos-flank_bp))
+	if [[ $start_bp -lt 1 ]];then
+	    start_bp=1
+	fi
+	end_bp=$((peak_pos+flank_bp))
+
+	# select neighbouring variants
+	awk -v i=$chrcoli -v c=$peak_chr -v j=$pscoli -v p=$peak_pos -v f=$flank_bp -v FS="\t" -v OFS="\t" "$i==c && $j>(p-f) && $j<(p+f)" "$assocfile" > "$tmp_outdir"/peakdata
+	cat  <(echo -e "snp\tchr\tpos") <(awk  -v FS="\t" -v OFS="\t" -v i=$rscoli -v j=$chrcoli -v k=$pscoli 'print $i,$j,$k' "$tmp_outdir"/peakdata) > "$tmp_outdir"/peakdata.chrpos
+	
+	# create locuszoom DB for the current peak neighborhood
+	dbmeister.py --db "$tmp_outdir"/locuszoom.db --snp_pos "$tmp_outdir"/peakdata.chrpos
+	dbmeister.py --db "$tmp_outdir"/locuszoom.db --refflat /opt/locuszoom/data/refFlat_b38.txt
+	dbmeister.py --db "$tmp_outdir"/locuszoom.db --recomb_rate /opt/locuszoom/data/recomb_rate_b38.txt
+
+	for id in "${ids[@]}"
+	do 
+	    plink --memory 15000 --bfile ${files[$id]} --chr $peak_chr --from-bp $start_bp --to-bp $end_bp --out "$tmp_outdir"/$id --make-bed
+	done
+
+	seq 0 $(($(echo $filelist | tr ',' '\n'| wc -l)-1)) > "$tmp_outdir"/mergelist
+	plink --merge-list "$tmp_outdir"/mergelist --make-bed --out "$tmp_outdir"/merged --allow-no-sex
+	if [[ -f "$tmp_outdir"/merged-merge.missnp ]];then
+	    grep -v -w -f "$tmp_outdir"/merged-merge.missnp "$tmp_outdir"/peakdata | sponge "$tmp_outdir"/peakdata 
+	    for id in "${ids[@]}"
+	    do 
+		plink --bfile "$tmp_outdir"/$id --exclude "$tmp_outdir"/merged-merge.missnp --make-bed --out "$tmp_outdir"/$id.tmp
+		mv "$tmp_outdir"/$id.tmp.bed "$tmp_outdir"/$id.bed
+		mv "$tmp_outdir"/$id.tmp.bim "$tmp_outdir"/$id.bim
+		mv "$tmp_outdir"/$id.tmp.fam "$tmp_outdir"/$id.fam
+	    done
+	    plink --merge-list "$tmp_outdir"/mergelist --make-bed --out "$tmp_outdir"/merged --allow-no-sex
+	fi
+
+	# compute LD
+	plink --bfile "$tmp_outdir"/merged --r2 --ld-snp $peak_rs --ld-window-kb $ext_flank_kb --ld-window 999999 --ld-window-r2 0 --out "$tmp_outdir"/merged
+	cat <(echo -e "snp1\tsnp2\tdprime\trsquare") <(tail -n +2 merged.ld| awk 'OFS=" "{print $3,$6,$7,$7}') |sed 's/\[b38\]//' > t
+	cp t $curpeak_c.$curpeak_ps.ld
+	cp $curpeak_c.$curpeak_ps.ld merged.ld
+	    
+
+	
+    done
+    
+done
+
 
 # loop over all significant results
 $cat $assocfile | awk -v p=$pvalcoli -v signif=$signif '$p<signif'| sort -k${chrcoli},${chrcoli}n -k ${pscoli},${pscoli}n  | tr ';' '_' | sed 's/\[b38\]//'  | while read line; 
@@ -124,24 +182,24 @@ do
 		    sensible_start=1
 		    echo -e "\n\n\nWARNING\t Negative start position changed to $sensible_start \n\n\n"
 		fi
-		plink2 --memory 15000 --bfile ${files[$id]} --chr $curpeak_c --from-bp $sensible_start --to-bp $((curpeak_ps+flank_bp)) --out $id --make-bed				
+		plink --memory 15000 --bfile ${files[$id]} --chr $curpeak_c --from-bp $sensible_start --to-bp $((curpeak_ps+flank_bp)) --out $id --make-bed				
 		awk 'OFS="\t"{if($2!~/:/ && $2!~/rs/){$2="chr"$1":"$4}print}' $id.bim | tr ';' '_'> t
 		mv t $id.bim
 	    done
 
 	    seq 0 $(($(echo $filelist | tr ',' '\n'| wc -l)-1)) > mergelist
-	    plink2 --merge-list mergelist --make-bed --out merged --allow-no-sex
+	    plink --merge-list mergelist --make-bed --out merged --allow-no-sex
 	    if [[ -f merged-merge.missnp ]];then
 		grep -v -w -f merged-merge.missnp peakdata > t 
 		mv t peakdata # only those to keep
 		for id in "${ids[@]}"
 		do 
-		    plink2 --bfile $id --exclude merged-merge.missnp --make-bed --out $id.tmp
+		    plink --bfile $id --exclude merged-merge.missnp --make-bed --out $id.tmp
 		    mv $id.tmp.bed $id.bed
 		    mv $id.tmp.bim $id.bim
 		    mv $id.tmp.fam $id.fam
 		done
-		plink2 --merge-list mergelist --make-bed --out merged --allow-no-sex
+		plink --merge-list mergelist --make-bed --out merged --allow-no-sex
 	    fi
 
 	    # add "chr" prefix to non-rs IDs
@@ -161,7 +219,7 @@ do
 	    echo
 
 	    # compute LD
-	    plink2 --bfile merged --r2 --ld-snp $refsnp  --ld-window-kb $ext_flank_kb $flank_kb_ext --ld-window 999999 --ld-window-r2 0 --out merged
+	    plink --bfile merged --r2 --ld-snp $refsnp  --ld-window-kb $ext_flank_kb $flank_kb_ext --ld-window 999999 --ld-window-r2 0 --out merged
 	    cat <(echo -e "snp1\tsnp2\tdprime\trsquare") <(tail -n +2  merged.ld| awk 'OFS=" "{print $3,$6,$7,$7}') |sed 's/\[b38\]//' > t
 	    cp t $curpeak_c.$curpeak_ps.ld
 	    cp $curpeak_c.$curpeak_ps.ld merged.ld
@@ -292,27 +350,27 @@ do
 	echo -e "\n\n\nWARNING\t Negative start position changed to $sensible_start \n\n\n"
     fi
 
-    echo plink2 --bfile ${files[$id]} --chr $curpeak_c --from-bp $sensible_start --to-bp $(($curpeak_ps+$flank_bp)) --out $id --make-bed
-    plink2 --bfile ${files[$id]} --chr $curpeak_c --from-bp $sensible_start --to-bp $(($curpeak_ps+$flank_bp)) --out $id --make-bed
+    echo plink --bfile ${files[$id]} --chr $curpeak_c --from-bp $sensible_start --to-bp $(($curpeak_ps+$flank_bp)) --out $id --make-bed
+    plink --bfile ${files[$id]} --chr $curpeak_c --from-bp $sensible_start --to-bp $(($curpeak_ps+$flank_bp)) --out $id --make-bed
     awk 'OFS="\t"{if($2!~/:/ && $2!~/rs/){$2="chr"$1":"$4}print}' $id.bim  | tr ';' '_'> t
     mv t $id.bim
 
 done
 seq 0 $(($(echo $filelist | tr ',' '\n'| wc -l)-1)) > mergelist
-plink2 --merge-list mergelist --make-bed --out merged --allow-no-sex
+plink --merge-list mergelist --make-bed --out merged --allow-no-sex
 if [ -f merged-merge.missnp ]
 then
     grep -v -w -f merged-merge.missnp peakdata > t 
     mv t peakdata
     for id in "${ids[@]}"
     do 
-	plink2 --bfile $id --exclude merged-merge.missnp --make-bed --out $id.tmp
+	plink --bfile $id --exclude merged-merge.missnp --make-bed --out $id.tmp
 	mv $id.tmp.bed $id.bed
 	mv $id.tmp.bim $id.bim
 	mv $id.tmp.fam $id.fam
 
     done
-    plink2 --merge-list mergelist --make-bed --out merged --allow-no-sex
+    plink --merge-list mergelist --make-bed --out merged --allow-no-sex
 fi
 
 awk '{if($1~/\:/ && !($1~/chr/)){$1="chr"$1}print}' peakdata.chrpos | tr '\t' ' '> t
@@ -329,7 +387,7 @@ echo
 echo $curpeak_rs $refsnp
 echo
 echo
-plink2 --bfile merged --r2 --ld-snp $refsnp  --ld-window-kb $ext_flank_kb $flank_kb_ext --ld-window 999999 --ld-window-r2 0 --out merged
+plink --bfile merged --r2 --ld-snp $refsnp  --ld-window-kb $ext_flank_kb $flank_kb_ext --ld-window 999999 --ld-window-r2 0 --out merged
 cat <(echo -e "snp1\tsnp2\tdprime\trsquare") <(tail -n +2  merged.ld| awk 'OFS=" "{print $3,$6,$7,$7}') > t
 mv t merged.ld
 cp merged.ld $curpeak_c.$curpeak_ps.ld
