@@ -59,7 +59,7 @@ for L in utils.chunks([line.rstrip() for line in sys.stdin.readlines()],config.V
     LOGGER.debug("data: %s" %(string))
     r=query.restQuery(query.makeVepListQueryURL(build=build),data=string,qtype="post")
     if r:
-        #print(json.dumps(r,indent=4,sort_keys=True))
+        print(json.dumps(r,indent=4,sort_keys=True))
         for x in r:
             rsid="NA"
             if "colocated_variants" in x:
