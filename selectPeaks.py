@@ -26,7 +26,7 @@ except:
     parser.print_help()
     sys.exit(0)
 
-infile=args.input
+infile=os.path.realpath(args.input)
 pt=args.threshold
 flank=args.flank
 chrname=args.chr
@@ -36,6 +36,19 @@ if args.output is None:
     outdir=os.path.dirname(infile)
 else:
     outdir=args.output
+
+print("\n")
+print("Input file:\t%s" % infile)
+print("Output dir:\t%s" % outdir)
+print("Flank:\t%d" % flank)
+print("Threshold:\t%.10f" % pt)
+print("Chr column:\t%s" % chrname)
+print("Pos column:\t%s" % posname)
+print("Pvalue column:\t%s\n\n" % pvalname)
+
+if not os.path.exists(infile):
+    print("ERROR: input file %s does not exist" % infile)
+    sys.exit(1)
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,14 +76,36 @@ def find_peaks(df,flank,posname,pvalname):
     ret=df.loc[criterion].copy()
     return ret
 
+available_columns=pd.read_csv(infile,nrows=1,sep='\t').columns.tolist()
+if not chrname in available_columns:
+    print("ERROR: %s is not a valid column name" % chrname)
+    print("ERROR: available colmns are: %s" % ",".join(available_columns))
+    sys.exit(1)
+    
+if not posname in available_columns:
+    print("ERROR: %s is not a valid column name" % posname)
+    print("ERROR: available colmns are: %s" % ",".join(available_columns))
+    sys.exit(1)
+    
+if not pvalname in available_columns:
+    print("ERROR: %s is not a valid column name" % pvalname)
+    print("ERROR: available colmns are: %s" % ",".join(available_columns))
+    sys.exit(1)
+    
 chunks=[]
-for c in pd.read_csv(fname,sep="\t",iterator=True,chunksize=10000):
+for c in pd.read_csv(infile,sep="\t",iterator=True,chunksize=10000):
     t=c.loc[pd.to_numeric(c[pvalname],errors="coerce").notnull()]
     t=t.loc[t[pvalname].astype(float)<pt]
     chunks.append(t)
     
 df=pd.concat(chunks)
 df=df.astype({pvalname:float,posname:int})    
+
+if df.shape[0]==0:
+    print("No variants after thresholding")
+    sys.exit(0)
+else:
+    print("After P-value filtering there are %d signals\n" % df.shape[0])
 
 for c,tab in df.groupby(chrname):
     r=find_peaks(tab.sort_values(by=posname),flank,posname,pvalname)
