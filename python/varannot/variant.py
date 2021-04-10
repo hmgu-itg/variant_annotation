@@ -477,6 +477,8 @@ def id2rs_list(varIDs,build="38"):
     # TODO: check ID validity and if it's an rsID
     # trying fast method first
     LOGGER.debug("Input variant list: %d elements" % len(varIDs))
+    c=0
+    t=2*len(varIDs)//config.VEP_POST_MAX
     for L in utils.chunks(varIDs,config.VEP_POST_MAX//2):
         L1=list()
         for x in L:
@@ -487,9 +489,11 @@ def id2rs_list(varIDs,build="38"):
             spdi=utils.var2spdi(utils.convertVariantID(x,reverse=True))
             H[spdi]=x
             L1.append(spdi)
-        r=query.restQuery(query.makeRSListQueryURL(build=build),data=utils.list2string(L1),qtype="post")
-        if r is None:
-            continue
+        r=None
+        while r is None:
+            r=query.restQuery(query.makeRSListQueryURL(build=build),data=utils.list2string(L1),qtype="post")
+            if r is None:
+                LOGGER.debug("Retrying")
         for x1 in r:
             for x2 in x1:
                 if "id" in x1[x2]:
@@ -499,6 +503,8 @@ def id2rs_list(varIDs,build="38"):
                         R[v].update(x1[x2]["id"])
                     else:
                         R[v].update(x1[x2]["id"])
+        LOGGER.debug("Chunk %d (%d) done" % (c,t))
+        c+=1
     LOGGER.debug("Found rsIDs for %d variants using fast method" % len(R.keys()))
     # slow method for unmapped
     unmapped=list(set(L)-set(R.keys()))
