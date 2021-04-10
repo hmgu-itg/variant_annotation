@@ -507,7 +507,7 @@ def id2rs_list(varIDs,build="38"):
         c+=1
     LOGGER.debug("Found rsIDs for %d variants using fast method" % len(R.keys()))
     # slow method for unmapped
-    unmapped=list(set(L)-set(R.keys()))
+    unmapped=list(set(varIDs)-set(R.keys()))
     LOGGER.debug("Using slow method for %d variants" % len(unmapped))
     for v in unmapped:
         R[v]=id2rs_mod2(v,build)
