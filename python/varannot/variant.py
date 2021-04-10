@@ -474,15 +474,17 @@ def id2rs_mod(varid,build="38"):
 def id2rs_list(varIDs,build="38"):
     H=dict()
     R=dict()
+    # TODO: check ID validity and if it's an rsID
     # trying fast method first
+    LOGGER.debug("Input variant list: %d elements" % len(varIDs))
     for L in utils.chunks(varIDs,config.VEP_POST_MAX//2):
         L1=list()
         for x in L:
             # TODO: checks
-            spdi=utils.convertVariantID(x)
+            spdi=utils.var2spdi(utils.convertVariantID(x))
             H[spdi]=x
             L1.append(spdi)
-            spdi=utils.convertVariantID(x,reverse=True)
+            spdi=utils.var2spdi(utils.convertVariantID(x,reverse=True))
             H[spdi]=x
             L1.append(spdi)
         r=query.restQuery(query.makeRSListQueryURL(build=build),data=utils.list2string(L1),qtype="post")
@@ -497,8 +499,10 @@ def id2rs_list(varIDs,build="38"):
                         R[v].update(x1[x2]["id"])
                     else:
                         R[v].update(x1[x2]["id"])
+    LOGGER.debug("Found rsIDs for %d variants using fast method" % len(R.keys()))
     # slow method for unmapped
     unmapped=list(set(L)-set(R.keys()))
+    LOGGER.debug("Using slow method for %d variants" % len(unmapped))
     for v in unmapped:
         R[v]=id2rs_mod2(v,build)
     return R
@@ -563,8 +567,8 @@ def id2rs_mod2(varid,build="38"):
         for v in z1:
             for x1 in v:
                 if "spdi" in v[x1] and "id" in v[x1]:
-                    spdis=v[x1]["spdi"]
                     var=v[x1]["id"][0]
+                    spdis=v[x1]["spdi"]
                     for spdi in spdis:
                         V2=utils.convertSPDI(spdi,build=build)
                         LOGGER.debug("SPDI: %s; V2: %s" % (spdi,V2))
