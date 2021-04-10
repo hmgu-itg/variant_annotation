@@ -472,6 +472,36 @@ def id2rs_mod(varid,build="38"):
 # ===========================================================================================================================
 
 def id2rs_list(varIDs,build="38"):
+    H=dict()
+    R=dict()
+    # trying fast method first
+    for L in utils.chunks(varIDs,config.VEP_POST_MAX//2):
+        L1=list()
+        for x in L:
+            # TODO: checks
+            spdi=utils.convertVariantID(x)
+            H[spdi]=x
+            L1.append(spdi)
+            spdi=utils.convertVariantID(x,reverse=True)
+            H[spdi]=x
+            L1.append(spdi)
+        r=query.restQuery(query.makeRSListQueryURL(build=build),data=utils.list2string(L1),qtype="post")
+        if r is None:
+            continue
+        for x1 in r:
+            for x2 in x1:
+                if "id" in x1[x2]:
+                    v=H[x1[x2]["input"]]
+                    if not v in R:
+                        R[v]=set()
+                        R[v].update(x1[x2]["id"])
+                    else:
+                        R[v].update(x1[x2]["id"])
+    # slow method for unmapped
+    unmapped=list(set(L)-set(R.keys()))
+    for v in unmapped:
+        R[v]=id2rs_mod2(v,build)
+    return R
 
 # ===========================================================================================================================
 
