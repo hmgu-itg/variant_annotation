@@ -118,7 +118,7 @@ def getVepData(mapping_data):
         end=pos
         allele=alt
     else:
-        LOGGER.error("Wrong allele encoding ref=%s, alt=%s" %(ref,alt),file=sys.stderr)
+        LOGGER.error("Wrong allele encoding ref=%s, alt=%s" %(ref,alt))
         return None
 
     VEP_data=dict()

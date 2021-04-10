@@ -18,12 +18,14 @@ def rs2spdi(ID,build="38"):
     L=[]
     z=query.restQuery(query.makeRSQueryURL(ID,build=build))
     if z:
+        LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
         for x in z:
-            if "spdi" in x:
-                spdis=x["spdi"]
-                for spdi in spdis:
-                    if not spdi in L:
-                        L.append(spdi)
+            for x1 in x:
+                if "spdi" in x[x1]:
+                    spdis=x[x1]["spdi"]
+                    for spdi in spdis:
+                        if not spdi in L:
+                            L.append(spdi)
 
     return L
 
@@ -228,7 +230,7 @@ def getVariantInfo(rs,build="38"):
     # in case provided ID is not an RS
     if not utils.isRS(rs):
         t=utils.splitID(rs)
-        if t:
+        if t: # TODO: check if ref/alt mappings are correct: compare to reference sequence
             return {"minor_allele":None,"MAF":None,"rsID":None,"class":rs,"synonyms":[],"consequence":None,"mappings":[{"chr":t["chr"],"pos":t["pos"],"ref":t["a1"],"alt":t["a2"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"},{"chr":t["chr"],"pos":t["pos"],"ref":t["a2"],"alt":t["a1"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"}],"population_data":None,"phenotype_data":None,"clinical_significance":None,"scores":None}
         else:
             return None
@@ -438,7 +440,8 @@ def id2rs_mod(varid,build="38"):
         r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"]-window,V["pos"]+window,build=build))
         if not r:
             return S
-
+        
+        LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
         LOGGER.debug("Got %d variants around %s:%d\n" %(len(r),V["seq"],V["pos"]))
         for v in r:
             LOGGER.debug("Current variant: %s" % v["id"])
@@ -446,22 +449,127 @@ def id2rs_mod(varid,build="38"):
             if not z:
                 continue
 
+            LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
             for x in z:
-                spdis=x["spdi"]
-                var=x["id"][0]
-                for spdi in spdis:
-                    LOGGER.debug("SPDI: %s" % spdi)
-                    V2=utils.convertSPDI(spdi,build=build)
-                    LOGGER.debug("V2: %s" % V2)
-                    if b:
-                        if utils.equivalentVariants(V,V2,build=build):
-                            S.add(var)
-                            break
-                    if b1:
-                        if utils.equivalentVariants(V1,V2,build=build):
-                            S.add(var)
-                            break
-                    
+                for x1 in x:
+                    spdis=x[x1]["spdi"]
+                    var=x[x1]["id"][0]
+                    for spdi in spdis:
+                        LOGGER.debug("SPDI: %s" % spdi)
+                        V2=utils.convertSPDI(spdi,build=build)
+                        LOGGER.debug("V2: %s" % V2)
+                        if b:
+                            if utils.equivalentVariants(V,V2,build=build):
+                                S.add(var)
+                                break
+                        if b1:
+                            if utils.equivalentVariants(V1,V2,build=build):
+                                S.add(var)
+                                break
+                        
+    return S
+
+# ===========================================================================================================================
+
+# faster version
+def id2rs_mod2(varid,build="38"):
+    '''
+    For a given variant ID (chr_pos_A1_A2), return a set of matching rs IDs
+
+    Input: variant ID, build (default: 38)
+    Output: set of rs IDs
+    '''
+
+    S=set()
+
+    if utils.isRS(varid):
+        return {varid}
+
+    if not utils.checkID(varid):
+        LOGGER.error("Variant ID %s is malformed" % varid)
+        return S
+
+    batchsize=100
+
+    V=utils.convertVariantID(varid)
+    V1=utils.convertVariantID(varid,reverse=True)
+    b=utils.checkDEL(V,build=build)
+    b1=utils.checkDEL(V1,build=build)
+        
+    window=max(len(V["del"]),len(V["ins"]))
+        
+    if utils.getVarType(V)=="SNP":
+        r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"],V["pos"],build=build))
+        if not r:
+            return S
+
+        for v in r:
+            if V["del"] in v["alleles"] and V["ins"] in v["alleles"] and v["strand"]==1 and v["start"]==v["end"]:
+                S.add(v["id"])
+
+    else:
+        r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"]-window,V["pos"]+window,build=build))
+        if not r:
+            return S
+        
+        LOGGER.debug("Got %d variants around %s:%d\n" %(len(r),V["seq"],V["pos"]))
+        LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
+
+        # only save indel IDs in L
+        L=[]
+        for v in r:
+            #LOGGER.debug("Current: %s" % v["id"])
+            if "alleles" in v and "id" in v:
+                for a in v["alleles"]:
+                    if a =="-" or len(a)>1:
+                        L.append(v["id"])
+                        break
+        if len(L)==0:
+            LOGGER.debug("No indels found")
+            return S
+        LOGGER.debug("%d indels found: %s" % (len(L),str(L)))
+        z1=query.restQuery(query.makeRSListQueryURL(build=build),qtype="post",data=utils.list2string(L))
+        LOGGER.debug("\n=======================\n%s\n==========================\n" % json.dumps(z1,indent=4,sort_keys=True))
+        
+        for v in z1:
+            for x1 in v:
+                if "spdi" in v[x1] and "id" in v[x1]:
+                    spdis=v[x1]["spdi"]
+                    var=v[x1]["id"][0]
+                    for spdi in spdis:
+                        V2=utils.convertSPDI(spdi,build=build)
+                        LOGGER.debug("SPDI: %s; V2: %s" % (spdi,V2))
+                        if b:
+                            if utils.equivalentVariants(V,V2,build=build):
+                                S.add(var)
+                                break
+                        if b1:
+                            if utils.equivalentVariants(V1,V2,build=build):
+                                S.add(var)
+                                break
+                            
+            # LOGGER.debug("Testing variant: %s" % v["id"])
+            # z=query.restQuery(query.makeRSQueryURL(v["id"],build=build))
+            # if not z:
+            #     continue
+
+            # LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
+            # for x in z:
+            #     for x1 in x:
+            #         spdis=x[x1]["spdi"]
+            #         var=x[x1]["id"][0]
+            #         for spdi in spdis:
+            #             LOGGER.debug("SPDI: %s" % spdi)
+            #             V2=utils.convertSPDI(spdi,build=build)
+            #             LOGGER.debug("V2: %s" % V2)
+            #             if b:
+            #                 if utils.equivalentVariants(V,V2,build=build):
+            #                     S.add(var)
+            #                     break
+            #             if b1:
+            #                 if utils.equivalentVariants(V1,V2,build=build):
+            #                     S.add(var)
+            #                     break
                         
     return S
 
@@ -469,6 +577,8 @@ def id2rs_mod(varid,build="38"):
 
 def id2rs_spdi(varid,build="38"):
     '''
+    THIS METHOD IS NOT RELIABLE FOR INDELS AS SEVERAL DIFFERENT SPDI NOTATIONS CAN BE EQUIVALENT
+
     For a given variant ID (chr_pos_A1_A2), return a set of matching rs IDs
     Variant ID is converted to SPDI which is used in a variant_recoder query
 
@@ -492,22 +602,31 @@ def id2rs_spdi(varid,build="38"):
     spdi=utils.var2spdi(V)
     spdi1=utils.var2spdi(V1)
     
-    r=query.restQuery(query.makeRSQueryURL(spdi,build=build))
+    r=query.restQuery(query.makeRSQueryURL(spdi,build=build),quiet=True)
     # r is a list of dicts
     if not r is None:
+        LOGGER.debug("Got results for %s" % (str(V)))
+        LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
         for x1 in r:
             for x2 in x1:
                 if "id" in x1[x2]:
                     for rs in x1[x2]["id"]:
                         S.add(rs)
-
-    r=query.restQuery(query.makeRSQueryURL(spdi1,build=build))
+    else:
+        LOGGER.debug("No results for %s" % (str(V)))
+                        
+    r=query.restQuery(query.makeRSQueryURL(spdi1,build=build),quiet=True)
     if not r is None:
+        LOGGER.debug("Got results for %s" % (str(V1)))
+        LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
         for x1 in r:
             for x2 in x1:
                 if "id" in x1[x2]:
                     for rs in x1[x2]["id"]:
                         S.add(rs)
+    else:
+        LOGGER.debug("No results for %s" % (str(V1)))
+
     return S
 
 # ==============================================================================================================================
@@ -686,91 +805,4 @@ def population2df(pop_data,ref):
         i+=1
 
     return df
-
-# ==============================================================================================================================
-
-# Retrieve data from the OMIM database
-# def getOmimInfo (cross_refs):
-#     '''
-#     Required information:
-#         - list of OMIM ID-s
-
-#     Retrieved information:
-#         - OMIM entry name
-#         - text field name
-#         - text field (that includes references as well)
-
-#     Retrieved data structure (one dict for all queried entries):
-#     dict{
-#         OMIM_ID :{
-#             title : OMIM_preferredTitle
-#             text : {
-#                 OMIM_textSectionTitle : OMIM_textSectionContent
-#     }}}
-
-#     More information how the OMIM API works see: http://omim.org/help/api
-#     The API key will expire in 2016.11.11, at that time a new key have to be required.
-#     '''
-
-#     # Extracting OMIM ID from the cross refereces data:
-#     MIM_IDs = [x[1] for x in cross_refs["MIM disease"]]
-#     MIM_IDs.extend([x[1] for x in cross_refs["MIM gene"]])
-
-#     # The function returns at this point if there is not MIM IDs in the crossref
-#     if len(MIM_IDs) == 0:
-#         return "No OMIM entry for this gene."
-
-#     # Constructing query string:
-#     URL = config.OMIM_URL
-
-#     for ID in MIM_IDs:
-#         URL += 'mimNumber=%s&' % ID
-
-#     # Retrieving the following fields:
-#     URL += 'include=text&'
-#     URL += 'include=allelicVariantList&'
-#     URL += 'include=referenceList&'
-
-#     # Adding API key:
-#     URL += config.OMIM_APIKEY
-
-#     # Required format is pyton (although it is a string indeed)ormat=python
-#     URL += "format=python&"
-
-#     # Downloading page:
-#     page = requests.get(URL)
-
-#     # Reconstructingh dictionary from the returned string:
-#     OMIM_entry  = ast.literal_eval(page.content)
-
-#     # hash to fill in:
-#     OMIM_data = {}
-
-#     # Parsing hash:
-#     for entry in OMIM_entry['omim']['entryList']:
-#         # GEt OMIM ID:
-#         ID = entry["entry"]["mimNumber"]
-#         OMIM_data[ID] = {}
-
-#         # Get OMIM name:
-#         OMIM_data[ID]['title'] = entry["entry"]["titles"]['preferredTitle']
-
-#         # Get OMIM text:
-#         OMIM_data[ID]['text'] = {}
-#         for fields in entry['entry']["textSectionList"]:
-#             OMIM_data[ID]['text'][fields['textSection']['textSectionTitle']] = fields['textSection']['textSectionContent']
-
-#         # now we have to parse allelic variants:
-#         # print stuff['omim']['entryList'][0]['entry']['allelicVariantList'][0]['allelicVariant'].keys()
-#         # ['status', 'name', 'dbSnps', 'text', 'mutations', 'number', 'alternativeNames', 'clinvarAccessions']
-
-#         try:
-#             OMIM_data[ID]['variations'] = {}
-#             for variations in entry['entry']['allelicVariantList']:
-#                 OMIM_data[ID]['variations'][variations['allelicVariant']['dbSnps']] = variations['allelicVariant']['text']
-#         except:
-#             continue
-
-#     return OMIM_data
-
 
