@@ -42,7 +42,7 @@ if args.verbose is not None:
     elif args.verbose=="error":
         verbosity=logging.ERROR
 
-LOGGER=logging.getLogger("id2rs")
+LOGGER=logging.getLogger("id2rs2")
 LOGGER.setLevel(verbosity)
 ch=logging.StreamHandler()
 ch.setLevel(verbosity)

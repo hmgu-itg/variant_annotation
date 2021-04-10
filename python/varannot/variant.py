@@ -471,6 +471,10 @@ def id2rs_mod(varid,build="38"):
 
 # ===========================================================================================================================
 
+def id2rs_list(varIDs,build="38"):
+
+# ===========================================================================================================================
+
 # faster version
 def id2rs_mod2(varid,build="38"):
     '''
@@ -481,20 +485,14 @@ def id2rs_mod2(varid,build="38"):
     '''
 
     S=set()
-
     if utils.isRS(varid):
         return {varid}
-
     if not utils.checkID(varid):
         LOGGER.error("Variant ID %s is malformed" % varid)
         return S
 
-    batchsize=100
-
     V=utils.convertVariantID(varid)
     V1=utils.convertVariantID(varid,reverse=True)
-    b=utils.checkDEL(V,build=build)
-    b1=utils.checkDEL(V1,build=build)
         
     window=max(len(V["del"]),len(V["ins"]))
         
@@ -506,7 +504,6 @@ def id2rs_mod2(varid,build="38"):
         for v in r:
             if V["del"] in v["alleles"] and V["ins"] in v["alleles"] and v["strand"]==1 and v["start"]==v["end"]:
                 S.add(v["id"])
-
     else:
         r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"]-window,V["pos"]+window,build=build))
         if not r:
@@ -518,7 +515,6 @@ def id2rs_mod2(varid,build="38"):
         # only save indel IDs in L
         L=[]
         for v in r:
-            #LOGGER.debug("Current: %s" % v["id"])
             if "alleles" in v and "id" in v:
                 for a in v["alleles"]:
                     if a =="-" or len(a)>1:
@@ -528,9 +524,12 @@ def id2rs_mod2(varid,build="38"):
             LOGGER.debug("No indels found")
             return S
         LOGGER.debug("%d indels found: %s" % (len(L),str(L)))
+        
+        # TODO: check if L is larger than allowed POST size
         z1=query.restQuery(query.makeRSListQueryURL(build=build),qtype="post",data=utils.list2string(L))
         LOGGER.debug("\n=======================\n%s\n==========================\n" % json.dumps(z1,indent=4,sort_keys=True))
-        
+
+        LOGGER.debug("---------- CHECK START ----------------\n")
         for v in z1:
             for x1 in v:
                 if "spdi" in v[x1] and "id" in v[x1]:
@@ -539,38 +538,13 @@ def id2rs_mod2(varid,build="38"):
                     for spdi in spdis:
                         V2=utils.convertSPDI(spdi,build=build)
                         LOGGER.debug("SPDI: %s; V2: %s" % (spdi,V2))
-                        if b:
-                            if utils.equivalentVariants(V,V2,build=build):
-                                S.add(var)
-                                break
-                        if b1:
-                            if utils.equivalentVariants(V1,V2,build=build):
-                                S.add(var)
-                                break
-                            
-            # LOGGER.debug("Testing variant: %s" % v["id"])
-            # z=query.restQuery(query.makeRSQueryURL(v["id"],build=build))
-            # if not z:
-            #     continue
-
-            # LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
-            # for x in z:
-            #     for x1 in x:
-            #         spdis=x[x1]["spdi"]
-            #         var=x[x1]["id"][0]
-            #         for spdi in spdis:
-            #             LOGGER.debug("SPDI: %s" % spdi)
-            #             V2=utils.convertSPDI(spdi,build=build)
-            #             LOGGER.debug("V2: %s" % V2)
-            #             if b:
-            #                 if utils.equivalentVariants(V,V2,build=build):
-            #                     S.add(var)
-            #                     break
-            #             if b1:
-            #                 if utils.equivalentVariants(V1,V2,build=build):
-            #                     S.add(var)
-            #                     break
-                        
+                        if utils.equivalentVariants(V,V2,build=build):
+                            S.add(var)
+                            break
+                        if utils.equivalentVariants(V1,V2,build=build):
+                            S.add(var)
+                            break
+        LOGGER.debug("----------- CHECK END -----------------\n")
     return S
 
 # ===========================================================================================================================
