@@ -65,6 +65,14 @@ def makeVepListQueryURL(build="38"):
     ext="/vep/homo_sapiens/region"
     return getServerName(build)+ext
 
+def makeVepRSQueryURL(rsID,build="38"):
+    ext="/vep/homo_sapiens/id/%s?" % rsID
+    return getServerName(build)+ext
+
+def makeVepRSListQueryURL(build="38"):
+    ext="/vep/homo_sapiens/id"
+    return getServerName(build)+ext
+
 def makeGeneOverlapQueryURL(chrom,start,end,build="38"):
     ext="/overlap/region/human/%s:%d-%d?feature=gene" %(chrom,start,end)
     return getServerName(build)+ext

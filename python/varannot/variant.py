@@ -471,15 +471,55 @@ def id2rs_mod(varid,build="38"):
 
 # ===========================================================================================================================
 
-def id2rs_list(varIDs,build="38"):
+# # annotate with rsIDs, consequences, phenotype associations
+# def annotateList(varIDs,build="38"):
+#     R=id2rs_list(varIDs,build)
+
+    
+# ===========================================================================================================================
+
+# add VEP consequences to a list of rs IDs
+def addConsequencesToRSList(rsIDs,build="38"):
+    LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
+    R=dict()
+    for L in utils.chunks(rsIDs,config.VEP_POST_MAX):
+        r=query.restQuery(query.makeVepRSListQueryURL(build=build),data=utils.list2string(L),qtype="post")
+        if not r is None:
+            for x in r:
+                for z in x:
+                    rs=z["id"]
+                    mcsq=z["most_severe_consequence"] if "most_severe_consequence" in z else "NA"
+                    H=dict()
+                    if "transcript_consequences" in z:
+                        for g in z["transcript_consequences"]:
+                            gene_id=g["gene_id"]
+                            csq=g["consequence_terms"]
+                            if gene_id in H:
+                                H[gene_id].extend(csq)
+                            else:
+                                H[gene_id]=csq
+                        for g in H:
+                            H[g]=utils.getMostSevereConsequence(H[g])
+                    else:
+                        H["NA"]=mcsq
+                    R[rs]=H
+    s=set(rsIDs)-set(R.keys())
+    LOGGER.debug("No consequences found for %d rs IDs" % len(s))
+    for v in s:
+        R[v]={"NA":"NA"}
+    return R
+            
+# ===========================================================================================================================
+
+def id2rs_list(varIDs,build="38",skip_non_rs=False,keep_all=True):
     H=dict()
     R=dict()
     # TODO: check ID validity and if it's an rsID
     # trying fast method first
     LOGGER.debug("Input variant list: %d elements" % len(varIDs))
     c=0
-    t=2*len(varIDs)//config.VEP_POST_MAX
-    for L in utils.chunks(varIDs,config.VEP_POST_MAX//2):
+    t=2*len(varIDs)//config.VARIATION_POST_MAX
+    for L in utils.chunks(varIDs,config.VARIATION_POST_MAX//2):
         L1=list()
         for x in L:
             # TODO: checks
@@ -511,6 +551,28 @@ def id2rs_list(varIDs,build="38"):
     LOGGER.debug("Using slow method for %d variants" % len(unmapped))
     for v in unmapped:
         R[v]=id2rs_mod2(v,build)
+    if skip_non_rs==True:
+        LOGGER.debug("Filtering non rs IDs")
+        L=[]
+        for v in R:
+            s=set(filter(utils.isRS,R[v]))
+            if len(s)==0:
+                L.append(v)
+        if len(L)!=0:
+            LOGGER.debug("Removing %d variants from output (no rs ID found)" % len(L))
+            for k in L:
+                R.pop(k)
+        else:
+            LOGGER.debug("Nothing to remove")
+    if not keep_all is True:
+        LOGGER.debug("Keeping only one ID")
+        c=0
+        for v in R:
+            if len(R[v])>1:
+                z=R[v].pop()
+                R[v]={z}
+                c+=1
+        LOGGER.debug("Truncated %d sets" % c)
     return R
 
 # ===========================================================================================================================
