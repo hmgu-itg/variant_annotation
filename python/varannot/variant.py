@@ -471,10 +471,23 @@ def id2rs_mod(varid,build="38"):
 
 # ===========================================================================================================================
 
-# # annotate with rsIDs, consequences, phenotype associations
-# def annotateList(varIDs,build="38"):
-#     R=id2rs_list(varIDs,build)
-
+# add phenotype associations to a list of rs IDs
+def addPhenotypesToRSList(rsIDs,build="38"):
+    LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
+    R=dict()
+    for L in utils.chunks(rsIDs,config.VARIATION_POST_MAX):
+        r=query.restQuery(query.makeRSPhenotypeQueryURL(build=build),data=utils.list2string(L),qtype="post")
+        if not r is None:
+            for v in r:
+                if not v in rsIDs:
+                    continue
+                if "phenotypes" in r[v]:
+                    R[v]=set([x["trait"] for x in list(filter(lambda x: not re.search("phenotype\s+not\s+specified",x["trait"]),r[v]["phenotypes"]))])
+                else:
+                    R[v]=set()
+    for v in set(rsIDs)-set(R.keys()):
+        R[v]=set()
+    return R
     
 # ===========================================================================================================================
 
