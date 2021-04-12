@@ -12,7 +12,7 @@ From: ubuntu:18.04
 	apt update
 	ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-	apt install -y locales gnupg software-properties-common
+	apt install -y locales gnupg software-properties-common bc
 	sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
 	locale-gen
 	dpkg-reconfigure --frontend=noninteractive locales
@@ -78,12 +78,12 @@ From: ubuntu:18.04
 	mkdir locuszoom/data
 	cd locuszoom/data
 	wget http://hgdownload.cse.ucsc.edu/goldenpath/hg38/database/refFlat.txt.gz
-	echo -e "geneName\tname\tchrom\tstrand\ttxStart\ttxEnd\tcdsStart\tcdsEnd\texonCount\texonStarts\texonEnds" > refFlat_b38.txt
-	gunzip -c refFlat.txt.gz >> refFlat.b38.txt
+	echo geneName name chrom strand txStart txEnd cdsStart cdsEnd exonCount exonStarts exonEnds | tr ' ' '\t' > refFlat_b38.txt
+	gunzip -c refFlat.txt.gz >> refFlat_b38.txt
 	rm refFlat.txt.gz
 	wget https://data.broadinstitute.org/alkesgroup/Eagle/downloads/tables/genetic_map_hg38_withX.txt.gz
-	echo -e "chr\tpos\trecomb\tcm_pos" > recomb_rate_b38.txt
-	gunzip -c genetic_map_hg38_withX.txt.gz | tail -n +2 >> recomb_rate_b38.txt
+	echo chr pos recomb cm_pos | tr ' ' '\t' > recomb_rate_b38.txt
+	gunzip -c genetic_map_hg38_withX.txt.gz | tail -n +2 | tr ' ' '\t' >> recomb_rate_b38.txt
 	rm genetic_map_hg38_withX.txt.gz
 	
 	# PLINK

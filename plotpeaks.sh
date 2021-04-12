@@ -33,7 +33,7 @@ if [ -z "$flank_bp" ]; then
 fi
 
 flank_kb=$(echo "$flank_bp/1000" | bc)
-ext_flank_kb=$((flank_kb+100)) # TODO: ?
+ext_flank_kb=$((flank_kb+100))
 if [[ "$assocfile"~/gz$/ ]];then
 	cat=zcat
 else
@@ -62,38 +62,58 @@ if [[ -z "$tmp_outdir" ]];then
     exit 1
 fi
 
-selectPeaks.py -i "$assocfile" -c "$chrcol" -p "$pscol" -v '$pvalcol' -f "$flank_bp" -t "$signif" -o "$tmp_outdir"
+~/variant_annotation/selectPeaks.py -i "$assocfile" -c "$chrcol" -p "$pscol" -v "$pvalcol" -f "$flank_bp" -t "$signif" -o "$tmp_outdir" # <--- change this !
 if [[ $? -ne 0 ]];then
     echo "ERROR: selectPeaks.py returned non-zero status"
     exit 1
 fi
 
-for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
-    echo "INFO: current peak file: $fname"
+echo ""
+
+for fname in $(find "$tmp_outdir" -name "peak*chr21*.txt" | sort);do # <--- change that !
+    echo -e "INFO: current peak file: $fname\n"
     tail -n +2 "$fname" | while read peakline;do
-	echo "INFO: current peak line: $peakline" 
-	read -r peak_chr peak_pos peak_rs <<<$(echo "$peakline" | awk -v i="$chrcoli" -v j="$pscoli" -v k="$rscoli" "print $i,$j,$k")
+	echo -e "INFO: current peak line: $peakline\n" 
+	read -r peak_chr peak_pos refvar1 refvar2 <<<$(echo "$peakline" | awk -v i="$chrcoli" -v j="$pscoli" -v a="$a1coli" -v b="$a2coli" '{x=toupper($a);y=toupper($b);print $i,$j,$i"_"$j"_"x"_"y,$i"_"$j"_"y"_"x;}')
+
+	# TODO: check if necessary
+	refvar1="chr"$refvar1
+	refvar2="chr"$refvar2
+	echo ""
+	echo "peak chr: $peak_chr"
+	echo "peak pos: $peak_pos"
+	echo "peak ID1: $refvar1"
+	echo "peak ID2: $refvar2"
+	echo ""
+
 	start_bp=$((peak_pos-flank_bp))
 	if [[ $start_bp -lt 1 ]];then
 	    start_bp=1
 	fi
 	end_bp=$((peak_pos+flank_bp))
 
+	echo "Selecting neighbouring variants from $assocfile: ${peak_chr}:${start_bp}-${end_bp}"
 	# select neighbouring variants
-	awk -v i=$chrcoli -v c=$peak_chr -v j=$pscoli -v p=$peak_pos -v f=$flank_bp -v FS="\t" -v OFS="\t" "$i==c && $j>(p-f) && $j<(p+f)" "$assocfile" > "$tmp_outdir"/peakdata
-	cat  <(echo -e "snp\tchr\tpos") <(awk  -v FS="\t" -v OFS="\t" -v i=$rscoli -v j=$chrcoli -v k=$pscoli 'print $i,$j,$k' "$tmp_outdir"/peakdata) > "$tmp_outdir"/peakdata.chrpos
-	
+	$cat $assocfile | awk -v i="$chrcoli" -v c="$peak_chr" -v j="$pscoli" -v p="$peak_pos" -v f="$flank_bp" 'BEGIN{FS="\t";OFS="\t";}{if ($i==c && $j>(p-f) && $j<(p+f)){print $0;}}' > "$tmp_outdir"/peakdata
+	cat  <(echo -e "snp\tchr\tpos") <(awk -v i=$rscoli -v j=$chrcoli -v k=$pscoli 'BEGIN{FS="\t";OFS="\t";}{print $i,$j,$k;}' "$tmp_outdir"/peakdata) > "$tmp_outdir"/peakdata.chrpos
+	echo -e "Done\n"
 	# create locuszoom DB for the current peak neighborhood
+	echo "Creating locuszoom DB"
 	dbmeister.py --db "$tmp_outdir"/locuszoom.db --snp_pos "$tmp_outdir"/peakdata.chrpos
 	dbmeister.py --db "$tmp_outdir"/locuszoom.db --refflat /opt/locuszoom/data/refFlat_b38.txt
 	dbmeister.py --db "$tmp_outdir"/locuszoom.db --recomb_rate /opt/locuszoom/data/recomb_rate_b38.txt
+	echo -e "Done\n"
 
+	rm -f "$tmp_outdir"/mergelist
 	for id in "${ids[@]}"
-	do 
+	do
+	    echo "Selecting variants from ${files[$id]} using PLINK"
 	    plink --memory 15000 --bfile ${files[$id]} --chr $peak_chr --from-bp $start_bp --to-bp $end_bp --out "$tmp_outdir"/$id --make-bed
+	    echo "$tmp_outdir"/"$id" >> "$tmp_outdir"/mergelist
 	done
-
-	seq 0 $(($(echo $filelist | tr ',' '\n'| wc -l)-1)) > "$tmp_outdir"/mergelist
+	echo -e "PLINK done\n"
+	
+	echo "Merging"
 	plink --merge-list "$tmp_outdir"/mergelist --make-bed --out "$tmp_outdir"/merged --allow-no-sex
 	if [[ -f "$tmp_outdir"/merged-merge.missnp ]];then
 	    grep -v -w -f "$tmp_outdir"/merged-merge.missnp "$tmp_outdir"/peakdata | sponge "$tmp_outdir"/peakdata 
@@ -106,19 +126,35 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 	    done
 	    plink --merge-list "$tmp_outdir"/mergelist --make-bed --out "$tmp_outdir"/merged --allow-no-sex
 	fi
+	if grep -q "$refvar1" "$tmp_outdir"/merged.bim;then
+	    refsnp="$refvar1"
+	else
+	    if grep -q "$refvar2" "$tmp_outdir"/merged.bim;then
+		refsnp="$refvar2"
+	    else
+		echo "WARNING: $refvar1 / $refvar2 not found in $tmp_outdir/merged.bim; skipping"
+		continue
+	    fi
+	fi	
+	echo -e "Done\n"
 
 	# compute LD
-	plink --bfile "$tmp_outdir"/merged --r2 --ld-snp $peak_rs --ld-window-kb $ext_flank_kb --ld-window 999999 --ld-window-r2 0 --out "$tmp_outdir"/merged
-	cat <(echo -e "snp1\tsnp2\tdprime\trsquare") <(tail -n +2 merged.ld| awk 'OFS=" "{print $3,$6,$7,$7}') |sed 's/\[b38\]//' > t
-	cp t $curpeak_c.$curpeak_ps.ld
-	cp $curpeak_c.$curpeak_ps.ld merged.ld
-	    
+	echo "Computing LD"
+	plink --bfile "$tmp_outdir"/merged --r2 --ld-snp $refsnp --ld-window-kb $ext_flank_kb --ld-window 999999 --ld-window-r2 0 --out "$tmp_outdir"/merged
+	cat <(echo -e "snp1\tsnp2\tdprime\trsquare") <(tail -n +2 merged.ld| awk 'OFS=" "{print $3,$6,$7,$7}') |sed 's/\[b38\]//' > "$tmp_outdir"/"$peak_chr"."$peak_pos".ld
+	#cp $curpeak_c.$curpeak_ps.ld merged.ld
+	echo -e "Done\n"
 
-	
+	exit 0
+
+	# calling locuszoom
+	echo "Calling locuszoom"
+	locuszoom --metal "$tmp_outdir"/peakdata --refsnp "$refsnp" --markercol "$rscol" --pvalcol "$pvalcol" --db "$tmp_outdir"/locuszoom.db --prefix $curpeak_c.$curpeak_ps.$flank_bp --plotonly showAnnot=T showRefsnpAnnot=T annotPch="21,24,24,25,22,22,8,7" rfrows=20 geneFontSize=.4 --ld "$tmp_outdir"/"$peak_chr"."$peak_pos".ld --start="$start_bp" --end="$end_bp" --chr="$peak_chr" showRecomb=T --delim \' \'
+	echo -e "Done\n"
     done
-    
 done
 
+exit 0
 
 # loop over all significant results
 $cat $assocfile | awk -v p=$pvalcoli -v signif=$signif '$p<signif'| sort -k${chrcoli},${chrcoli}n -k ${pscoli},${pscoli}n  | tr ';' '_' | sed 's/\[b38\]//'  | while read line; 
