@@ -6,11 +6,16 @@
 #
 # 1) use selectPeaks.py to select peaks from association file
 # 2) loop over all peaks and create pdf/html files for each peak
-# 2.1) get peak's chr/pos/id2/id2; for a peak at 1:12345 with alleles a1/a2 = A/AG, id1=1_12345_A_AG, id2=1_12345_AG_A
-# 2.2) for each input PLINK dataset select variants from the <flank_bp> neighbourhood; merge all selected datasets
-# 2.3) select neighbouring variants from association file and save them in "peakdata"
-# 2.4)
-#
+# 2.1)  get peak's chr/pos/id2/id2; for a peak at 1:12345 with alleles a1/a2 = A/AG, id1=1_12345_A_AG, id2=1_12345_AG_A
+# 2.2)  for each input PLINK dataset select variants from the <flank_bp> neighbourhood; merge all selected datasets
+# 2.3)  select neighbouring variants from association file and save them in "peakdata"
+# 2.4)  determine a set of variant common to peakdata and merged
+# 2.5)  keep only common variants in peakdata and merged
+# 2.6)  use annotateIDList.py to create table with rs IDs, VEP and phenotype annotations
+# 2.7)  assign variants in peakdata and merged rsIDs, if possible
+# 2.8)  calculate LD
+# 2.9)  create locuszoom DB and call locuszoom to create PDF
+# 2.10) call interactive_manh.py to create HTML
 #
 ###################################################################
 
@@ -145,6 +150,7 @@ for fname in $(find "$tmp_outdir" -name "peak*chr21*.txt" | sort);do # <--- chan
 	echo -e "Done\n"
 	
 	# select neighbouring variants from association file
+	# no header in peakdata
 	echo "Selecting neighbouring variants from $assocfile: ${peak_chr}:${start_bp}-${end_bp}"
 	$cat $assocfile | awk -v i="$chrcoli" -v c="$peak_chr" -v j="$pscoli" -v p="$peak_pos" -v f="$flank_bp" 'BEGIN{FS="\t";OFS="\t";}{if ($i==c && $j>(p-f) && $j<(p+f)){print $0;}}' > "$tmp_outdir"/peakdata
 	echo -e "Done\n"
@@ -164,27 +170,30 @@ for fname in $(find "$tmp_outdir" -name "peak*chr21*.txt" | sort);do # <--- chan
 	# selecting common variants from merged
 	echo "Selecting common variants from merged"
 	plink --bfile "$tmp_outdir"/merged --extract "$tmp_outdir"/common --allow-no-sex --make-bed --out "$tmp_outdir"/mergedtemp
-	mv -v "$tmp_outdir"/mergedtemp.bed "$tmp_outdir"/merged.bed
-	mv -v "$tmp_outdir"/mergedtemp.bim "$tmp_outdir"/merged.bim
-	mv -v "$tmp_outdir"/mergedtemp.fam "$tmp_outdir"/merged.fam
+	mv "$tmp_outdir"/mergedtemp.bed "$tmp_outdir"/merged.bed
+	mv "$tmp_outdir"/mergedtemp.bim "$tmp_outdir"/merged.bim
+	mv "$tmp_outdir"/mergedtemp.fam "$tmp_outdir"/merged.fam
 	echo -e "Done\n"
 	
 	# create table with rs IDs, VEP and phenotype annotations
 	echo "Annotating peakdata IDs"
-	tail -n +2 "$tmp_outdir"/peakdata | cut -f $rscoli | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/annotated_table 2>"$tmp_outdir"/debug # <--- change this line
+	cut -f $rscoli  "$tmp_outdir"/peakdata | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/annotated_table 2>"$tmp_outdir"/debug # <--- change this line
 	echo -e "Done\n"
 
 	# rename variants in peakdata and merged.bim
 	echo "Renaming variants"
-	cat <(head -n 1 "$tmp_outdir"/peakdata) <(join -1 1 -2 $rscoli <(cut -f 1,2 "$tmp_outdir"/annotated_table | sort -k1,1) <(tail -n +2 "$tmp_outdir"/peakdata | sort -k"$rscoli","$rscoli") | cut -d ' ' -f 2- | awk 'BEGIN{OFS="\t";}{x=$1;$1=$2;$2=$3;$3=x;print $0;}') | sponge "$tmp_outdir"/peakdata
-	cat  <(echo -e "snp\tchr\tpos") <(tail -n +2 "$tmp_outdir"/peakdata | awk -v i=$rscoli -v j=$chrcoli -v k=$pscoli 'BEGIN{FS="\t";OFS="\t";}{print $i,$j,$k;}') > "$tmp_outdir"/peakdata.chrpos
+	join -1 1 -2 $rscoli <(cut -f 1,2 "$tmp_outdir"/annotated_table | sort -k1,1) <(sort -k"$rscoli","$rscoli" "$tmp_outdir"/peakdata) | cut -d ' ' -f 2- | awk 'BEGIN{OFS="\t";}{x=$1;$1=$2;$2=$3;$3=x;print $0;}' | sponge "$tmp_outdir"/peakdata
+	cat  <(echo -e "snp\tchr\tpos") <(cat "$tmp_outdir"/peakdata | awk -v i=$rscoli -v j=$chrcoli -v k=$pscoli 'BEGIN{FS="\t";OFS="\t";}{print $i,$j,$k;}') > "$tmp_outdir"/peakdata.chrpos
 	cut -f 1,2 "$tmp_outdir"/annotated_table > "$tmp_outdir"/rename
 	plink --bfile "$tmp_outdir"/merged --out "$tmp_outdir"/mergedtemp --make-bed --allow-no-sex --update-name "$tmp_outdir"/rename
-	mv -v"$tmp_outdir"/mergedtemp.bed "$tmp_outdir"/merged.bed
-	mv -v "$tmp_outdir"/mergedtemp.bim "$tmp_outdir"/merged.bim
-	mv -v "$tmp_outdir"/mergedtemp.fam "$tmp_outdir"/merged.fam	
+	mv "$tmp_outdir"/mergedtemp.bed "$tmp_outdir"/merged.bed
+	mv "$tmp_outdir"/mergedtemp.bim "$tmp_outdir"/merged.bim
+	mv "$tmp_outdir"/mergedtemp.fam "$tmp_outdir"/merged.fam	
 	echo -e "Done\n"
 
+	# add header to peakdata
+	cat <($cat $assocfile| head -n 1) <(cat "$tmp_outdir"/peakdata) | sponge "$tmp_outdir"/peakdata
+	
 	# update refsnp ID
 	refsnp=$(grep -w $refsnp "$tmp_outdir"/rename| cut -f 2)
 	
@@ -205,9 +214,10 @@ for fname in $(find "$tmp_outdir" -name "peak*chr21*.txt" | sort);do # <--- chan
 
 	# calling locuszoom
 	echo "Calling locuszoom"
-	locuszoom --metal "$tmp_outdir"/peakdata --refsnp "$refsnp" --markercol "$rscol" --pvalcol "$pvalcol" --db "$tmp_outdir"/locuszoom.db --prefix $curpeak_c.$curpeak_ps.$flank_bp --plotonly showAnnot=T showRefsnpAnnot=T annotPch="21,24,24,25,22,22,8,7" rfrows=20 geneFontSize=.4 --ld "$tmp_outdir"/"$peak_chr"."$peak_pos".ld --start="$start_bp" --end="$end_bp" --chr="$peak_chr" showRecomb=T --build b38
+	locuszoom --metal "$tmp_outdir"/peakdata --refsnp "$refsnp" --markercol "$rscol" --pvalcol "$pvalcol" --db "$tmp_outdir"/locuszoom.db --prefix ${peak_chr}.${peak_pos}.${flank_bp} --plotonly showAnnot=T showRefsnpAnnot=T annotPch="21,24,24,25,22,22,8,7" rfrows=20 geneFontSize=.4 --ld "$tmp_outdir"/"$peak_chr"."$peak_pos".ld --start="$start_bp" --end="$end_bp" --chr="$peak_chr" showRecomb=T --build b38
 	echo -e "Done\n"
     done
 done
 
 exit 0
+

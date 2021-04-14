@@ -75,8 +75,23 @@ From: ubuntu:18.04
 	wget https://statgen.sph.umich.edu/locuszoom/download/locuszoom_1.4_srconly.tgz
 	tar -zxf locuszoom_1.4_srconly.tgz
 	rm locuszoom_1.4_srconly.tgz
+	
 	mkdir locuszoom/conf
 	touch locuszoom/conf/m2zfast.conf
+	cat <<EOF >locuszoom/conf/m2zfast.conf
+	METAL2ZOOM_PATH="bin/locuszoom.R"
+	NEWFUGUE_PATH=""
+	PLINK_PATH="plink"
+	RSCRIPT_PATH="Rscript"
+	TABIX_PATH="tabix"
+	SQLITE_DB={"b38":""}
+	DEFAULT_BUILD="b38"
+	DEFAULT_POP="EUR"
+	DEFAULT_SOURCE="b38"
+	GWAS_CATS={"b38":{}}
+	LD_DB={"b38":{}}
+	EOF
+	
 	mkdir locuszoom/data
 	cd locuszoom/data
 	wget http://hgdownload.cse.ucsc.edu/goldenpath/hg38/database/refFlat.txt.gz
