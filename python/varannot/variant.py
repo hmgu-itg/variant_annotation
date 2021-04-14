@@ -82,26 +82,27 @@ def rs2position(ID,build="38",alleles=False):
     L=[]
     z=query.restQuery(query.makeRSQueryURL(ID,build=build))
     if z:
+        print(json.dumps(z,indent=4,sort_keys=True))
         for x in z:
-            spdis=x["spdi"]
-            for spdi in spdis:
-                LOGGER.debug("SPDI: %s" % spdi)
-                h=query.parseSPDI(spdi,build=build,alleles=alleles)
-                p=h["pos"]
-                c=h["chr"]
-                ref=h["ref"]
-                alt=h["alt"]
-                LOGGER.debug("%s:%d:%s:%s" % (c,p,ref,alt))
-                z=None
-                if alleles:
-                    z=next((x for x in L if x["chr"]==c and x["pos"]==p and x["ref"]==ref and x["alt"]==alt),None)
-                else:
-                    z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
-                if not z:
-                    L.append({"chr":c,"pos":p,"ref":ref,"alt":alt})
+            for x1 in x:
+                spdis=x[x1]["spdi"]
+                for spdi in spdis:
+                    LOGGER.debug("SPDI: %s" % spdi)
+                    h=query.parseSPDI(spdi,build=build,alleles=alleles)
+                    p=h["pos"]
+                    c=h["chr"]
+                    ref=h["ref"]
+                    alt=h["alt"]
+                    LOGGER.debug("%s:%d:%s:%s" % (c,p,ref,alt))
+                    z=None
+                    if alleles:
+                        z=next((x for x in L if x["chr"]==c and x["pos"]==p and x["ref"]==ref and x["alt"]==alt),None)
+                    else:
+                        z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
+                    if not z:
+                        L.append({"chr":c,"pos":p,"ref":ref,"alt":alt})
     else:
         return None
-
     return L
 
 # ==============================================================================================================================
@@ -475,9 +476,11 @@ def id2rs_mod(varid,build="38"):
 def addPhenotypesToRSList(rsIDs,build="38"):
     LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
     R=dict()
-    for L in utils.chunks(rsIDs,config.VARIATION_POST_MAX):
+    # exclude possible NAs first
+    for L in utils.chunks(list(filter(lambda x:x!="NA",rsIDs)),config.VARIATION_POST_MAX):
         r=query.restQuery(query.makeRSPhenotypeQueryURL(build=build),data=utils.list2string(L),qtype="post")
         if not r is None:
+            LOGGER.debug("\n=== phenotype query ====\n%s\n==========================\n" % json.dumps(r,indent=4,sort_keys=True))
             for v in r:
                 if not v in rsIDs:
                     continue
@@ -495,27 +498,28 @@ def addPhenotypesToRSList(rsIDs,build="38"):
 def addConsequencesToRSList(rsIDs,build="38"):
     LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
     R=dict()
-    for L in utils.chunks(rsIDs,config.VEP_POST_MAX):
+    # exclude possible NAs first
+    for L in utils.chunks(list(filter(lambda x:x!="NA",rsIDs)),config.VEP_POST_MAX):
         r=query.restQuery(query.makeVepRSListQueryURL(build=build),data=utils.list2string(L),qtype="post")
         if not r is None:
+            LOGGER.debug("\n======= VEP query ========\n%s\n==========================\n" % json.dumps(r,indent=4,sort_keys=True))
             for x in r:
-                for z in x:
-                    rs=z["id"]
-                    mcsq=z["most_severe_consequence"] if "most_severe_consequence" in z else "NA"
-                    H=dict()
-                    if "transcript_consequences" in z:
-                        for g in z["transcript_consequences"]:
-                            gene_id=g["gene_id"]
-                            csq=g["consequence_terms"]
-                            if gene_id in H:
-                                H[gene_id].extend(csq)
-                            else:
-                                H[gene_id]=csq
-                        for g in H:
-                            H[g]=utils.getMostSevereConsequence(H[g])
-                    else:
-                        H["NA"]=mcsq
-                    R[rs]=H
+                rs=x["id"]
+                mcsq=x["most_severe_consequence"] if "most_severe_consequence" in x else "NA"
+                H=dict()
+                if "transcript_consequences" in x:
+                    for g in x["transcript_consequences"]:
+                        gene_id=g["gene_id"]
+                        csq=g["consequence_terms"]
+                        if gene_id in H:
+                            H[gene_id].extend(csq)
+                        else:
+                            H[gene_id]=csq
+                    for g in H:
+                        H[g]=utils.getMostSevereConsequence(H[g])
+                else:
+                    H["NA"]=mcsq
+                R[rs]=H
     s=set(rsIDs)-set(R.keys())
     LOGGER.debug("No consequences found for %d rs IDs" % len(s))
     for v in s:
@@ -566,19 +570,14 @@ def id2rs_list(varIDs,build="38",skip_non_rs=False,keep_all=True):
         R[v]=id2rs_mod2(v,build)
     if skip_non_rs==True:
         LOGGER.debug("Filtering non rs IDs")
-        L=[]
         for v in R:
             s=set(filter(utils.isRS,R[v]))
             if len(s)==0:
-                L.append(v)
-        if len(L)!=0:
-            LOGGER.debug("Removing %d variants from output (no rs ID found)" % len(L))
-            for k in L:
-                R.pop(k)
-        else:
-            LOGGER.debug("Nothing to remove")
+                R[v]={"NA"}
+            else:
+                R[v]=s
     if not keep_all is True:
-        LOGGER.debug("Keeping only one ID")
+        LOGGER.debug("Keeping only one rs ID")
         c=0
         for v in R:
             if len(R[v])>1:
