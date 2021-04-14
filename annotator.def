@@ -78,7 +78,7 @@ From: ubuntu:18.04
 	
 	mkdir locuszoom/conf
 	touch locuszoom/conf/m2zfast.conf
-	cat <<EOF >locuszoom/conf/m2zfast.conf
+	cat <<-EOF >locuszoom/conf/m2zfast.conf
 	METAL2ZOOM_PATH="bin/locuszoom.R"
 	NEWFUGUE_PATH=""
 	PLINK_PATH="plink"
