@@ -95,6 +95,8 @@ From: ubuntu:18.04
 	wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20201019.zip
 	unzip plink_linux_x86_64_20201019.zip
 	rm plink_linux_x86_64_20201019.zip
+
+	pip3 install bokeh asr
 	
 	CREATIONDATE=`date`
 

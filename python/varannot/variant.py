@@ -536,6 +536,8 @@ def id2rs_list(varIDs,build="38",skip_non_rs=False,keep_all=True):
     LOGGER.debug("Input variant list: %d elements" % len(varIDs))
     c=0
     t=2*len(varIDs)//config.VARIATION_POST_MAX
+    if t%2:
+        t=t+1
     for L in utils.chunks(varIDs,config.VARIATION_POST_MAX//2):
         L1=list()
         for x in L:
@@ -560,8 +562,8 @@ def id2rs_list(varIDs,build="38",skip_non_rs=False,keep_all=True):
                         R[v].update(x1[x2]["id"])
                     else:
                         R[v].update(x1[x2]["id"])
-        LOGGER.debug("Chunk %d (%d) done" % (c,t))
         c+=1
+        LOGGER.debug("Chunk %d (%d) done" % (c,t))
     LOGGER.debug("Found rsIDs for %d variants using fast method" % len(R.keys()))
     # slow method for unmapped
     unmapped=list(set(varIDs)-set(R.keys()))
