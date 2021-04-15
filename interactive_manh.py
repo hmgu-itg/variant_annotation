@@ -58,6 +58,7 @@ d=pd.DataFrame(json.loads(json.dumps(overlapping_genes)))
 
 overlapping_GWASCAT_vars=query.restQuery(query.makeOverlapVarGWASCATQueryURL(str(e['#chr'][0]),e['ps'].min(),e['ps'].max(),build="38"))
 cat=pd.DataFrame(json.loads(json.dumps(overlapping_GWASCAT_vars)))
+print(cat)
 #print("")
 #cat.to_csv(sys.stdout,sep="\t",index=False)
 
