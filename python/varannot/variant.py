@@ -495,10 +495,11 @@ def addPhenotypesToRSList(rsIDs,build="38"):
 # ===========================================================================================================================
 
 # add VEP consequences to a list of rs IDs
-def addConsequencesToRSList(rsIDs,build="38"):
+# most_severe_only==True: only output one gene:consequence pair, where gene's consequence is the most severe consequence
+def addConsequencesToRSList(rsIDs,build="38",most_severe_only=False):
     LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
     R=dict()
-    # exclude possible NAs first
+    # exclude possible NAs from the input list first
     for L in utils.chunks(list(filter(lambda x:x!="NA",rsIDs)),config.VEP_POST_MAX):
         r=query.restQuery(query.makeVepRSListQueryURL(build=build),data=utils.list2string(L),qtype="post")
         if not r is None:
@@ -519,7 +520,17 @@ def addConsequencesToRSList(rsIDs,build="38"):
                         H[g]=utils.getMostSevereConsequence(H[g])
                 else:
                     H["NA"]=mcsq
-                R[rs]=H
+                if most_severe_only is True:
+                    if mcsq=="NA":
+                        R[rs]={"NA":"NA"}
+                    else:
+                        g0="NA"
+                        for g in H:
+                            if H[g]==mcsq:
+                                g0=g
+                        R[rs]={g0:mcsq}
+                else:
+                    R[rs]=H
     s=set(rsIDs)-set(R.keys())
     LOGGER.debug("No consequences found for %d rs IDs" % len(s))
     for v in s:

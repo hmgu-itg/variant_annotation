@@ -210,12 +210,23 @@ for fname in $(find "$tmp_outdir" -name "peak*chr21*.txt" | sort);do # <--- chan
 	dbmeister.py --db "$tmp_outdir"/locuszoom.db --recomb_rate /opt/locuszoom/data/recomb_rate_b38.txt
 	echo -e "Done\n"
 
-	#exit 0
-
-	# calling locuszoom
+	# call locuszoom
 	echo "Calling locuszoom"
 	locuszoom --metal "$tmp_outdir"/peakdata --refsnp "$refsnp" --markercol "$rscol" --pvalcol "$pvalcol" --db "$tmp_outdir"/locuszoom.db --prefix ${peak_chr}.${peak_pos}.${flank_bp} --plotonly showAnnot=T showRefsnpAnnot=T annotPch="21,24,24,25,22,22,8,7" rfrows=20 geneFontSize=.4 --ld "$tmp_outdir"/"$peak_chr"."$peak_pos".ld --start="$start_bp" --end="$end_bp" --chr="$peak_chr" showRecomb=T --build b38
 	echo -e "Done\n"
+
+	# modify annotated_table
+	cat "$tmp_outdir"/annotated_table | perl -lne '@a=split(/\t/);@b=split(/\s*:\s*/,$a[2]);$b[0]=~s/[{"]//g;$b[1]=~s/[}"]//g;$a[3]=~s/[][]//g;$a[3]="NA" if $a[3]=~/^\s*$/;$,="\t";$a[3]=~s/,\s+/,/g;$a[3]=~s/\s+/_/g;print $a[0],$a[1],$b[0],$b[1],$a[3];' > "$tmp_outdir"/annotated_table_mod 
+	
+	# prepare data for interactive manhattan plotting
+	echo "Joining"
+	join --header -1 $rscoli -2 1 <(cat <(head -n 1 "$tmp_outdir"/peakdata) <(tail -n +2 "$tmp_outdir"/peakdata | sort -k$rscoli,$rscoli)) <(cat <(echo $rscol ld) <(tail -n +2 "$tmp_outdir"/"$peak_chr"."$peak_pos".ld | tr ' ' '\t' | cut -f 1,3 | sort -k1,1)) | tr ' ' '\t' > "$tmp_outdir"/join1
+	join --header -1 1 -2 1 <(cat <(head -n 1 "$tmp_outdir"/join1) <(sort -k1,1 "$tmp_outdir"/join1)) <(cat <(echo $rscol gene consequence traits) <(cut -f 2- "$tmp_outdir"/annotated_table_mod | sort -k1,1)) | tr ' ' '\t' > "$tmp_outdir"/join2
+	echo -e "Done\n"
+
+	# create ineractive HTML
+
+	
     done
 done
 
