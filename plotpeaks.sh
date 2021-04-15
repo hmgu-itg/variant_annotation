@@ -152,7 +152,7 @@ for fname in $(find "$tmp_outdir" -name "peak*chr21*.txt" | sort);do # <--- chan
 	# select neighbouring variants from association file
 	# no header in peakdata
 	echo "Selecting neighbouring variants from $assocfile: ${peak_chr}:${start_bp}-${end_bp}"
-	$cat $assocfile | awk -v i="$chrcoli" -v c="$peak_chr" -v j="$pscoli" -v p="$peak_pos" -v f="$flank_bp" 'BEGIN{FS="\t";OFS="\t";}{if ($i==c && $j>(p-f) && $j<(p+f)){print $0;}}' > "$tmp_outdir"/peakdata
+	$cat $assocfile | awk -v i="$chrcoli" -v c="$peak_chr" -v j="$pscoli" -v p="$peak_pos" -v f="$flank_bp" 'BEGIN{FS="\t";OFS="\t";}{if ($i==c && $j>(p-f) && $j<(p+f)){print $0;}}' | grep -v nan > "$tmp_outdir"/peakdata # <--- TODO: better filter for NaN p-values ?
 	echo -e "Done\n"
 
 	# common variants between merged PLINK and peakdata

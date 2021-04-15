@@ -49,6 +49,10 @@ def makePhenoOverlapQueryURL(chrom,start,end,build="38"):
     ext="/overlap/region/human/"
     return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_variants" %(chrom,start,end)
 
+def makeOverlapVarGWASCATQueryURL(chrom,start,end,build="38"):
+    ext="/overlap/region/human/"
+    return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_nhgri" %(chrom,start,end)
+
 def makeRsPhenotypeQuery2URL(rs,build="38"):
     ext="/variation/human/"
     return getServerName(build)+ext+"%s?pops=1;phenotypes=1" %rs
