@@ -488,20 +488,29 @@ def addPhenotypesToRSList(rsIDs,build="38"):
                     R[v]=set([x["trait"] for x in list(filter(lambda x: not re.search("phenotype\s+not\s+specified",x["trait"]),r[v]["phenotypes"]))])
                 else:
                     R[v]=set()
-    for v in set(rsIDs)-set(R.keys()):
+    for v in set(rsIDs)-(set(R.keys())-{"NA"}):
         R[v]=set()
     return R
     
 # ===========================================================================================================================
 
-# add VEP consequences to a list of rs IDs
-# most_severe_only==True: only output one gene:consequence pair, where gene's consequence is the most severe consequence
-def addConsequencesToRSList(rsIDs,build="38",most_severe_only=False):
-    LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
+# add VEP consequences to a list of variant IDs (1_12345_AC_A)
+# most_severe_only==True: only output one gene:consequence pair, where gene's consequence is "most_severe_consequence"
+def addConsequencesToIDList(varIDs,build="38",most_severe_only=False):
+    LOGGER.debug("Input ID list: %d variants" % len(varIDs))
     R=dict()
-    # exclude possible NAs from the input list first
-    for L in utils.chunks(list(filter(lambda x:x!="NA",rsIDs)),config.VEP_POST_MAX):
-        r=query.restQuery(query.makeVepRSListQueryURL(build=build),data=utils.list2string(L),qtype="post")
+    # double check, make sure IDs have correct format
+    for L in utils.chunks(list(filter(utils.checkID,varIDs)),config.VEP_POST_MAX//2):
+        h={"variants":[]}
+        for varid in L:
+            V=utils.convertVariantID(varid)
+            if utils.checkDEL(V,build=build):
+                h["variants"].append(utils.variant2vep(V))
+            else:
+                V=utils.convertVariantID(varid,reverse=True)
+                if utils.checkDEL(V,build=build):
+                    h["variants"].append(utils.variant2vep(V))
+        r=query.restQuery(query.makeVepListQueryURL(build=build),data=json.dumps(h),qtype="post")
         if not r is None:
             LOGGER.debug("\n======= VEP query ========\n%s\n==========================\n" % json.dumps(r,indent=4,sort_keys=True))
             for x in r:
@@ -510,12 +519,7 @@ def addConsequencesToRSList(rsIDs,build="38",most_severe_only=False):
                 H=dict()
                 if "transcript_consequences" in x:
                     for g in x["transcript_consequences"]:
-                        gene_id=g["gene_id"]
-                        csq=g["consequence_terms"]
-                        if gene_id in H:
-                            H[gene_id].extend(csq)
-                        else:
-                            H[gene_id]=csq
+                        H.setdefault(g["gene_id"],[]).extend(g["consequence_terms"])
                     for g in H:
                         H[g]=utils.getMostSevereConsequence(H[g])
                 else:
@@ -531,7 +535,47 @@ def addConsequencesToRSList(rsIDs,build="38",most_severe_only=False):
                         R[rs]={g0:mcsq}
                 else:
                     R[rs]=H
-    s=set(rsIDs)-set(R.keys())
+    s=set(varIDs)-(set(R.keys())-{"NA"})
+    LOGGER.debug("No consequences found for %d IDs" % len(s))
+    for v in s:
+        R[v]={"NA":"NA"}
+    return R
+
+# ===========================================================================================================================
+
+# add VEP consequences to a list of rs IDs
+# most_severe_only==True: only output one gene:consequence pair, where gene's consequence is "most_severe_consequence"
+def addConsequencesToRSList(rsIDs,build="38",most_severe_only=False):
+    LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
+    R=dict()
+    # exclude possible NAs from the input list first
+    for L in utils.chunks(list(filter(lambda x:x!="NA",rsIDs)),config.VEP_POST_MAX):
+        r=query.restQuery(query.makeVepRSListQueryURL(build=build),data=utils.list2string(L),qtype="post")
+        if not r is None:
+            LOGGER.debug("\n======= VEP query ========\n%s\n==========================\n" % json.dumps(r,indent=4,sort_keys=True))
+            for x in r:
+                rs=x["id"]
+                mcsq=x["most_severe_consequence"] if "most_severe_consequence" in x else "NA"
+                H=dict()
+                if "transcript_consequences" in x:
+                    for g in x["transcript_consequences"]:
+                        H.setdefault(g["gene_id"],[]).extend(g["consequence_terms"])
+                    for g in H:
+                        H[g]=utils.getMostSevereConsequence(H[g])
+                else:
+                    H["NA"]=mcsq
+                if most_severe_only is True:
+                    if mcsq=="NA":
+                        R[rs]={"NA":"NA"}
+                    else:
+                        g0="NA"
+                        for g in H:
+                            if H[g]==mcsq:
+                                g0=g
+                        R[rs]={g0:mcsq}
+                else:
+                    R[rs]=H
+    s=set(rsIDs)-(set(R.keys())-{"NA"})
     LOGGER.debug("No consequences found for %d rs IDs" % len(s))
     for v in s:
         R[v]={"NA":"NA"}

@@ -248,6 +248,21 @@ def convertVariantID(varid,reverse=False):
 
 # ==============================================================================================================================
 
+# input: dict with keys: "seq", "pos", "del", "ins"
+# output: string "1 12345 1_12345_AC_A AC A ..."
+# WARNING: has not been properly tested
+
+def variant2vep(variant,reverse=False):
+    chrom=variant["seq"]
+    pos=variant["pos"]
+    ref=variant["del"]
+    alt=variant["ins"]
+
+    varid="_".join(chrom,str(pos),ref,alt)
+    return " ".join(chrom,str(pos),varid,ref,alt,". . .")
+
+# ==============================================================================================================================
+
 def df2svg(df,var):
     if df is None:
         return None

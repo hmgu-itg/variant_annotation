@@ -60,9 +60,14 @@ logging.getLogger("varannot.utils").setLevel(verbosity)
 #---------------------------------------------------------------------------------------------------------------------------
 
 R=variant.id2rs_list([line.rstrip() for line in sys.stdin.readlines()],build=build,skip_non_rs=True,keep_all=False)
+rs_not_found=[varid for varid in R if R[varid]=="NA"]
+R0=variant.addConsequencesToIDList(rs_not_found,build=build,most_severe_only=True)
 R1=variant.addConsequencesToRSList([x for s in list([list(x) for x in R.values()]) for x in s],build=build,most_severe_only=True)
 R2=variant.addPhenotypesToRSList([x for s in list([list(x) for x in R.values()]) for x in s],build=build)
 
-# for some input IDs rsID might be "NA", in which case output the original ID instead
+# for some input IDs, rs ID might be "NA", in which case output the original ID instead
 for v in R:
-    print("%s\t%s\t%s\t%s" % (v,v if list(R[v])[0]=="NA" else list(R[v])[0],json.dumps(R1[list(R[v])[0]]),json.dumps(list(R2[list(R[v])[0]]))))
+    if v in rs_not_found:
+        print("%s\t%s\t%s\t%s" % (v,v,json.dumps(R0[v]),"[]"))
+    else:
+        print("%s\t%s\t%s\t%s" % (v,list(R[v])[0],json.dumps(R1[list(R[v])[0]]),json.dumps(list(R2[list(R[v])[0]]))))

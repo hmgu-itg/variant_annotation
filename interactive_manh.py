@@ -13,11 +13,11 @@ from bokeh.models import *
 from varannot import query
 from varannot import utils
 
-file=sys.argv[1]
+infile=sys.argv[1]
 
 pd.options.mode.chained_assignment = None  
-d=pd.read_csv(file, sep="\t",index_col=False)
-output_file(file+".html")
+d=pd.read_csv(infile, sep="\t",index_col=False)
+output_file(infile+".html")
 hover= HoverTool(tooltips = [
         ("==============", "=============="),
         ("name", "   @"+sys.argv[4]),
