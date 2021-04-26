@@ -70,12 +70,6 @@ a2coli=$(getColNum $cat $assocfile $a2col)
 
 echo COLUMNS "CHR: "$chrcoli . "POS: "$pscoli . "rsID: "$rscoli . "Pval: "$pvalcoli . "A1: "$a1coli . "A2: "$a2coli
 
-echo "Looking for peaks..."
-echo "===================="
-echo "(p-value $pvalcol - $pvalcoli; $signif ; $assocfile ; $cat)"
-echo
-echo
-
 tmp_outdir=$(mktemp -d -p $(pwd) temp_plotpeaks_XXXXXXXX)
 if [[ -z "$tmp_outdir" ]];then
     echo "ERROR: failed to create temporary output dir"
@@ -176,7 +170,7 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 	echo -e "Done\n"
 	
 	# create table with rs IDs, VEP and phenotype annotations
-	echo "Annotating peakdata IDs"
+	echo "Annotating peakdata variants"
 	cut -f $rscoli  "$tmp_outdir"/peakdata | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/annotated_table 2>"$tmp_outdir"/debug # <--- change this line
 	echo -e "Done\n"
 
@@ -225,10 +219,10 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 	echo -e "Done\n"
 
 	# create ineractive HTML
-	echo "Create HTML"
-	PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 P-value ps MarkerName Freq1
-	echo -e "Done\n"
-	
+	# echo "Create HTML"
+	# PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 P-value ps MarkerName Freq1
+	# echo -e "Done\n"
+	exit 0
     done
 done
 

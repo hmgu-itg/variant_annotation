@@ -258,8 +258,8 @@ def variant2vep(variant,reverse=False):
     ref=variant["del"]
     alt=variant["ins"]
 
-    varid="_".join(chrom,str(pos),ref,alt)
-    return " ".join(chrom,str(pos),varid,ref,alt,". . .")
+    varid="_".join([chrom,str(pos),ref,alt])
+    return " ".join([chrom,str(pos),varid,ref,alt,". . ."])
 
 # ==============================================================================================================================
 

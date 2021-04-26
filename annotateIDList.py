@@ -60,7 +60,9 @@ logging.getLogger("varannot.utils").setLevel(verbosity)
 #---------------------------------------------------------------------------------------------------------------------------
 
 R=variant.id2rs_list([line.rstrip() for line in sys.stdin.readlines()],build=build,skip_non_rs=True,keep_all=False)
-rs_not_found=[varid for varid in R if R[varid]=="NA"]
+rs_not_found=[varid for varid in R if R[varid]=={"NA"}]
+LOGGER.debug("%d variants with no rs IDs" % len(rs_not_found))
+# for variants without rs IDs no phenotype annotations are added
 R0=variant.addConsequencesToIDList(rs_not_found,build=build,most_severe_only=True)
 R1=variant.addConsequencesToRSList([x for s in list([list(x) for x in R.values()]) for x in s],build=build,most_severe_only=True)
 R2=variant.addPhenotypesToRSList([x for s in list([list(x) for x in R.values()]) for x in s],build=build)
@@ -68,6 +70,7 @@ R2=variant.addPhenotypesToRSList([x for s in list([list(x) for x in R.values()])
 # for some input IDs, rs ID might be "NA", in which case output the original ID instead
 for v in R:
     if v in rs_not_found:
-        print("%s\t%s\t%s\t%s" % (v,v,json.dumps(R0[v]),"[]"))
+        (c,p,a1,a2)=v.split("_")
+        print("%s\t%s\t%s\t%s" % (v,c+":"+p,json.dumps(R0[v]),"[]"))
     else:
         print("%s\t%s\t%s\t%s" % (v,list(R[v])[0],json.dumps(R1[list(R[v])[0]]),json.dumps(list(R2[list(R[v])[0]]))))
