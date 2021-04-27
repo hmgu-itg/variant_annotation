@@ -38,6 +38,7 @@ a2col=$8
 mafcol=$9
 files=${10}
 flank_bp=${11}
+dbsnp=${12}
 filelist=$files
 
 echo
@@ -178,8 +179,7 @@ for fname in $(find "$tmp_outdir" -name "peaks_chr22*.txt" | sort);do
 	
 	echo "Setting variant IDs in" "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata
 	rm -f "$tmp_outdir"/missing
-	cat "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | while read line;do read -r var1 var2 <<<$(echo "$line" | awk -v i="$chrcoli" -v j="$pscoli" -v a="$a1coli" -v b="$a2coli" '{x=toupper($a);y=toupper($b);print $i"_"$j"_"x"_"y,$i"_"$j"_"y"_"x;}'); if grep -w -q "$var1" "$tmp_outdir"/"$peak_chr"."$peak_pos".common; then ID="$var1";else if grep -w -q "$var2" "$tmp_outdir"/"$peak_chr"."$peak_pos".common; then ID="$var2";else echo "$line" >>"$tmp_outdir"/"$peak_chr"."$peak_pos".missing;continue;fi;fi;echo "$line" | awk -v i="$rscoli" -v x="$ID" '{$i=x;print $0;}';done | tr ' ' '\t' >  "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata.new
-	cp "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata.new "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata
+	cat "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | while read line;do read -r var1 var2 <<<$(echo "$line" | awk -v i="$chrcoli" -v j="$pscoli" -v a="$a1coli" -v b="$a2coli" '{x=toupper($a);y=toupper($b);print $i"_"$j"_"x"_"y,$i"_"$j"_"y"_"x;}'); if grep -w -q "$var1" "$tmp_outdir"/"$peak_chr"."$peak_pos".common; then ID="$var1";else if grep -w -q "$var2" "$tmp_outdir"/"$peak_chr"."$peak_pos".common; then ID="$var2";else echo "$line" >>"$tmp_outdir"/"$peak_chr"."$peak_pos".missing;continue;fi;fi;echo "$line" | awk -v i="$rscoli" -v x="$ID" '{$i=x;print $0;}';done | tr ' ' '\t' | sponge "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata
 	echo -e "Done\n"
 
 	# selecting common variants from merged
@@ -192,7 +192,16 @@ for fname in $(find "$tmp_outdir" -name "peaks_chr22*.txt" | sort);do
 	
 	# create table with rs IDs, VEP and phenotype annotations
 	echo "Annotating peakdata variants"
-	cut -f $rscoli  "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug # <--- change this line
+	if [[ -z "$dbsnp" ]];then
+	    cut -f $rscoli  "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug # <--- change this line
+	else
+	    minp=$(cut -f 2 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -n | head -n 1)
+	    maxp=$(cut -f 2 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -nr | head -n 1)
+	    tabix "$dbsnp" "$peak_chr":"$minp"-"$maxp" | cut -f 2-5 > "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp
+	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <$(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF==2{print $2;}' > "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp
+	    # 22 16059596 rs1317973428 GA G is the same as 22_16059596_GAA_GAAA
+	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <$(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF!=2'| perl -lne 'BEGIN{%H=();%all=();}{@a=split(/ /);@b=split(/_/,$a[4]);$a1=$b[2];$a2=$b[3];$ref=$a[2];$all{$a[4]}=1;@c=split(/,/,$a[3]); if ($ref==$a1){foreach $a (@c){ if ($a2==$a) {$H{$a[4]}=$a[1];last;}}}elsif($ref==$a2){foreach $a (@c){ if ($a1==$a) {$H{$a[4]}=$a[1];last;}} } }END{$,="\t";foreach $x (keys %all){if (exists($H{$x})){print $x,$H{$x};}else{ print $x,$x;}}}'
+	fi
 	echo -e "Done\n"
 
 	# rename variants in peakdata and merged.bim
