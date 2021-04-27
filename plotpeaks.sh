@@ -98,7 +98,7 @@ fi
 echo ""
 echo -e "----------------------------------------------------------------------------\n"
 
-for fname in $(find "$tmp_outdir" -name "peaks_chr22*.txt" | sort);do
+for fname in $(find "$tmp_outdir" -name "peaks_*.txt" | sort);do
     echo -e "INFO: current peak file: $fname\n"
     tail -n +2 "$fname" | while read peakline;do
 	echo -e "INFO: current peak line: $peakline\n" 
@@ -198,11 +198,11 @@ for fname in $(find "$tmp_outdir" -name "peaks_chr22*.txt" | sort);do
 	    minp=$(cut -f 2 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -n | head -n 1)
 	    maxp=$(cut -f 2 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -nr | head -n 1)
 	    tabix "$dbsnp" "$peak_chr":"$minp"-"$maxp" | cut -f 2-5 > "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp
-	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <$(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF==2{print $2;}' > "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp
+	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF==2{print $2;}' > "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp
 	    # 22 16059596 rs1317973428 GA G is the same as 22_16059596_GAA_GAAA
-	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <$(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF!=2'| ~/variant_annotation/compareVariants.pl 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".in_dbsnp 2>>"$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp # <-- change this line
+	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF!=2'| ~/variant_annotation/compareVariants.pl 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".in_dbsnp 2>>"$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp # <-- change this line
 	    cat "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug # <--- change this line
-	    
+	    cat "$tmp_outdir"/"$peak_chr"."$peak_pos".in_dbsnp | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py --rs -v debug 1>>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug # <--- change this line	    
 	fi
 	echo -e "Done\n"
 

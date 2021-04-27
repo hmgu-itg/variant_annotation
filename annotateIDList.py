@@ -26,7 +26,7 @@ verbosity=logging.INFO
 parser = argparse.ArgumentParser(description="Annotate list of variant IDs with rs IDs, VEP consequences and phenotype associations")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38",required=False)
 parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
-parser.add_argument("--rs", "-r", help="Optional: input consists of ID rsID pairs",required=False, action='store_false')
+parser.add_argument("--rs", "-r", help="Optional: if input consists of ID rsID pairs",required=False, action='store_true')
 
 try:
     args=parser.parse_args()
