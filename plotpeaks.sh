@@ -214,15 +214,14 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 	
 	# prepare data for interactive manhattan plotting
 	echo "Joining"
-	join --header -1 $rscoli -2 1 <(cat <(head -n 1 "$tmp_outdir"/peakdata) <(tail -n +2 "$tmp_outdir"/peakdata | sort -k$rscoli,$rscoli)) <(cat <(echo $rscol ld) <(tail -n +2 "$tmp_outdir"/"$peak_chr"."$peak_pos".ld | tr ' ' '\t' | cut -f 1,3 | sort -k1,1)) | tr ' ' '\t' > "$tmp_outdir"/join1
-	join --header -1 1 -2 1 <(cat <(head -n 1 "$tmp_outdir"/join1) <(sort -k1,1 "$tmp_outdir"/join1)) <(cat <(echo $rscol gene consequence traits) <(cut -f 2- "$tmp_outdir"/annotated_table_mod | sort -k1,1)) | tr ' ' '\t' > "$tmp_outdir"/"$peak_chr"."$peak_pos".join2
+	join --header -1 $rscoli -2 1 <(cat <(head -n 1 "$tmp_outdir"/peakdata) <(tail -n +2 "$tmp_outdir"/peakdata | sort -k$rscoli,$rscoli)) <(cat <(echo $rscol ld) <(tail -n +2 "$tmp_outdir"/"$peak_chr"."$peak_pos".ld | tr ' ' '\t' | cut -f 1,3 | sort -k1,1)) | tr ' ' '\t' > "$tmp_outdir"/"$peak_chr"."$peak_pos".join1
+	join --header -1 1 -2 1 <(cat <(head -n 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".join1) <(sort -k1,1 "$tmp_outdir"/"$peak_chr"."$peak_pos".join1)) <(cat <(echo $rscol gene consequence traits) <(cut -f 2- "$tmp_outdir"/annotated_table_mod | sort -k1,1)) | tr ' ' '\t' | sed -e 's/"//g' -e 's/_/ /g' > "$tmp_outdir"/"$peak_chr"."$peak_pos".join2
 	echo -e "Done\n"
 
 	# create ineractive HTML
 	# echo "Create HTML"
 	# PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 P-value ps MarkerName Freq1
 	# echo -e "Done\n"
-	exit 0
     done
 done
 
