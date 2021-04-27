@@ -220,7 +220,7 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 
 	# create ineractive HTML
 	echo "Creating HTML"
-	PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 $chrcol $pvalcol $pscol $rscol $mafcol # <-- change this line
+	PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 $chrcol $pvalcol $pscol $rscol $mafcol "$peak_chr"."$peak_pos".html # <-- change this line
 	echo -e "Done\n"
     done
 done
