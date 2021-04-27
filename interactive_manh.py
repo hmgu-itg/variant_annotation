@@ -43,7 +43,7 @@ e[pvalcol]=e[pvalcol].astype(float)
 e["traits"]=e["traits"].astype(str)
 e['logp']=-np.log10(e[pvalcol])
 
-print(e)
+#print(e)
 
 for _,row in e.iterrows():
     pos=row[pscol]
@@ -56,8 +56,8 @@ for _,row in e.iterrows():
     p.add_layout(label)
 
 overlapping_genes=query.restQuery(query.makeGeneOverlapQueryURL(str(e['#chr'][0]),e['ps'].min(),e['ps'].max(),build="38"))
-print(json.dumps(overlapping_genes,indent=4,sort_keys=True))
 genes_df=pd.DataFrame(json.loads(json.dumps(overlapping_genes)))
+#print(json.dumps(overlapping_genes,indent=4,sort_keys=True))
 #genes_df.to_csv(sys.stdout,sep="\t",index=False)
 
 # overlapping_GWASCAT_vars=query.restQuery(query.makeOverlapVarGWASCATQueryURL(str(e['#chr'][0]),e['ps'].min(),e['ps'].max(),build="38"))
@@ -83,7 +83,6 @@ p.circle(pscol,'logp',line_width=2,source=e,size=9,fill_color='col',line_color="
 p2=figure(width=1500,height=300,x_range=p.x_range,y_range=(0,1),tools=['tap'])
 if len(genes_df)>0:
     ys=np.linspace(start=1/(len(genes_df)+1),stop=len(genes_df)/(len(genes_df)+1),num=len(genes_df))
-    #ys=np.random.rand(len(genes_df))
     print(ys)
     genes_df['y']=ys
     genes_df['color']="cornflowerblue"

@@ -69,12 +69,17 @@ a1coli=$(getColNum $cat $assocfile $a1col)
 a2coli=$(getColNum $cat $assocfile $a2col)
 
 echo ""
-echo COLUMNS "CHR: "$chrcoli
-echo COLUMNS "POS: "$pscoli
-echo COLUMNS "ID: "$rscoli
-echo COLUMNS "Pval: "$pvalcoli
-echo COLUMNS "A1: "$a1coli
-echo COLUMNS "A2: "$a2coli
+echo "HEADER FIELDS"
+$cat $assocfile | head -n 1 | tr '\t' '\n' | cat -n
+echo ""
+
+echo ""
+echo COLUMN "CHR: "$chrcoli
+echo COLUMN "POS: "$pscoli
+echo COLUMN "ID: "$rscoli
+echo COLUMN "Pval: "$pvalcoli
+echo COLUMN "A1: "$a1coli
+echo COLUMN "A2: "$a2coli
 echo ""
 
 tmp_outdir=$(mktemp -d -p $(pwd) temp_plotpeaks_XXXXXXXX)
@@ -92,7 +97,7 @@ fi
 echo ""
 echo -e "----------------------------------------------------------------------------\n"
 
-for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
+for fname in $(find "$tmp_outdir" -name "peaks_chr22*.txt" | sort);do
     echo -e "INFO: current peak file: $fname\n"
     tail -n +2 "$fname" | while read peakline;do
 	echo -e "INFO: current peak line: $peakline\n" 
@@ -125,115 +130,121 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 	echo -e "PLINK done\n"
 	
 	echo "Merging"
-	plink --merge-list "$tmp_outdir"/mergelist --make-bed --out "$tmp_outdir"/merged --allow-no-sex
-	if [[ -f "$tmp_outdir"/merged-merge.missnp ]];then
-	    #grep -v -w -f "$tmp_outdir"/merged-merge.missnp "$tmp_outdir"/peakdata | sponge "$tmp_outdir"/peakdata 
+	plink --merge-list "$tmp_outdir"/mergelist --make-bed --out "$tmp_outdir"/"$peak_chr"."$peak_pos".merged --allow-no-sex
+	if [[ -f "$tmp_outdir"/"$peak_chr"."$peak_pos".merged-merge.missnp ]];then
 	    for id in "${ids[@]}"
 	    do 
-		plink --bfile "$tmp_outdir"/$id --exclude "$tmp_outdir"/merged-merge.missnp --make-bed --out "$tmp_outdir"/$id.tmp
+		plink --bfile "$tmp_outdir"/$id --exclude "$tmp_outdir"/"$peak_chr"."$peak_pos".merged-merge.missnp --make-bed --out "$tmp_outdir"/$id.tmp
 		mv "$tmp_outdir"/$id.tmp.bed "$tmp_outdir"/$id.bed
 		mv "$tmp_outdir"/$id.tmp.bim "$tmp_outdir"/$id.bim
 		mv "$tmp_outdir"/$id.tmp.fam "$tmp_outdir"/$id.fam
 	    done
-	    plink --merge-list "$tmp_outdir"/mergelist --make-bed --out "$tmp_outdir"/merged --allow-no-sex
+	    plink --merge-list "$tmp_outdir"/mergelist --make-bed --out "$tmp_outdir"/"$peak_chr"."$peak_pos".merged --allow-no-sex
 	fi
 	
 	# setting refsnp
-	if grep -q "$refvar1" "$tmp_outdir"/merged.bim;then
+	if grep -q "$refvar1" "$tmp_outdir"/"$peak_chr"."$peak_pos".merged.bim;then
 	    refsnp="$refvar1"
 	else
-	    if grep -q "$refvar2" "$tmp_outdir"/merged.bim;then
+	    if grep -q "$refvar2" "$tmp_outdir"/"$peak_chr"."$peak_pos".merged.bim;then
 		refsnp="$refvar2"
 	    else
-		echo "WARNING: $refvar1 / $refvar2 not found in $tmp_outdir/merged.bim; skipping"
+		echo "WARNING: $refvar1 / $refvar2 not found in $tmp_outdir/$peak_chr.$peak_pos.merged.bim; skipping"
 		continue
 	    fi
-	fi	
+	fi
+	echo "refsnp=$refsnp"
 	echo -e "Done\n"
 	
 	# select neighbouring variants from association file
 	# no header in peakdata
 	echo "Selecting neighbouring variants from $assocfile: ${peak_chr}:${start_bp}-${end_bp}"
-	$cat $assocfile | awk -v i="$chrcoli" -v c="$peak_chr" -v j="$pscoli" -v p="$peak_pos" -v f="$flank_bp" 'BEGIN{FS="\t";OFS="\t";}{if ($i==c && $j>(p-f) && $j<(p+f)){print $0;}}' | grep -v nan > "$tmp_outdir"/peakdata
+	$cat $assocfile | awk -v i="$chrcoli" -v c="$peak_chr" -v j="$pscoli" -v p="$peak_pos" -v f="$flank_bp" 'BEGIN{FS="\t";OFS="\t";}{if ($i==c && $j>(p-f) && $j<(p+f)){print $0;}}' | grep -v nan > "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata
 	echo -e "Done\n"
 
 	# common variants between merged PLINK and peakdata
 	echo "Extracting common variants between peakdata and merged file"
-	cat <(cat "$tmp_outdir"/peakdata | awk -v i="$chrcoli" -v j="$pscoli" -v a="$a1coli" -v b="$a2coli" '{x=toupper($a);y=toupper($b);print $i"_"$j"_"x"_"y; print $i"_"$j"_"y"_"x;}') <(cut -f 2 "$tmp_outdir"/merged.bim) | sort| uniq -d > "$tmp_outdir"/common
+	cat <(cat "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | awk -v i="$chrcoli" -v j="$pscoli" -v a="$a1coli" -v b="$a2coli" '{x=toupper($a);y=toupper($b);print $i"_"$j"_"x"_"y; print $i"_"$j"_"y"_"x;}') <(cut -f 2 "$tmp_outdir"/"$peak_chr"."$peak_pos".merged.bim) | sort| uniq -d > "$tmp_outdir"/"$peak_chr"."$peak_pos".common
 	echo -e "Done\n"
 	
-	# selecting common variants from peakdata
-	# setting variant IDs in peakdata
-	echo "Setting variant IDs"
+	# setting variant IDs in peakdata to those in "common" file
+	# after setting IDs, peakdata may contain less variants than "merged_common" PLINK
+	# because "merged" PLINK and "common" may contain variants
+	# with same position and permuted alleles: 1_12345_A_C and 1_12345_C_A
+	# whereas peakdata contains only one of those (the first match in "common")
+	# this means LD data (based on PLINK data) may contain more variants than peakdata.chrpos
+	# this leads later to locuszoom complaining:
+	# Warning: could not find position for SNP 22_49623908_G_A in user-supplied --ld file, skipping..
+	
+	echo "Setting variant IDs in" "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata
 	rm -f "$tmp_outdir"/missing
-	cat "$tmp_outdir"/peakdata | while read line;do read -r var1 var2 <<<$(echo "$line" | awk -v i="$chrcoli" -v j="$pscoli" -v a="$a1coli" -v b="$a2coli" '{x=toupper($a);y=toupper($b);print $i"_"$j"_"x"_"y,$i"_"$j"_"y"_"x;}'); if grep -q -m 1 "$var1" "$tmp_outdir"/common; then ID="$var1";else if grep -q -m 1 "$var2" "$tmp_outdir"/common; then ID="$var2";else echo "$line" >>"$tmp_outdir"/missing;continue;fi;fi;echo "$line" | awk -v i="$rscoli" -v x="$ID" '{$i=x;print $0;}';done | tr ' ' '\t' |  sponge "$tmp_outdir"/peakdata
+	cat "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | while read line;do read -r var1 var2 <<<$(echo "$line" | awk -v i="$chrcoli" -v j="$pscoli" -v a="$a1coli" -v b="$a2coli" '{x=toupper($a);y=toupper($b);print $i"_"$j"_"x"_"y,$i"_"$j"_"y"_"x;}'); if grep -w -q "$var1" "$tmp_outdir"/"$peak_chr"."$peak_pos".common; then ID="$var1";else if grep -w -q "$var2" "$tmp_outdir"/"$peak_chr"."$peak_pos".common; then ID="$var2";else echo "$line" >>"$tmp_outdir"/"$peak_chr"."$peak_pos".missing;continue;fi;fi;echo "$line" | awk -v i="$rscoli" -v x="$ID" '{$i=x;print $0;}';done | tr ' ' '\t' >  "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata.new
+	cp "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata.new "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata
 	echo -e "Done\n"
 
 	# selecting common variants from merged
-	echo "Selecting common variants from merged"
-	plink --bfile "$tmp_outdir"/merged --extract "$tmp_outdir"/common --allow-no-sex --make-bed --out "$tmp_outdir"/mergedtemp
-	mv "$tmp_outdir"/mergedtemp.bed "$tmp_outdir"/merged.bed
-	mv "$tmp_outdir"/mergedtemp.bim "$tmp_outdir"/merged.bim
-	mv "$tmp_outdir"/mergedtemp.fam "$tmp_outdir"/merged.fam
+	echo "Selecting common variants from $peak_chr.$peak_pos.merged"
+	plink --bfile "$tmp_outdir"/"$peak_chr"."$peak_pos".merged --extract "$tmp_outdir"/"$peak_chr"."$peak_pos".common --allow-no-sex --make-bed --out "$tmp_outdir"/mergedtemp
+	mv "$tmp_outdir"/mergedtemp.bed "$tmp_outdir"/"$peak_chr"."$peak_pos".merged_common.bed
+	mv "$tmp_outdir"/mergedtemp.bim "$tmp_outdir"/"$peak_chr"."$peak_pos".merged_common.bim
+	mv "$tmp_outdir"/mergedtemp.fam "$tmp_outdir"/"$peak_chr"."$peak_pos".merged_common.fam
 	echo -e "Done\n"
 	
 	# create table with rs IDs, VEP and phenotype annotations
 	echo "Annotating peakdata variants"
-	cut -f $rscoli  "$tmp_outdir"/peakdata | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/annotated_table 2>"$tmp_outdir"/debug # <--- change this line
+	cut -f $rscoli  "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug # <--- change this line
 	echo -e "Done\n"
 
 	# rename variants in peakdata and merged.bim
-	echo "Renaming variants"
-	join -1 1 -2 $rscoli <(cut -f 1,2 "$tmp_outdir"/annotated_table | sort -k1,1) <(sort -k"$rscoli","$rscoli" "$tmp_outdir"/peakdata) | cut -d ' ' -f 2- | awk 'BEGIN{OFS="\t";}{x=$1;$1=$2;$2=$3;$3=x;print $0;}' | sponge "$tmp_outdir"/peakdata
-	cat  <(echo -e "snp\tchr\tpos") <(cat "$tmp_outdir"/peakdata | awk -v i=$rscoli -v j=$chrcoli -v k=$pscoli 'BEGIN{FS="\t";OFS="\t";}{print $i,$j,$k;}') > "$tmp_outdir"/peakdata.chrpos
-	cut -f 1,2 "$tmp_outdir"/annotated_table > "$tmp_outdir"/rename
-	plink --bfile "$tmp_outdir"/merged --out "$tmp_outdir"/mergedtemp --make-bed --allow-no-sex --update-name "$tmp_outdir"/rename
-	mv "$tmp_outdir"/mergedtemp.bed "$tmp_outdir"/merged.bed
-	mv "$tmp_outdir"/mergedtemp.bim "$tmp_outdir"/merged.bim
-	mv "$tmp_outdir"/mergedtemp.fam "$tmp_outdir"/merged.fam	
+	echo "Renaming variants using annotated table"
+	join -1 1 -2 $rscoli <(cut -f 1,2 "$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table | sort -k1,1) <(sort -k"$rscoli","$rscoli" "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata) | cut -d ' ' -f 2- | awk 'BEGIN{OFS="\t";}{x=$1;$1=$2;$2=$3;$3=x;print $0;}' | sponge "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata
+	cat  <(echo -e "snp\tchr\tpos") <(cat "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | awk -v i=$rscoli -v j=$chrcoli -v k=$pscoli 'BEGIN{FS="\t";OFS="\t";}{print $i,$j,$k;}') > "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata.chrpos
+	cut -f 1,2 "$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table > "$tmp_outdir"/"$peak_chr"."$peak_pos".rename
+	plink --bfile "$tmp_outdir"/"$peak_chr"."$peak_pos".merged_common --out "$tmp_outdir"/"$peak_chr"."$peak_pos".merged_rn --make-bed --allow-no-sex --update-name "$tmp_outdir"/"$peak_chr"."$peak_pos".rename
 	echo -e "Done\n"
 
 	# add header to peakdata
-	cat <($cat $assocfile| head -n 1) <(cat "$tmp_outdir"/peakdata) | sponge "$tmp_outdir"/peakdata
+	cat <($cat $assocfile| head -n 1) <(cat "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata) | sponge "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata
 	
 	# update refsnp ID
-	refsnp=$(grep -w $refsnp "$tmp_outdir"/rename| cut -f 2)
+	refsnp=$(grep -w $refsnp "$tmp_outdir"/"$peak_chr"."$peak_pos".rename| cut -f 2)
+	echo "updated refsnp=$refsnp"
 	
 	# compute LD
 	echo "Computing LD"
-	plink --bfile "$tmp_outdir"/merged --r2 dprime --ld-snp $refsnp --ld-window-kb $ext_flank_kb --ld-window 999999 --ld-window-r2 0 --out "$tmp_outdir"/merged
+	plink --bfile "$tmp_outdir"/"$peak_chr"."$peak_pos".merged_rn --r2 dprime --ld-snp $refsnp --ld-window-kb $ext_flank_kb --ld-window 999999 --ld-window-r2 0 --out "$tmp_outdir"/merged
 	cat <(echo "snp1 snp2 dprime rsquare") <(tail -n +2 "$tmp_outdir"/merged.ld| sed -e 's/^  *//' -e 's/  */ /g'| awk '{print $6,$3,$7,$8}') > "$tmp_outdir"/"$peak_chr"."$peak_pos".ld
 	echo -e "Done\n"
 
 	# create locuszoom DB for the current peak neighborhood
 	echo "Creating locuszoom DB"
-	dbmeister.py --db "$tmp_outdir"/locuszoom.db --snp_pos "$tmp_outdir"/peakdata.chrpos
+	dbmeister.py --db "$tmp_outdir"/locuszoom.db --snp_pos "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata.chrpos
 	dbmeister.py --db "$tmp_outdir"/locuszoom.db --refflat /opt/locuszoom/data/refFlat_b38.txt
 	dbmeister.py --db "$tmp_outdir"/locuszoom.db --recomb_rate /opt/locuszoom/data/recomb_rate_b38.txt
 	echo -e "Done\n"
 
 	# call locuszoom
 	echo "Calling locuszoom"
-	locuszoom --metal "$tmp_outdir"/peakdata --refsnp "$refsnp" --markercol "$rscol" --pvalcol "$pvalcol" --db "$tmp_outdir"/locuszoom.db --prefix ${peak_chr}.${peak_pos}.${flank_bp} --plotonly showAnnot=T showRefsnpAnnot=T annotPch="21,24,24,25,22,22,8,7" rfrows=20 geneFontSize=.4 --ld "$tmp_outdir"/"$peak_chr"."$peak_pos".ld --start="$start_bp" --end="$end_bp" --chr="$peak_chr" showRecomb=T --build b38
+	locuszoom --metal "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata --refsnp "$refsnp" --markercol "$rscol" --pvalcol "$pvalcol" --db "$tmp_outdir"/locuszoom.db --prefix ${peak_chr}.${peak_pos}.${flank_bp} --plotonly showAnnot=T showRefsnpAnnot=T annotPch="21,24,24,25,22,22,8,7" rfrows=20 geneFontSize=.4 --ld "$tmp_outdir"/"$peak_chr"."$peak_pos".ld --start="$start_bp" --end="$end_bp" --chr="$peak_chr" showRecomb=T --build b38
 	echo -e "Done\n"
 
-	# re-format traits column
-	cat "$tmp_outdir"/annotated_table | perl -lne '@a=split(/\t/);@b=split(/\s*:\s*/,$a[2]);$b[0]=~s/[{"]//g;$b[1]=~s/[}"]//g;$a[3]=~s/[][]//g;$a[3]="NA" if $a[3]=~/^\s*$/;$,="\t";$a[3]=~s/,\s+/,/g;$a[3]=~s/\s+/_/g;print $a[0],$a[1],$b[0],$b[1],$a[3];' > "$tmp_outdir"/annotated_table_mod 
+	# reformat traits column
+	cat "$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table | perl -lne '@a=split(/\t/);@b=split(/\s*:\s*/,$a[2]);$b[0]=~s/[{"]//g;$b[1]=~s/[}"]//g;$a[3]=~s/[][]//g;$a[3]="NA" if $a[3]=~/^\s*$/;$,="\t";$a[3]=~s/,\s+/,/g;$a[3]=~s/\s+/_/g;print $a[0],$a[1],$b[0],$b[1],$a[3];' > "$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table_mod 
 	
 	# prepare data for interactive manhattan plotting
 	echo "Joining"
-	join --header -1 $rscoli -2 1 <(cat <(head -n 1 "$tmp_outdir"/peakdata) <(tail -n +2 "$tmp_outdir"/peakdata | sort -k$rscoli,$rscoli)) <(cat <(echo $rscol ld) <(tail -n +2 "$tmp_outdir"/"$peak_chr"."$peak_pos".ld | tr ' ' '\t' | cut -f 1,3 | sort -k1,1)) | tr ' ' '\t' > "$tmp_outdir"/"$peak_chr"."$peak_pos".join1
-	join --header -1 1 -2 1 <(cat <(head -n 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".join1) <(sort -k1,1 "$tmp_outdir"/"$peak_chr"."$peak_pos".join1)) <(cat <(echo $rscol gene consequence traits) <(cut -f 2- "$tmp_outdir"/annotated_table_mod | sort -k1,1)) | tr ' ' '\t' | sed -e 's/"//g' -e 's/_/ /g' > "$tmp_outdir"/"$peak_chr"."$peak_pos".join2
+	join --header -1 $rscoli -2 1 <(cat <(head -n 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata) <(tail -n +2 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k$rscoli,$rscoli)) <(cat <(echo $rscol ld) <(tail -n +2 "$tmp_outdir"/"$peak_chr"."$peak_pos".ld | tr ' ' '\t' | cut -f 1,3 | sort -k1,1)) | tr ' ' '\t' > "$tmp_outdir"/"$peak_chr"."$peak_pos".join1
+	join --header -1 1 -2 1 <(cat <(head -n 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".join1) <(sort -k1,1 "$tmp_outdir"/"$peak_chr"."$peak_pos".join1)) <(cat <(echo $rscol gene consequence traits) <(cut -f 2- "$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table_mod | sort -k1,1)) | tr ' ' '\t' | sed -e 's/"//g' -e 's/_/ /g' > "$tmp_outdir"/"$peak_chr"."$peak_pos".join2
 	echo -e "Done\n"
 
 	# create ineractive HTML
 	echo "Creating HTML"
-	PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 $chrcol $pvalcol $pscol $rscol $mafcol "$peak_chr"."$peak_pos".html # <-- change this line
+	PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 $chrcol $pvalcol $pscol $rscol $mafcol "$peak_chr"."$peak_pos"."$flank_bp".html # <-- change this line
 	echo -e "Done\n"
     done
 done
 
-rm -rf "$tmp_outdir"
+#rm -rf "$tmp_outdir"
 
 exit 0
 
