@@ -90,7 +90,7 @@ if [[ -z "$tmp_outdir" ]];then
 fi
 
 echo -e "--------------------------- SELECTING PEAKS -------------------------------\n"
-~/variant_annotation/selectPeaks.py -i "$assocfile" -c "$chrcol" -p "$pscol" -v "$pvalcol" -f "$flank_bp" -t "$signif" -o "$tmp_outdir" # <--- change this line
+selectPeaks.py -i "$assocfile" -c "$chrcol" -p "$pscol" -v "$pvalcol" -f "$flank_bp" -t "$signif" -o "$tmp_outdir"
 if [[ $? -ne 0 ]];then
     echo "ERROR: selectPeaks.py returned non-zero status"
     exit 1
@@ -174,7 +174,7 @@ for fname in $(find "$tmp_outdir" -name "peaks_*.txt" | sort);do
 	# with same position and permuted alleles: 1_12345_A_C and 1_12345_C_A
 	# whereas peakdata contains only one of those (the first match in "common")
 	# this means LD data (based on PLINK data) may contain more variants than peakdata.chrpos
-	# this leads later to locuszoom complaining:
+	# this later leads to locuszoom complaining:
 	# Warning: could not find position for SNP 22_49623908_G_A in user-supplied --ld file, skipping..
 	
 	echo "Setting variant IDs in" "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata
@@ -193,16 +193,16 @@ for fname in $(find "$tmp_outdir" -name "peaks_*.txt" | sort);do
 	# create table with rs IDs, VEP and phenotype annotations
 	echo "Annotating peakdata variants"
 	if [[ -z "$dbsnp" ]];then
-	    cut -f $rscoli  "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug # <--- change this line
+	    cut -f $rscoli  "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | annotateIDList.py -v debug 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug
 	else
 	    minp=$(cut -f 2 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -n | head -n 1)
 	    maxp=$(cut -f 2 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -nr | head -n 1)
 	    tabix "$dbsnp" "$peak_chr":"$minp"-"$maxp" | cut -f 2-5 > "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp
 	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF==2{print $2;}' > "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp
 	    # 22 16059596 rs1317973428 GA G is the same as 22_16059596_GAA_GAAA
-	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF!=2'| ~/variant_annotation/compareVariants.pl 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".in_dbsnp 2>>"$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp # <-- change this line
-	    cat "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug # <--- change this line
-	    cat "$tmp_outdir"/"$peak_chr"."$peak_pos".in_dbsnp | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py --rs -v debug 1>>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug # <--- change this line	    
+	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF!=2'| compareVariants.pl 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".in_dbsnp 2>>"$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp
+	    cat "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp | annotateIDList.py -v debug 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug
+	    cat "$tmp_outdir"/"$peak_chr"."$peak_pos".in_dbsnp | annotateIDList.py --rs -v debug 1>>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug
 	fi
 	echo -e "Done\n"
 
@@ -250,12 +250,13 @@ for fname in $(find "$tmp_outdir" -name "peaks_*.txt" | sort);do
 
 	# create ineractive HTML
 	echo "Creating HTML"
-	PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 $chrcol $pvalcol $pscol $rscol $mafcol "$peak_chr"."$peak_pos"."$flank_bp".html # <-- change this line
+	#PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 $chrcol $pvalcol $pscol $rscol $mafcol "$peak_chr"."$peak_pos"."$flank_bp".html # <-- change this line
+	interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 $chrcol $pvalcol $pscol $rscol $mafcol "$peak_chr"."$peak_pos"."$flank_bp".html
 	echo -e "Done\n"
     done
 done
 
-#rm -rf "$tmp_outdir"
+rm -rf "$tmp_outdir"
 
 exit 0
 

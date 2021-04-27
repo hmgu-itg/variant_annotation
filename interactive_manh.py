@@ -83,7 +83,6 @@ p.circle(pscol,'logp',line_width=2,source=e,size=9,fill_color='col',line_color="
 p2=figure(width=1500,height=300,x_range=p.x_range,y_range=(0,1),tools=['tap'])
 if len(genes_df)>0:
     ys=np.linspace(start=1/(len(genes_df)+1),stop=len(genes_df)/(len(genes_df)+1),num=len(genes_df))
-    print(ys)
     genes_df['y']=ys
     genes_df['color']="cornflowerblue"
     genes_df['color'].loc[genes_df['biotype']=="protein_coding"]="goldenrod"
