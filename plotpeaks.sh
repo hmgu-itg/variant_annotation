@@ -146,7 +146,7 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 	# select neighbouring variants from association file
 	# no header in peakdata
 	echo "Selecting neighbouring variants from $assocfile: ${peak_chr}:${start_bp}-${end_bp}"
-	$cat $assocfile | awk -v i="$chrcoli" -v c="$peak_chr" -v j="$pscoli" -v p="$peak_pos" -v f="$flank_bp" 'BEGIN{FS="\t";OFS="\t";}{if ($i==c && $j>(p-f) && $j<(p+f)){print $0;}}' | grep -v nan > "$tmp_outdir"/peakdata # <--- TODO: better filter for NaN p-values ?
+	$cat $assocfile | awk -v i="$chrcoli" -v c="$peak_chr" -v j="$pscoli" -v p="$peak_pos" -v f="$flank_bp" 'BEGIN{FS="\t";OFS="\t";}{if ($i==c && $j>(p-f) && $j<(p+f)){print $0;}}' | grep -v nan > "$tmp_outdir"/peakdata
 	echo -e "Done\n"
 
 	# common variants between merged PLINK and peakdata
@@ -209,7 +209,7 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 	locuszoom --metal "$tmp_outdir"/peakdata --refsnp "$refsnp" --markercol "$rscol" --pvalcol "$pvalcol" --db "$tmp_outdir"/locuszoom.db --prefix ${peak_chr}.${peak_pos}.${flank_bp} --plotonly showAnnot=T showRefsnpAnnot=T annotPch="21,24,24,25,22,22,8,7" rfrows=20 geneFontSize=.4 --ld "$tmp_outdir"/"$peak_chr"."$peak_pos".ld --start="$start_bp" --end="$end_bp" --chr="$peak_chr" showRecomb=T --build b38
 	echo -e "Done\n"
 
-	# modify annotated_table
+	# re-format traits column
 	cat "$tmp_outdir"/annotated_table | perl -lne '@a=split(/\t/);@b=split(/\s*:\s*/,$a[2]);$b[0]=~s/[{"]//g;$b[1]=~s/[}"]//g;$a[3]=~s/[][]//g;$a[3]="NA" if $a[3]=~/^\s*$/;$,="\t";$a[3]=~s/,\s+/,/g;$a[3]=~s/\s+/_/g;print $a[0],$a[1],$b[0],$b[1],$a[3];' > "$tmp_outdir"/annotated_table_mod 
 	
 	# prepare data for interactive manhattan plotting
@@ -219,9 +219,9 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 	echo -e "Done\n"
 
 	# create ineractive HTML
-	# echo "Create HTML"
-	# PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 P-value ps MarkerName Freq1
-	# echo -e "Done\n"
+	echo "Creating HTML"
+	PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/interactive_manh.py "$tmp_outdir"/"$peak_chr"."$peak_pos".join2 $chrcol $pvalcol $pscol $rscol $mafcol # <-- change this line
+	echo -e "Done\n"
     done
 done
 

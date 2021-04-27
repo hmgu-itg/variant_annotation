@@ -18,10 +18,11 @@ pvalcol=sys.argv[3]
 pscol=sys.argv[4]
 rscol=sys.argv[5]
 mafcol=sys.argv[6]
+outfile=sys.argv[7]
 
 pd.options.mode.chained_assignment = None  
 df=pd.read_csv(infile, sep="\t",index_col=False)
-output_file(infile+".html")
+output_file(outfile)
 hover= HoverTool(tooltips = [
         ("==============", "=============="),
         ("name", "   @"+rscol),
@@ -79,7 +80,7 @@ taptool=p.select(type=TapTool)
 taptool.callback=OpenURL(url=url)
 p.circle(pscol,'logp',line_width=2,source=e,size=9,fill_color='col',line_color="black", line_alpha='col_traits')
 
-p2=figure(width=1500, height=300, x_range=p.x_range,y_range=(0,1), tools=['tap'])
+p2=figure(width=1500,height=300,x_range=p.x_range,y_range=(0,1),tools=['tap'])
 if len(genes_df)>0:
     ys=np.linspace(start=1/(len(genes_df)+1),stop=len(genes_df)/(len(genes_df)+1),num=len(genes_df))
     #ys=np.random.rand(len(genes_df))
