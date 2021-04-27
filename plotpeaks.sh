@@ -105,13 +105,14 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 	end_bp=$((peak_pos+flank_bp))
 
 	# PLINK selecting and merging
-	# also remove possible "chr" prefix from variant IDs and chromosome names
+	# remove possible "chr" prefix from chromosome names
+	# set proper variant IDs in .bim
 	rm -f "$tmp_outdir"/mergelist
 	for id in "${ids[@]}"
 	do
 	    echo "Selecting variants from ${files[$id]} using PLINK"
 	    plink --memory 15000 --bfile ${files[$id]} --chr $peak_chr --from-bp $start_bp --to-bp $end_bp --out "$tmp_outdir"/$id --make-bed
-	    cat "$tmp_outdir"/$id.bim | sed 's/chr//g' | sponge "$tmp_outdir"/$id.bim
+	    sed 's/^chr//' "$tmp_outdir"/$id.bim | awk 'BEGIN{FS="\t";OFS="\t";}{$2=$1"_"$4"_"$5"_"$6; print $0;}' | sponge "$tmp_outdir"/$id.bim
 	    echo "$tmp_outdir"/"$id" >> "$tmp_outdir"/mergelist
 	done
 	echo -e "PLINK done\n"
