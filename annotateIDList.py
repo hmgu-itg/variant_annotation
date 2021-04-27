@@ -63,8 +63,8 @@ R=variant.id2rs_list([line.rstrip() for line in sys.stdin.readlines()],build=bui
 rs_not_found=[varid for varid in R if R[varid]=={"NA"}]
 LOGGER.debug("%d variants with no rs IDs" % len(rs_not_found))
 # for variants without rs IDs no phenotype annotations are added
-R0=variant.addConsequencesToIDList(rs_not_found,build=build,most_severe_only=True)
-R1=variant.addConsequencesToRSList([x for s in list([list(x) for x in R.values()]) for x in s],build=build,most_severe_only=True)
+R0=variant.addConsequencesToIDList(rs_not_found,build=build,most_severe_only=True,gene_key="external_name")
+R1=variant.addConsequencesToRSList([x for s in list([list(x) for x in R.values()]) for x in s],build=build,most_severe_only=True,gene_key="external_name")
 R2=variant.addPhenotypesToRSList([x for s in list([list(x) for x in R.values()]) for x in s],build=build)
 
 # for some input IDs, rs ID might be "NA", in which case output the original ID instead

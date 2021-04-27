@@ -496,7 +496,7 @@ def addPhenotypesToRSList(rsIDs,build="38"):
 
 # add VEP consequences to a list of variant IDs (1_12345_AC_A)
 # most_severe_only==True: only output one gene:consequence pair, where gene's consequence is "most_severe_consequence"
-def addConsequencesToIDList(varIDs,build="38",most_severe_only=False):
+def addConsequencesToIDList(varIDs,build="38",most_severe_only=False,gene_key="gene_id"):
     LOGGER.debug("Input ID list: %d variants" % len(varIDs))
     R=dict()
     # double check, make sure IDs have correct format
@@ -519,7 +519,7 @@ def addConsequencesToIDList(varIDs,build="38",most_severe_only=False):
                 H=dict()
                 if "transcript_consequences" in x:
                     for g in x["transcript_consequences"]:
-                        H.setdefault(g["gene_id"],[]).extend(g["consequence_terms"])
+                        H.setdefault(g[gene_key],[]).extend(g["consequence_terms"])
                     for g in H:
                         H[g]=utils.getMostSevereConsequence(H[g])
                 else:
@@ -545,7 +545,7 @@ def addConsequencesToIDList(varIDs,build="38",most_severe_only=False):
 
 # add VEP consequences to a list of rs IDs
 # most_severe_only==True: only output one gene:consequence pair, where gene's consequence is "most_severe_consequence"
-def addConsequencesToRSList(rsIDs,build="38",most_severe_only=False):
+def addConsequencesToRSList(rsIDs,build="38",most_severe_only=False,gene_key="gene_id"):
     LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
     R=dict()
     # exclude possible NAs from the input list first
@@ -559,7 +559,7 @@ def addConsequencesToRSList(rsIDs,build="38",most_severe_only=False):
                 H=dict()
                 if "transcript_consequences" in x:
                     for g in x["transcript_consequences"]:
-                        H.setdefault(g["gene_id"],[]).extend(g["consequence_terms"])
+                        H.setdefault(g[gene_key],[]).extend(g["consequence_terms"])
                     for g in H:
                         H[g]=utils.getMostSevereConsequence(H[g])
                 else:

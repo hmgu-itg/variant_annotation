@@ -68,7 +68,14 @@ pvalcoli=$(getColNum $cat $assocfile $pvalcol)
 a1coli=$(getColNum $cat $assocfile $a1col)
 a2coli=$(getColNum $cat $assocfile $a2col)
 
-echo COLUMNS "CHR: "$chrcoli . "POS: "$pscoli . "rsID: "$rscoli . "Pval: "$pvalcoli . "A1: "$a1coli . "A2: "$a2coli
+echo ""
+echo COLUMNS "CHR: "$chrcoli
+echo COLUMNS "POS: "$pscoli
+echo COLUMNS "ID: "$rscoli
+echo COLUMNS "Pval: "$pvalcoli
+echo COLUMNS "A1: "$a1coli
+echo COLUMNS "A2: "$a2coli
+echo ""
 
 tmp_outdir=$(mktemp -d -p $(pwd) temp_plotpeaks_XXXXXXXX)
 if [[ -z "$tmp_outdir" ]];then
@@ -225,6 +232,8 @@ for fname in $(find "$tmp_outdir" -name "peak*.txt" | sort);do
 	echo -e "Done\n"
     done
 done
+
+rm -rf "$tmp_outdir"
 
 exit 0
 
