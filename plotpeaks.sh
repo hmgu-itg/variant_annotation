@@ -200,7 +200,9 @@ for fname in $(find "$tmp_outdir" -name "peaks_chr22*.txt" | sort);do
 	    tabix "$dbsnp" "$peak_chr":"$minp"-"$maxp" | cut -f 2-5 > "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp
 	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <$(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF==2{print $2;}' > "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp
 	    # 22 16059596 rs1317973428 GA G is the same as 22_16059596_GAA_GAAA
-	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <$(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF!=2'| perl -lne 'BEGIN{%H=();%all=();}{@a=split(/ /);@b=split(/_/,$a[4]);$a1=$b[2];$a2=$b[3];$ref=$a[2];$all{$a[4]}=1;@c=split(/,/,$a[3]); if ($ref==$a1){foreach $a (@c){ if ($a2==$a) {$H{$a[4]}=$a[1];last;}}}elsif($ref==$a2){foreach $a (@c){ if ($a1==$a) {$H{$a[4]}=$a[1];last;}} } }END{$,="\t";foreach $x (keys %all){if (exists($H{$x})){print $x,$H{$x};}else{ print $x,$x;}}}'
+	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <$(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF!=2'| ~/variant_annotation/compareVariants.pl 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".in_dbsnp 2>>"$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp # <-- change this line
+	    cat "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp | PYTHONPATH=~/variant_annotation/python/ ~/variant_annotation/annotateIDList.py -v debug 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug # <--- change this line
+	    
 	fi
 	echo -e "Done\n"
 

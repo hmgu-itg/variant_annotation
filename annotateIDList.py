@@ -26,6 +26,7 @@ verbosity=logging.INFO
 parser = argparse.ArgumentParser(description="Annotate list of variant IDs with rs IDs, VEP consequences and phenotype associations")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38",required=False)
 parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
+parser.add_argument("--rs", "-r", help="Optional: input consists of ID rsID pairs",required=False, action='store_false')
 
 try:
     args=parser.parse_args()
@@ -58,8 +59,14 @@ logging.getLogger("varannot.utils").addHandler(ch)
 logging.getLogger("varannot.utils").setLevel(verbosity)
 
 #---------------------------------------------------------------------------------------------------------------------------
+R=dict()
+if not args.rs:
+    R=variant.id2rs_list([line.rstrip() for line in sys.stdin.readlines()],build=build,skip_non_rs=True,keep_all=False)
+else:
+    for line in sys.stdin.readlines():
+        L=line.rstrip().split("\t")
+        R[L[0]]={L[1]}
 
-R=variant.id2rs_list([line.rstrip() for line in sys.stdin.readlines()],build=build,skip_non_rs=True,keep_all=False)
 rs_not_found=[varid for varid in R if R[varid]=={"NA"}]
 LOGGER.debug("%d variants with no rs IDs" % len(rs_not_found))
 # for variants without rs IDs no phenotype annotations are added
