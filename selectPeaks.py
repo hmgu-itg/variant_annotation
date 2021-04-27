@@ -10,10 +10,10 @@ import pandas as pd
 parser = argparse.ArgumentParser(description="Select signal peaks from association results")
 parser.add_argument('--input','-i',type=str,action="store",help="Input file with association results",required=True)
 parser.add_argument('--threshold','-t',type=float,action="store",help="P-value threshold",required=True)
-parser.add_argument('--flank','-f',type=int,action="store",help="flank size (bp)",required=True)
-parser.add_argument('--chr','-c',type=str,action="store",help="Chromosome label column",required=True)
-parser.add_argument('--pos','-p',type=str,action="store",help="Variant position column",required=True)
-parser.add_argument('--pval','-v',type=str,action="store",help="P-value column",required=True)
+parser.add_argument('--flank','-f',type=int,action="store",help="Flank size (bp)",required=True)
+parser.add_argument('--chr','-c',type=str,action="store",help="Chromosome column name",required=True)
+parser.add_argument('--pos','-p',type=str,action="store",help="Variant position column name",required=True)
+parser.add_argument('--pval','-v',type=str,action="store",help="P-value column name",required=True)
 parser.add_argument('--output','-o',type=str,action="store",help="Output directory; default: same directory as the input file",required=False)
 
 if len(sys.argv[1:])==0:
@@ -93,6 +93,7 @@ if not pvalname in available_columns:
     sys.exit(1)
     
 chunks=[]
+# reading in and keeping only records with valid P under threshold
 for c in pd.read_csv(infile,sep="\t",iterator=True,chunksize=10000):
     t=c.loc[pd.to_numeric(c[pvalname],errors="coerce").notnull()]
     t=t.loc[t[pvalname].astype(float)<pt]
