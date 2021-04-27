@@ -18,12 +18,14 @@ def rs2spdi(ID,build="38"):
     L=[]
     z=query.restQuery(query.makeRSQueryURL(ID,build=build))
     if z:
+        LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
         for x in z:
-            if "spdi" in x:
-                spdis=x["spdi"]
-                for spdi in spdis:
-                    if not spdi in L:
-                        L.append(spdi)
+            for x1 in x:
+                if "spdi" in x[x1]:
+                    spdis=x[x1]["spdi"]
+                    for spdi in spdis:
+                        if not spdi in L:
+                            L.append(spdi)
 
     return L
 
@@ -80,26 +82,27 @@ def rs2position(ID,build="38",alleles=False):
     L=[]
     z=query.restQuery(query.makeRSQueryURL(ID,build=build))
     if z:
+        print(json.dumps(z,indent=4,sort_keys=True))
         for x in z:
-            spdis=x["spdi"]
-            for spdi in spdis:
-                LOGGER.debug("SPDI: %s" % spdi)
-                h=query.parseSPDI(spdi,build=build,alleles=alleles)
-                p=h["pos"]
-                c=h["chr"]
-                ref=h["ref"]
-                alt=h["alt"]
-                LOGGER.debug("%s:%d:%s:%s" % (c,p,ref,alt))
-                z=None
-                if alleles:
-                    z=next((x for x in L if x["chr"]==c and x["pos"]==p and x["ref"]==ref and x["alt"]==alt),None)
-                else:
-                    z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
-                if not z:
-                    L.append({"chr":c,"pos":p,"ref":ref,"alt":alt})
+            for x1 in x:
+                spdis=x[x1]["spdi"]
+                for spdi in spdis:
+                    LOGGER.debug("SPDI: %s" % spdi)
+                    h=query.parseSPDI(spdi,build=build,alleles=alleles)
+                    p=h["pos"]
+                    c=h["chr"]
+                    ref=h["ref"]
+                    alt=h["alt"]
+                    LOGGER.debug("%s:%d:%s:%s" % (c,p,ref,alt))
+                    z=None
+                    if alleles:
+                        z=next((x for x in L if x["chr"]==c and x["pos"]==p and x["ref"]==ref and x["alt"]==alt),None)
+                    else:
+                        z=next((x for x in L if x["chr"]==c and x["pos"]==p),None)
+                    if not z:
+                        L.append({"chr":c,"pos":p,"ref":ref,"alt":alt})
     else:
         return None
-
     return L
 
 # ==============================================================================================================================
@@ -228,7 +231,7 @@ def getVariantInfo(rs,build="38"):
     # in case provided ID is not an RS
     if not utils.isRS(rs):
         t=utils.splitID(rs)
-        if t:
+        if t: # TODO: check if ref/alt mappings are correct: compare to reference sequence
             return {"minor_allele":None,"MAF":None,"rsID":None,"class":rs,"synonyms":[],"consequence":None,"mappings":[{"chr":t["chr"],"pos":t["pos"],"ref":t["a1"],"alt":t["a2"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"},{"chr":t["chr"],"pos":t["pos"],"ref":t["a2"],"alt":t["a1"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"}],"population_data":None,"phenotype_data":None,"clinical_significance":None,"scores":None}
         else:
             return None
@@ -438,7 +441,8 @@ def id2rs_mod(varid,build="38"):
         r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"]-window,V["pos"]+window,build=build))
         if not r:
             return S
-
+        
+        LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
         LOGGER.debug("Got %d variants around %s:%d\n" %(len(r),V["seq"],V["pos"]))
         for v in r:
             LOGGER.debug("Current variant: %s" % v["id"])
@@ -446,23 +450,328 @@ def id2rs_mod(varid,build="38"):
             if not z:
                 continue
 
+            LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
             for x in z:
-                spdis=x["spdi"]
-                var=x["id"][0]
-                for spdi in spdis:
-                    LOGGER.debug("SPDI: %s" % spdi)
-                    V2=utils.convertSPDI(spdi,build=build)
-                    LOGGER.debug("V2: %s" % V2)
-                    if b:
+                for x1 in x:
+                    spdis=x[x1]["spdi"]
+                    var=x[x1]["id"][0]
+                    for spdi in spdis:
+                        LOGGER.debug("SPDI: %s" % spdi)
+                        V2=utils.convertSPDI(spdi,build=build)
+                        LOGGER.debug("V2: %s" % V2)
+                        if b:
+                            if utils.equivalentVariants(V,V2,build=build):
+                                S.add(var)
+                                break
+                        if b1:
+                            if utils.equivalentVariants(V1,V2,build=build):
+                                S.add(var)
+                                break
+                        
+    return S
+
+# ===========================================================================================================================
+
+# add phenotype associations to a list of rs IDs
+def addPhenotypesToRSList(rsIDs,build="38"):
+    LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
+    R=dict()
+    # exclude possible NAs first
+    for L in utils.chunks(list(filter(lambda x:x!="NA",rsIDs)),config.VARIATION_POST_MAX):
+        r=query.restQuery(query.makeRSPhenotypeQueryURL(build=build),data=utils.list2string(L),qtype="post")
+        if not r is None:
+            LOGGER.debug("\n=== phenotype query ====\n%s\n==========================\n" % json.dumps(r,indent=4,sort_keys=True))
+            for v in r:
+                if not v in rsIDs:
+                    continue
+                if "phenotypes" in r[v]:
+                    R[v]=set([x["trait"] for x in list(filter(lambda x: not re.search("phenotype\s+not\s+specified",x["trait"]),r[v]["phenotypes"]))])
+                else:
+                    R[v]=set()
+    for v in set(rsIDs)-(set(R.keys())-{"NA"}):
+        R[v]=set()
+    return R
+    
+# ===========================================================================================================================
+
+# add VEP consequences to a list of variant IDs (1_12345_AC_A)
+# most_severe_only==True: only output one gene:consequence pair, where gene's consequence is "most_severe_consequence"
+def addConsequencesToIDList(varIDs,build="38",most_severe_only=False,gene_key="gene_id"):
+    LOGGER.debug("Input ID list: %d variants" % len(varIDs))
+    R=dict()
+    # double check, make sure IDs have correct format
+    for L in utils.chunks(list(filter(utils.checkID,varIDs)),config.VEP_POST_MAX//2):
+        h={"variants":[]}
+        for varid in L:
+            V=utils.convertVariantID(varid)
+            if utils.checkDEL(V,build=build):
+                h["variants"].append(utils.variant2vep(V))
+            else:
+                V=utils.convertVariantID(varid,reverse=True)
+                if utils.checkDEL(V,build=build):
+                    h["variants"].append(utils.variant2vep(V))
+        r=query.restQuery(query.makeVepListQueryURL(build=build),data=json.dumps(h),qtype="post")
+        if not r is None:
+            LOGGER.debug("\n======= VEP query ========\n%s\n==========================\n" % json.dumps(r,indent=4,sort_keys=True))
+            for x in r:
+                rs=x["id"]
+                mcsq=x["most_severe_consequence"] if "most_severe_consequence" in x else "NA"
+                H=dict()
+                if "transcript_consequences" in x:
+                    for g in x["transcript_consequences"]:
+                        H.setdefault(g[gene_key],[]).extend(g["consequence_terms"])
+                    for g in H:
+                        H[g]=utils.getMostSevereConsequence(H[g])
+                else:
+                    H["NA"]=mcsq
+                if most_severe_only is True:
+                    if mcsq=="NA":
+                        R[rs]={"NA":"NA"}
+                    else:
+                        g0="NA"
+                        for g in H:
+                            if H[g]==mcsq:
+                                g0=g
+                        R[rs]={g0:mcsq}
+                else:
+                    R[rs]=H
+    s=set(varIDs)-(set(R.keys())-{"NA"})
+    LOGGER.debug("No consequences found for %d IDs" % len(s))
+    for v in s:
+        R[v]={"NA":"NA"}
+    return R
+
+# ===========================================================================================================================
+
+# add VEP consequences to a list of rs IDs
+# most_severe_only==True: only output one gene:consequence pair, where gene's consequence is "most_severe_consequence"
+def addConsequencesToRSList(rsIDs,build="38",most_severe_only=False,gene_key="gene_id"):
+    LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
+    R=dict()
+    # exclude possible NAs from the input list first
+    for L in utils.chunks(list(filter(lambda x:x!="NA",rsIDs)),config.VEP_POST_MAX):
+        r=query.restQuery(query.makeVepRSListQueryURL(build=build),data=utils.list2string(L),qtype="post")
+        if not r is None:
+            LOGGER.debug("\n======= VEP query ========\n%s\n==========================\n" % json.dumps(r,indent=4,sort_keys=True))
+            for x in r:
+                rs=x["id"]
+                mcsq=x["most_severe_consequence"] if "most_severe_consequence" in x else "NA"
+                H=dict()
+                if "transcript_consequences" in x:
+                    for g in x["transcript_consequences"]:
+                        H.setdefault(g[gene_key],[]).extend(g["consequence_terms"])
+                    for g in H:
+                        H[g]=utils.getMostSevereConsequence(H[g])
+                else:
+                    H["NA"]=mcsq
+                if most_severe_only is True:
+                    if mcsq=="NA":
+                        R[rs]={"NA":"NA"}
+                    else:
+                        g0="NA"
+                        for g in H:
+                            if H[g]==mcsq:
+                                g0=g
+                        R[rs]={g0:mcsq}
+                else:
+                    R[rs]=H
+    s=set(rsIDs)-(set(R.keys())-{"NA"})
+    LOGGER.debug("No consequences found for %d rs IDs" % len(s))
+    for v in s:
+        R[v]={"NA":"NA"}
+    return R
+            
+# ===========================================================================================================================
+
+def id2rs_list(varIDs,build="38",skip_non_rs=False,keep_all=True):
+    H=dict()
+    R=dict()
+    # TODO: check ID validity and if it's an rsID
+    # trying fast method first
+    LOGGER.debug("Input variant list: %d elements" % len(varIDs))
+    c=0
+    t=2*len(varIDs)//config.VARIATION_POST_MAX
+    if t%2:
+        t=t+1
+    for L in utils.chunks(varIDs,config.VARIATION_POST_MAX//2):
+        L1=list()
+        for x in L:
+            # TODO: checks
+            spdi=utils.var2spdi(utils.convertVariantID(x))
+            H[spdi]=x
+            L1.append(spdi)
+            spdi=utils.var2spdi(utils.convertVariantID(x,reverse=True))
+            H[spdi]=x
+            L1.append(spdi)
+        r=None
+        while r is None:
+            r=query.restQuery(query.makeRSListQueryURL(build=build),data=utils.list2string(L1),qtype="post")
+            if r is None:
+                LOGGER.debug("Retrying")
+        for x1 in r:
+            for x2 in x1:
+                if "id" in x1[x2]:
+                    v=H[x1[x2]["input"]]
+                    if not v in R:
+                        R[v]=set()
+                        R[v].update(x1[x2]["id"])
+                    else:
+                        R[v].update(x1[x2]["id"])
+        c+=1
+        LOGGER.debug("Chunk %d (%d) done" % (c,t))
+    LOGGER.debug("Found rsIDs for %d variants using fast method" % len(R.keys()))
+    # slow method for unmapped
+    unmapped=list(set(varIDs)-set(R.keys()))
+    LOGGER.debug("Using slow method for %d variants" % len(unmapped))
+    for v in unmapped:
+        R[v]=id2rs_mod2(v,build)
+    if skip_non_rs==True:
+        LOGGER.debug("Filtering non rs IDs")
+        for v in R:
+            s=set(filter(utils.isRS,R[v]))
+            if len(s)==0:
+                R[v]={"NA"}
+            else:
+                R[v]=s
+    if not keep_all is True:
+        LOGGER.debug("Keeping only one rs ID")
+        c=0
+        for v in R:
+            if len(R[v])>1:
+                z=R[v].pop()
+                R[v]={z}
+                c+=1
+        LOGGER.debug("Truncated %d sets" % c)
+    return R
+
+# ===========================================================================================================================
+
+# faster version
+def id2rs_mod2(varid,build="38"):
+    '''
+    For a given variant ID (chr_pos_A1_A2), return a set of matching rs IDs
+
+    Input: variant ID, build (default: 38)
+    Output: set of rs IDs
+    '''
+
+    S=set()
+    if utils.isRS(varid):
+        return {varid}
+    if not utils.checkID(varid):
+        LOGGER.error("Variant ID %s is malformed" % varid)
+        return S
+
+    V=utils.convertVariantID(varid)
+    V1=utils.convertVariantID(varid,reverse=True)
+        
+    window=max(len(V["del"]),len(V["ins"]))
+        
+    if utils.getVarType(V)=="SNP":
+        r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"],V["pos"],build=build))
+        if not r:
+            return S
+
+        for v in r:
+            if V["del"] in v["alleles"] and V["ins"] in v["alleles"] and v["strand"]==1 and v["start"]==v["end"]:
+                S.add(v["id"])
+    else:
+        r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"]-window,V["pos"]+window,build=build))
+        if not r:
+            return S
+        
+        LOGGER.debug("Got %d variants around %s:%d\n" %(len(r),V["seq"],V["pos"]))
+        LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
+
+        # only save indel IDs in L
+        L=[]
+        for v in r:
+            if "alleles" in v and "id" in v:
+                for a in v["alleles"]:
+                    if a =="-" or len(a)>1:
+                        L.append(v["id"])
+                        break
+        if len(L)==0:
+            LOGGER.debug("No indels found")
+            return S
+        LOGGER.debug("%d indels found: %s" % (len(L),str(L)))
+        
+        # TODO: check if L is larger than allowed POST size
+        z1=query.restQuery(query.makeRSListQueryURL(build=build),qtype="post",data=utils.list2string(L))
+        LOGGER.debug("\n=======================\n%s\n==========================\n" % json.dumps(z1,indent=4,sort_keys=True))
+
+        LOGGER.debug("---------- CHECK START ----------------\n")
+        for v in z1:
+            for x1 in v:
+                if "spdi" in v[x1] and "id" in v[x1]:
+                    var=v[x1]["id"][0]
+                    spdis=v[x1]["spdi"]
+                    for spdi in spdis:
+                        V2=utils.convertSPDI(spdi,build=build)
+                        LOGGER.debug("SPDI: %s; V2: %s" % (spdi,V2))
                         if utils.equivalentVariants(V,V2,build=build):
                             S.add(var)
                             break
-                    if b1:
                         if utils.equivalentVariants(V1,V2,build=build):
                             S.add(var)
                             break
-                    
+        LOGGER.debug("----------- CHECK END -----------------\n")
+    return S
+
+# ===========================================================================================================================
+
+def id2rs_spdi(varid,build="38"):
+    '''
+    THIS METHOD IS NOT RELIABLE FOR INDELS AS SEVERAL DIFFERENT SPDI NOTATIONS CAN BE EQUIVALENT
+
+    For a given variant ID (chr_pos_A1_A2), return a set of matching rs IDs
+    Variant ID is converted to SPDI which is used in a variant_recoder query
+
+    Input: variant ID, build (default: 38)
+    Output: set of rs IDs
+    '''
+
+    S=set()
+
+    if utils.isRS(varid):
+        return {varid}
+
+    if not utils.checkID(varid):
+        LOGGER.error("Variant ID %s is malformed" % varid)
+        return S
+
+    # convert ID to dict 
+    V=utils.convertVariantID(varid)
+    V1=utils.convertVariantID(varid,reverse=True)
+    # get SPDI records
+    spdi=utils.var2spdi(V)
+    spdi1=utils.var2spdi(V1)
+    
+    r=query.restQuery(query.makeRSQueryURL(spdi,build=build),quiet=True)
+    # r is a list of dicts
+    if not r is None:
+        LOGGER.debug("Got results for %s" % (str(V)))
+        LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
+        for x1 in r:
+            for x2 in x1:
+                if "id" in x1[x2]:
+                    for rs in x1[x2]["id"]:
+                        S.add(rs)
+    else:
+        LOGGER.debug("No results for %s" % (str(V)))
                         
+    r=query.restQuery(query.makeRSQueryURL(spdi1,build=build),quiet=True)
+    if not r is None:
+        LOGGER.debug("Got results for %s" % (str(V1)))
+        LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
+        for x1 in r:
+            for x2 in x1:
+                if "id" in x1[x2]:
+                    for rs in x1[x2]["id"]:
+                        S.add(rs)
+    else:
+        LOGGER.debug("No results for %s" % (str(V1)))
+
     return S
 
 # ==============================================================================================================================
@@ -641,91 +950,4 @@ def population2df(pop_data,ref):
         i+=1
 
     return df
-
-# ==============================================================================================================================
-
-# Retrieve data from the OMIM database
-# def getOmimInfo (cross_refs):
-#     '''
-#     Required information:
-#         - list of OMIM ID-s
-
-#     Retrieved information:
-#         - OMIM entry name
-#         - text field name
-#         - text field (that includes references as well)
-
-#     Retrieved data structure (one dict for all queried entries):
-#     dict{
-#         OMIM_ID :{
-#             title : OMIM_preferredTitle
-#             text : {
-#                 OMIM_textSectionTitle : OMIM_textSectionContent
-#     }}}
-
-#     More information how the OMIM API works see: http://omim.org/help/api
-#     The API key will expire in 2016.11.11, at that time a new key have to be required.
-#     '''
-
-#     # Extracting OMIM ID from the cross refereces data:
-#     MIM_IDs = [x[1] for x in cross_refs["MIM disease"]]
-#     MIM_IDs.extend([x[1] for x in cross_refs["MIM gene"]])
-
-#     # The function returns at this point if there is not MIM IDs in the crossref
-#     if len(MIM_IDs) == 0:
-#         return "No OMIM entry for this gene."
-
-#     # Constructing query string:
-#     URL = config.OMIM_URL
-
-#     for ID in MIM_IDs:
-#         URL += 'mimNumber=%s&' % ID
-
-#     # Retrieving the following fields:
-#     URL += 'include=text&'
-#     URL += 'include=allelicVariantList&'
-#     URL += 'include=referenceList&'
-
-#     # Adding API key:
-#     URL += config.OMIM_APIKEY
-
-#     # Required format is pyton (although it is a string indeed)ormat=python
-#     URL += "format=python&"
-
-#     # Downloading page:
-#     page = requests.get(URL)
-
-#     # Reconstructingh dictionary from the returned string:
-#     OMIM_entry  = ast.literal_eval(page.content)
-
-#     # hash to fill in:
-#     OMIM_data = {}
-
-#     # Parsing hash:
-#     for entry in OMIM_entry['omim']['entryList']:
-#         # GEt OMIM ID:
-#         ID = entry["entry"]["mimNumber"]
-#         OMIM_data[ID] = {}
-
-#         # Get OMIM name:
-#         OMIM_data[ID]['title'] = entry["entry"]["titles"]['preferredTitle']
-
-#         # Get OMIM text:
-#         OMIM_data[ID]['text'] = {}
-#         for fields in entry['entry']["textSectionList"]:
-#             OMIM_data[ID]['text'][fields['textSection']['textSectionTitle']] = fields['textSection']['textSectionContent']
-
-#         # now we have to parse allelic variants:
-#         # print stuff['omim']['entryList'][0]['entry']['allelicVariantList'][0]['allelicVariant'].keys()
-#         # ['status', 'name', 'dbSnps', 'text', 'mutations', 'number', 'alternativeNames', 'clinvarAccessions']
-
-#         try:
-#             OMIM_data[ID]['variations'] = {}
-#             for variations in entry['entry']['allelicVariantList']:
-#                 OMIM_data[ID]['variations'][variations['allelicVariant']['dbSnps']] = variations['allelicVariant']['text']
-#         except:
-#             continue
-
-#     return OMIM_data
-
 

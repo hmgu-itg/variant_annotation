@@ -7,8 +7,8 @@ import re
 import logging
 import json
 
-from python.varannot import variant
-from python.varannot import query
+from varannot import variant
+from varannot import query
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -42,8 +42,8 @@ formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
-logging.getLogger("python.varannot.variant").addHandler(ch)
-logging.getLogger("python.varannot.variant").setLevel(logging.DEBUG)
+logging.getLogger("varannot.variant").addHandler(ch)
+logging.getLogger("varannot.variant").setLevel(logging.DEBUG)
 
 #---------------------------------------------------------------------------------------------------------------------------
 

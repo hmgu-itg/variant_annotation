@@ -3,7 +3,7 @@ From: ubuntu:18.04
 
 %environment
 	TZ=Europe/Berlin
-	PATH=$PATH:/usr/local/bin:/usr/local/bin/variant_annotation
+	PATH=$PATH:/usr/local/bin:/usr/local/bin/variant_annotation:/opt/locuszoom/bin:/opt/plink
 	export PATH
 	LC_ALL=C
 	export LC_ALL
@@ -12,15 +12,20 @@ From: ubuntu:18.04
 	apt update
 	ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-	apt install -y locales
+	apt install -y locales gnupg software-properties-common bc
 	sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
 	locale-gen
 	dpkg-reconfigure --frontend=noninteractive locales
 
-	DEBIAN_FRONTEND="noninteractive" apt install -y software-properties-common build-essential git python3 python3-pip wget tabix moreutils python2.7
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+        add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/'
+
+	DEBIAN_FRONTEND="noninteractive" apt install -y software-properties-common build-essential git python3 python3-pip wget tabix moreutils python2.7 r-base
+	
 	sed -i 's/SECLEVEL=2/SECLEVEL=1/' /etc/ssl/openssl.cnf
-	wget https://bootstrap.pypa.io/get-pip.py
-	python2.7 get-pip.py
+	apt install -y python-pip
+	#wget https://bootstrap.pypa.io/get-pip.py
+	#python2.7 get-pip.py
 	pip2 install numpy matplotlib sklearn scipy pandas 
 	apt install -y python-tk
 
@@ -54,7 +59,7 @@ From: ubuntu:18.04
 	# apt-get install -y libcurl4-openssl-dev libssl-dev
 	# Rscript --vanilla -e "install.packages(c(\"shiny\",\"plotly\",\"shinyjs\",\"jsonlite\"),repos = \"http://cran.us.r-project.org\")"
 
-	apt-get install -y zlib1g zlib1g-dev firefox python-dev
+	apt-get install -y zlib1g zlib1g-dev firefox python-dev emacs
 	
 	cd /
 	git clone https://github.com/arq5x/bedtools2.git
@@ -65,6 +70,49 @@ From: ubuntu:18.04
 
 	pip2 install pybedtools scipy pandas numpy scikit-learn==0.14.1
 
+	# locuszoom
+	cd /opt
+	wget https://statgen.sph.umich.edu/locuszoom/download/locuszoom_1.4_srconly.tgz
+	tar -zxf locuszoom_1.4_srconly.tgz
+	rm locuszoom_1.4_srconly.tgz
+	
+	mkdir locuszoom/conf
+	touch locuszoom/conf/m2zfast.conf
+	cat <<-EOF >locuszoom/conf/m2zfast.conf
+	METAL2ZOOM_PATH="bin/locuszoom.R"
+	NEWFUGUE_PATH=""
+	PLINK_PATH="plink"
+	RSCRIPT_PATH="Rscript"
+	TABIX_PATH="tabix"
+	SQLITE_DB={"b38":""}
+	DEFAULT_BUILD="b38"
+	DEFAULT_POP="EUR"
+	DEFAULT_SOURCE="b38"
+	GWAS_CATS={"b38":{}}
+	LD_DB={"b38":{}}
+	EOF
+	
+	mkdir locuszoom/data
+	cd locuszoom/data
+	wget http://hgdownload.cse.ucsc.edu/goldenpath/hg38/database/refFlat.txt.gz
+	echo geneName name chrom strand txStart txEnd cdsStart cdsEnd exonCount exonStarts exonEnds | tr ' ' '\t' > refFlat_b38.txt
+	gunzip -c refFlat.txt.gz >> refFlat_b38.txt
+	rm refFlat.txt.gz
+	wget https://data.broadinstitute.org/alkesgroup/Eagle/downloads/tables/genetic_map_hg38_withX.txt.gz
+	echo chr pos recomb cm_pos | tr ' ' '\t' > recomb_rate_b38.txt
+	gunzip -c genetic_map_hg38_withX.txt.gz | tail -n +2 | tr ' ' '\t' >> recomb_rate_b38.txt
+	rm genetic_map_hg38_withX.txt.gz
+	
+	# PLINK
+	cd /opt
+	mkdir plink
+	cd plink
+	wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20201019.zip
+	unzip plink_linux_x86_64_20201019.zip
+	rm plink_linux_x86_64_20201019.zip
+
+	pip3 install bokeh asr
+	
 	CREATIONDATE=`date`
 
 %runscript

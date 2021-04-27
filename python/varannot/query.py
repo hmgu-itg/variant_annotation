@@ -49,6 +49,10 @@ def makePhenoOverlapQueryURL(chrom,start,end,build="38"):
     ext="/overlap/region/human/"
     return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_variants" %(chrom,start,end)
 
+def makeOverlapVarGWASCATQueryURL(chrom,start,end,build="38"):
+    ext="/overlap/region/human/"
+    return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_nhgri" %(chrom,start,end)
+
 def makeRsPhenotypeQuery2URL(rs,build="38"):
     ext="/variation/human/"
     return getServerName(build)+ext+"%s?pops=1;phenotypes=1" %rs
@@ -59,6 +63,18 @@ def makeRSListQueryURL(build="38"):
 
 def makeVepQueryURL(chrom,start,end,allele,strand="1",build="38"):
     ext="/vep/homo_sapiens/region/%s:%s-%s:1/%s?" % (chrom,str(start),str(end),allele)
+    return getServerName(build)+ext
+
+def makeVepListQueryURL(build="38"):
+    ext="/vep/homo_sapiens/region"
+    return getServerName(build)+ext
+
+def makeVepRSQueryURL(rsID,build="38"):
+    ext="/vep/homo_sapiens/id/%s?" % rsID
+    return getServerName(build)+ext
+
+def makeVepRSListQueryURL(build="38"):
+    ext="/vep/homo_sapiens/id"
     return getServerName(build)+ext
 
 def makeGeneOverlapQueryURL(chrom,start,end,build="38"):
@@ -135,7 +151,7 @@ def parseSPDI(string,alleles=False,build="38"):
 
 # ===========================================================================================================================
 
-def restQuery(URL,data=None,qtype="get",timeout=None):
+def restQuery(URL,data=None,qtype="get",timeout=None,quiet=False):
     func=None
 
     if qtype=="get":
@@ -143,7 +159,8 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
     elif qtype=="post":
         func=requests.post
     else:
-        LOGGER.error("Query type %s has to be either \"get\" or \"post\"" %(qtype))
+        if not quiet:
+            LOGGER.error("Query type %s has to be either \"get\" or \"post\"" %(qtype))
         return None
 
     r=None
@@ -152,29 +169,35 @@ def restQuery(URL,data=None,qtype="get",timeout=None):
             r = func(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},timeout=timeout)
         else:
             if not data:
-                LOGGER.error("POST query requires data")
+                if not quiet:
+                    LOGGER.error("POST query requires data")
                 return None                
             r = func(URL,headers={"Content-Type" : "application/json", "Accept" : "application/json"},data=data,timeout=timeout)
 
         if not r.ok:
-            LOGGER.error("Error %s occured (input URL: %s)" %(str(r.status_code),URL))
+            if not quiet:
+                LOGGER.error("Error %s occured (input URL: %s)" %(str(r.status_code),URL))
             return None
 
         try:
             ret=r.json()
             return ret
         except ValueError:
-            LOGGER.error("JSON decoding error")
+            if not quiet:
+                LOGGER.error("JSON decoding error")
             return None
 
     except Timeout as ex:
-        LOGGER.error("Timeout exception occured")
+        if not quiet:
+            LOGGER.error("Timeout exception occured")
         return None
     except TooManyRedirects as ex:
-        LOGGER.error("TooManyRedirects exception occured")
+        if not quiet:
+            LOGGER.error("TooManyRedirects exception occured")
         return None
     except RequestException as ex:
-        LOGGER.error("RequestException occured")
+        if not quiet:
+            LOGGER.error("RequestException occured")
         return None
 
 # ===========================================================================================================================

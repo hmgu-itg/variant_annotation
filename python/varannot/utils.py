@@ -103,6 +103,22 @@ def checkAlleles(ID,build="38"):
 
 # ==============================================================================================================================
 
+# get the most severe VEP consequence from a list
+
+def getMostSevereConsequence(L):
+    c=0
+    cons="NA"
+    for x in L:
+        if not x in config.VEP_CONSEQUENCES:
+            LOGGER.warning("input consequence %s is not in the dict" %(x))
+        else:
+            if config.VEP_CONSEQUENCES[x]>c:
+                c=config.VEP_CONSEQUENCES[x]
+                cons=x
+    return cons
+
+# ==============================================================================================================================
+
 # R:dict with "seq","pos","del","ins"
 
 def getVarType(R):
@@ -115,6 +131,22 @@ def getVarType(R):
         return "INS"
     else:
         return "INDEL"
+
+# ==============================================================================================================================
+
+# R:dict with "seq","pos","del","ins", VCF style
+# pos is 1-based
+
+def var2spdi(R):
+    t=getVarType(R)
+    if t=="SNP":
+        return R["seq"]+":"+str(R["pos"]-1)+":"+R["del"]+":"+R["ins"]
+    elif t=="DEL":
+        return R["seq"]+":"+str(R["pos"])+":"+R["del"][1:]+":"
+    elif t=="INS":
+        return R["seq"]+":"+str(R["pos"])+"::"+R["ins"][1:]
+    else:
+        return R["seq"]+":"+str(R["pos"]-1)+":"+R["del"]+":"+R["ins"]
 
 # ==============================================================================================================================
 
@@ -213,6 +245,21 @@ def convertVariantID(varid,reverse=False):
         return {"seq":L[0],"pos":int(L[1]),"del":L[3],"ins":L[2]}
     else:
         return {"seq":L[0],"pos":int(L[1]),"del":L[2],"ins":L[3]}
+
+# ==============================================================================================================================
+
+# input: dict with keys: "seq", "pos", "del", "ins"
+# output: string "1 12345 1_12345_AC_A AC A ..."
+# WARNING: has not been properly tested
+
+def variant2vep(variant,reverse=False):
+    chrom=variant["seq"]
+    pos=variant["pos"]
+    ref=variant["del"]
+    alt=variant["ins"]
+
+    varid="_".join([chrom,str(pos),ref,alt])
+    return " ".join([chrom,str(pos),varid,ref,alt,". . ."])
 
 # ==============================================================================================================================
 
