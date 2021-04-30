@@ -77,7 +77,7 @@ while true; do
     --plink ) files=$2; shift 2 ;;
     --flank ) flank_bp=$2; shift 2 ;;
     --dbsnp ) dbsnp=$2; shift 2 ;;
-    * ) usage ;; break ;;
+    * ) usage ; break ;;
   esac
 done
 
