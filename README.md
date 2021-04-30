@@ -3,7 +3,7 @@
 ### Basic help
 
 ```
-singularity exec plotpeaks -h
+singularity exec <singularity options> <annotator container name> plotpeaks -h
 ```
 
 ```
