@@ -80,12 +80,6 @@ while true; do
   esac
 done
 
-if [[ -z "$signif" || -z "$assocfile" || -z "$chrcol" || -z "$pvalcol" || -z "$mafcol" || -z "$rscol" || -z "$a1col" || -z "$a2col" || -z "$pscol" || -z "$files" ]];then
-    echo "ERROR: some input parameters were not specified"
-    usage
-    exit 1
-fi
-
 echo ""
 echo "==================================================="
 echo "P-VALUE THRESHOLD: $signif"
@@ -102,6 +96,12 @@ echo "PLINK FILES: $files"
 echo "DBSNP VCF: $dbsnp"
 echo "==================================================="
 echo ""
+
+if [[ -z "$signif" || -z "$assocfile" || -z "$chrcol" || -z "$pvalcol" || -z "$mafcol" || -z "$rscol" || -z "$a1col" || -z "$a2col" || -z "$pscol" || -z "$files" ]];then
+    echo "ERROR: some input parameters were not specified"
+    usage
+    exit 1
+fi
 
 declare -a files=($(echo $files | tr ',' ' '))
 declare -a ids=($(seq 0 $(($(echo $files | tr ',' '\n'| wc -l)-1)) | tr '\n' ' '))
