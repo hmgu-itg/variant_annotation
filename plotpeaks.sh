@@ -56,7 +56,7 @@ files=""
 dbsnp=""
 flank_bp=500000
 
-OPTS=$(getopt -o t:i:c:p:m: -l id:a1:a2:pos:plink:flank:dbsnp: -n 'plotpeaks')
+OPTS=$(getopt -o t:i:c:p:m: --long id:a1:a2:pos:plink:flank:dbsnp: -n 'plotpeaks')
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; usage ; exit 1 ; fi
 
