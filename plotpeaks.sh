@@ -27,31 +27,87 @@ function getColNum () {
     echo $(fgrep -w $colname <(paste <(seq 1 $($cmd $fname | head -n 1 | tr '\t' '\n'| wc -l)) <($cmd $fname | head -n 1 | tr '\t' '\n')) | cut -f 1)
 }
 
-signif=$1
-assocfile=$2
-chrcol=$3
-pscol=$4
-rscol=$5
-pvalcol=$6
-a1col=$7
-a2col=$8
-mafcol=$9
-files=${10}
-flank_bp=${11}
-dbsnp=${12}
-filelist=$files
+function usage () {
+  echo "Usage: plotpeaks -t <p-value threshold>"
+  echo "                 -i <input association file>"
+  echo "                 -c <chromosome column name>"
+  echo "                 -p <p-value column name>"
+  echo "                 -m <MAF column name>"
+  echo "                 --id <variant ID column name>"
+  echo "                 --a1 <allele 1 column name>"
+  echo "                 --a2 <allele 2 column name>"
+  echo "                 --pos <variant position column name>"
+  echo "                 --plink <comma separated PLINK prefixes>"
+  echo "                 --flank <flank size (bp)>: optional, default: 500000"
+  echo "                 --dbsnp <dbSNP VCF>: optional"
+  echo "                 -h : print this help and exit"
+}
 
-echo
-echo
-echo $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11}
-echo
-echo
+signif=""
+chrcol=""
+pscol=""
+rscol=""
+mafcol=""
+rscol=""
+a1col=""
+a2col=""
+files=""
+
+# default
+dbsnp=""
+flank_bp=500000
+
+OPTS=$(getopt -o ht:i:c:p:m: -l id:,a1:,a2:,pos:,plink:,flank:,dbsnp: -n 'plotpeaks' -- "$@")
+
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; usage ; exit 1 ; fi
+
+eval set -- "$OPTS"
+
+while true; do
+  case "$1" in
+    -h ) usage ; exit 0 ;;
+    -t ) signif=$2; shift 2 ;;
+    -i ) assocfile=$2; shift 2 ;;
+    -c ) chrcol=$2; shift 2 ;;
+    -p ) pvalcol=$2; shift 2 ;;
+    -m ) mafcol=$2; shift 2 ;;
+    --id ) rscol=$2; shift 2 ;;
+    --a1 ) a1col=$2; shift 2 ;;
+    --a2 ) a2col=$2; shift 2 ;;
+    --pos ) pscol=$2; shift 2 ;;
+    --plink ) files=$2; shift 2 ;;
+    --flank ) flank_bp=$2; shift 2 ;;
+    --dbsnp ) dbsnp=$2; shift 2 ;;
+    --) shift ; break ;;
+    * ) echo "Unexpected option: $1" ; usage ; break ;;
+  esac
+done
+
+echo ""
+echo "==================================================="
+echo "P-VALUE THRESHOLD: $signif"
+echo "ASSOCIATION FILE: $assocfile"
+echo "CHROM COLUMN NAME: $chrcol"
+echo "POS COLUMN NAME: $pscol"
+echo "PVAL COLUMN NAME: $pvalcol"
+echo "ID COLUMN NAME: $rscol"
+echo "ALLELE 1 COLUMN NAME: $a1col"
+echo "ALLELE 2 COLUMN NAME: $a2col"
+echo "MAF COLUMN NAME: $mafcol"
+echo "FLANK SIZE: $flank_bp"
+echo "PLINK FILES: $files"
+echo "DBSNP VCF: $dbsnp"
+echo "==================================================="
+echo ""
+
+if [[ -z "$signif" || -z "$assocfile" || -z "$chrcol" || -z "$pvalcol" || -z "$mafcol" || -z "$rscol" || -z "$a1col" || -z "$a2col" || -z "$pscol" || -z "$files" ]];then
+    echo "ERROR: some input parameters were not specified"
+    usage
+    exit 1
+fi
 
 declare -a files=($(echo $files | tr ',' ' '))
-declare -a ids=($(seq 0 $(($(echo ${10} | tr ',' '\n'| wc -l)-1)) | tr '\n' ' '))
-if [ -z "$flank_bp" ]; then
-	flank_bp=500000
-fi
+declare -a ids=($(seq 0 $(($(echo $files | tr ',' '\n'| wc -l)-1)) | tr '\n' ' '))
 
 flank_kb=$(echo "$flank_bp/1000" | bc)
 ext_flank_kb=$((flank_kb+100))
@@ -68,20 +124,6 @@ rscoli=$(getColNum $cat $assocfile $rscol)
 pvalcoli=$(getColNum $cat $assocfile $pvalcol)
 a1coli=$(getColNum $cat $assocfile $a1col)
 a2coli=$(getColNum $cat $assocfile $a2col)
-
-echo ""
-echo "HEADER FIELDS"
-$cat $assocfile | head -n 1 | tr '\t' '\n' | cat -n
-echo ""
-
-echo ""
-echo COLUMN "CHR: "$chrcoli
-echo COLUMN "POS: "$pscoli
-echo COLUMN "ID: "$rscoli
-echo COLUMN "Pval: "$pvalcoli
-echo COLUMN "A1: "$a1coli
-echo COLUMN "A2: "$a2coli
-echo ""
 
 tmp_outdir=$(mktemp -d -p $(pwd) temp_plotpeaks_XXXXXXXX)
 if [[ -z "$tmp_outdir" ]];then
