@@ -60,6 +60,7 @@ OPTS=$(getopt -o t:i:c:p:m: -l id:a1:a2:pos:plink:flank:dbsnp: -n 'plotpeaks')
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; usage ; exit 1 ; fi
 
+echo "OPTS : $OPTS"
 eval set -- "$OPTS"
 
 while true; do
@@ -76,7 +77,7 @@ while true; do
     --plink ) files=$2; shift 2 ;;
     --flank ) flank_bp=$2; shift 2 ;;
     --dbsnp ) dbsnp=$2; shift 2 ;;
-    * ) break ;;
+    * ) usage ;; break ;;
   esac
 done
 
