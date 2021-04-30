@@ -40,6 +40,7 @@ function usage () {
   echo "                 --plink <comma separated PLINK prefixes>"
   echo "                 --flank <flank size (bp)>: optional, default: 500000"
   echo "                 --dbsnp <dbSNP VCF>: optional"
+  echo "                 -h : print this help and exit"
 }
 
 signif=""
@@ -56,7 +57,7 @@ files=""
 dbsnp=""
 flank_bp=500000
 
-OPTS=$(getopt -o t:i:c:p:m: -l id:,a1:,a2:,pos:,plink:,flank:,dbsnp: -n 'plotpeaks' -- "$@")
+OPTS=$(getopt -o ht:i:c:p:m: -l id:,a1:,a2:,pos:,plink:,flank:,dbsnp: -n 'plotpeaks' -- "$@")
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; usage ; exit 1 ; fi
 
@@ -64,6 +65,7 @@ eval set -- "$OPTS"
 
 while true; do
   case "$1" in
+    -h ) usage ; exit 0 ;;
     -t ) signif=$2; shift 2 ;;
     -i ) assocfile=$2; shift 2 ;;
     -c ) chrcol=$2; shift 2 ;;
