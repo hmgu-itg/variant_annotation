@@ -241,7 +241,7 @@ for fname in $(find "$tmp_outdir" -name "peaks_*.txt" | sort);do
 	    maxp=$(cut -f 2 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -nr | head -n 1)
 	    tabix "$dbsnp" "$peak_chr":"$minp"-"$maxp" | cut -f 2-5 > "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp
 	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF==2{print $2;}' > "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp
-	    # 22 16059596 rs1317973428 GA G is the same as 22_16059596_GAA_GAAA
+	    # 22 16059596 rs1317973428 GA G is the same as 22_16059596_GAAA_GAA
 	    join -a 2 -j 1 "$tmp_outdir"/"$peak_chr"."$peak_pos".dbsnp <(cut -f 2,3 "$tmp_outdir"/"$peak_chr"."$peak_pos".peakdata | sort -k1,1n) | awk 'NF!=2'| compareVariants.pl 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".in_dbsnp 2>>"$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp
 	    cat "$tmp_outdir"/"$peak_chr"."$peak_pos".not_in_dbsnp | annotateIDList.py -v debug 1>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug
 	    cat "$tmp_outdir"/"$peak_chr"."$peak_pos".in_dbsnp | annotateIDList.py --rs -v debug 1>>"$tmp_outdir"/"$peak_chr"."$peak_pos".annotated_table 2>>"$tmp_outdir"/"$peak_chr"."$peak_pos".debug
