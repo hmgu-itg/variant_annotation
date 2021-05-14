@@ -29,12 +29,12 @@ def getApprisInfo(gene_ID):
     URL = "http://apprisws.bioinfo.cnio.es:80/rest/exporter/id/homo_sapiens/%s?format=json&db=b38" % gene_ID;
 
     data=dict()
-    r = requests.get(URL)
+    r=requests.get(URL)
     if not r.ok:
-        LOGGER.info("Query failed for gene: %s (URL: %s)" % (gene_ID,URL))
+        LOGGER.warning("Query failed for gene: %s (URL: %s)" % (gene_ID,URL))
         return data
 
-    decoded = r.json()
+    decoded=r.json()
     #print(json.dumps(decoded,indent=4,sort_keys=True))
     for transcript in decoded:
         tid=transcript["transcript_id"]

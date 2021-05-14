@@ -38,8 +38,6 @@ GWAS_WINDOW=500000
 GNOMAD_URL="https://gnomad.broadinstitute.org/api"
 APPRIS_URL="http://apprisws.bioinfo.cnio.es:80/rest/exporter/id/homo_sapiens/%s?format=json&db=hg19"
 
-OMIM_URL        = 'http://api.omim.org/api/entry?'
-OMIM_APIKEY     = 'apiKey=MWkzg-DYShWyrfrbqUHL4g&format=python&' # expired
 UNIPROT_URL     = 'http://www.uniprot.org/uniprot/'
 GXA_URL_PREFIX  = "https://www.ebi.ac.uk/gxa/genes/"
 GXA_URL_SUFFIX  = "?bs=%7B%22homo%20sapiens%22%3A%5B%22ORGANISM_PART%22%5D%7D&ds=%7B%22kingdom%22%3A%5B%22animals%22%5D%7D#baseline"
@@ -48,22 +46,12 @@ PUBMED_URL_PMID = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db
 
 PUBMED_URL="https://pubmed.ncbi.nlm.nih.gov/"
 
+# links for various phenotype sources 
 CLINVAR_URL="https://www.ncbi.nlm.nih.gov/clinvar/?term="
 NHGRI_URL="https://www.ebi.ac.uk/gwas/search?query="
 ENSEMBL_PHENO_URL="http://ensembl.org/Homo_sapiens/Variation/Phenotype?db=core;v=%s;vdb=variation"
 
-##
-## Anchor tags for Ensembl and other sources:
-##
-ENSEMBL_VAR     = '<a href="http://grch37.ensembl.org/Homo_sapiens/Variation/Explore?v=%s;vdb=variation">%s</a>'
-ENSEMBL_GENE    = '<a href="http://grch37.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=%s">%s</a>'
-ENSEMBL_REGION  = '<a href="http://grch37.ensembl.org/Homo_sapiens/Location/View?db=core;r=%s">%s</a>'
-CLINVAR_LINK    = '<a href="http://www.ncbi.nlm.nih.gov/clinvar/?database=clinvar&term=%s">%s</a>'
-OMIM_LINK       = '<a href="http://www.omim.org/search?index=entry&start=1&limit=10&search=%s">%s</a>'
-GWAS_CAT_LINK   = '<a href="https://www.ebi.ac.uk/gwas/search?query=%s">%s</a>'
-PUBMED_LINK     = '<a href="http://www.ncbi.nlm.nih.gov/pubmed/%s">%s</a>'
-GTEX_LINK       = '<a href="http://www.gtexportal.org/home/snp/%s">GTEx site</a>'
-
+# prepared files
 REGULATORY_FILE_SFX="regulation/regulation.bed.gz"
 GWAS_FILE_VAR_SFX="gwas/gwas.tsv.gz"
 GWAS_FILE_SFX="gwas/gwas_full.tsv.gz"
