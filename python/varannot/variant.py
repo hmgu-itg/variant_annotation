@@ -164,11 +164,14 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
                     if m:
                         continue
 
-                    link=utils.makeLink(config.ENSEMBL_PHENO_URL %rsID,"ENSEMBL")
+                    # default link
+                    link=utils.makeLink(config.ENSEMBL_PHENO_URL % rsID,"ENSEMBL")
+                    
                     if phenotype["source"] == "ClinVar":
                         link=utils.makeLink(config.CLINVAR_URL+rsID,"ClinVar")
                     elif phenotype["source"]=="NHGRI-EBI GWAS catalog":
                         link=utils.makeLink(config.NHGRI_URL+rsID,"NHGRI-EBI")
+                        
                     df.loc[i]=[rsID,r[rsID]["most_severe_consequence"].replace("_"," "),r[rsID]["mappings"][0]["location"],phenotype["trait"],phenotype["source"],link]
                     i+=1
     return df
@@ -194,7 +197,7 @@ def getChrPosList(mappings):
 
 def getMappingList(t,mappings):
     '''
-    For a list of variant mappings and a chr:pos pair, return a list of mappings corresponding to chr:pos
+    For a list of variant mappings and a chr:pos pair, return a list of mappings corresponding to a given chr:pos pair
 
     Input: chr:pos tuple, list of mappings
     Output: list
@@ -203,7 +206,6 @@ def getMappingList(t,mappings):
     for m in mappings:
         if t[0]==m["chr"] and t[1]==m["pos"]:
             L.append(m)
-
     return L
 
 # ===========================================================================================================================

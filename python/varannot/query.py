@@ -45,6 +45,7 @@ def makeRSPhenotypeQueryURL(build="38"):
     ext="/variation/homo_sapiens/"
     return getServerName(build)+ext+"?phenotypes=1"
 
+# https://rest.ensembl.org/documentation/info/overlap_region
 def makePhenoOverlapQueryURL(chrom,start,end,build="38"):
     ext="/overlap/region/human/"
     return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_variants" %(chrom,start,end)
