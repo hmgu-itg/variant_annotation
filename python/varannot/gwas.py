@@ -6,13 +6,14 @@ import re
 
 from varannot import config
 from varannot import query
+from varannot import utils
 
-import locale
-locale.setlocale(locale.LC_CTYPE,"en_US.UTF-8")
+# import locale
+# locale.setlocale(locale.LC_CTYPE,"en_US.UTF-8")
 
 LOGGER=logging.getLogger(__name__)
 
-# ================================================ GWAS CATALOG ===========================================================
+# ======================================================================================================================
 
 def hitsByGene(gene,build="38"):
     '''
@@ -54,13 +55,13 @@ def hitsByRegion(chrom,pos,window=config.GWAS_WINDOW,build="38"):
     Output: pandas data frame with columns rs,Location,Phenotype,P-value,Link
     '''
     start=int(pos)-int(window)
-    start=int(pos)+int(window)
+    end=int(pos)+int(window)
     df=pd.DataFrame(columns=["rs","Location","Phenotype","P-value","Link"])
     r=query.restQuery(query.makeOverlapPhenotypeQueryURL(chrom,start,end,build=build))
     i=0
     if r:
         for x in r:
-            for p in x["phenotypic_associations"]:
+            for p in x["phenotype_associations"]:
                 if p["source"]!="NHGRI-EBI GWAS catalog":
                     continue
                 link="NA"

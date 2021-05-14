@@ -4,6 +4,7 @@ import json
 import logging
 
 from varannot import variant
+from varannot import gwas
 
 ch=logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -30,3 +31,10 @@ print(json.dumps(x,indent=4,sort_keys=True))
 
 x=variant.getVariantsWithPhenotypes("1","50000000")
 print(x)
+
+x=gwas.hitsByGene("ENSG00000130203")
+print(x)
+
+x=gwas.hitsByRegion("9","22700000")
+print(x)
+
