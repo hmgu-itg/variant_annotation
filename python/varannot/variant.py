@@ -15,7 +15,18 @@ LOGGER=logging.getLogger(__name__)
 # ==============================================================================================================================
 
 def rs2spdi(ID,build="38"):
-    L=[]
+    '''
+    For a given rs ID, return a list of SPDI strings
+
+    Input: rs ID
+    Output: list of SPDI strings
+    '''
+    
+    L=list()
+    if not utils.isRS(ID):
+        LOGGER.warning("%s is not a rs ID" %(ID))
+        return L
+        
     z=query.restQuery(query.makeRSQueryURL(ID,build=build))
     if z:
         LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
@@ -26,21 +37,18 @@ def rs2spdi(ID,build="38"):
                     for spdi in spdis:
                         if not spdi in L:
                             L.append(spdi)
-
     return L
 
 # ==============================================================================================================================
 
 def rsList2position(L,build="38",alleles=False):
     '''
-    Input: list of rsID, build (default: 38), alleles=True/False (if we need alleles as well)
+    Input: list of rsIDs, build (default: 38), alleles=True/False (if we need alleles as well)
     Output: a dictionary rsID --> [{"chr":c,"pos":p}, ...], or None if query fails
     '''
 
-    D={}
-    data=utils.list2string(L)
-    url=query.makeRSListQueryURL(build=build)
-    z=query.restQuery(url,qtype="post",data=data)
+    D=dict()
+    z=query.restQuery(query.makeRSListQueryURL(build=build),qtype="post",data=utils.list2string(L))
     if z:
         for x in z:
             inputID=x["input"]
@@ -59,11 +67,6 @@ def rsList2position(L,build="38",alleles=False):
                     z=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p),None)
                 if not z:
                     D[inputID].append({"chr":c,"pos":p,"ref":ref,"alt":alt})
-                    
-        # in case some input IDs are missing in the response
-        # for ID in L:
-        #     if not ID in D:
-        #         D[ID]=[{"chr":None,"pos":None,"ref":None,"alt":None}]
     else:
         return None
 
@@ -73,7 +76,7 @@ def rsList2position(L,build="38",alleles=False):
 
 def rs2position(ID,build="38",alleles=False):
     '''
-    Given rsID, return a list of dictionaries with keys "chr", "pos"
+    For a given rsID, return a list of dictionaries with keys chr,pos
     
     Input: rsID, build (default: 38), alleles=True/False (if we need alleles as well)
     Output: a list of dictionaries with keys "chr", "pos", or None if query fails
@@ -82,7 +85,7 @@ def rs2position(ID,build="38",alleles=False):
     L=[]
     z=query.restQuery(query.makeRSQueryURL(ID,build=build))
     if z:
-        print(json.dumps(z,indent=4,sort_keys=True))
+        LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
         for x in z:
             for x1 in x:
                 spdis=x[x1]["spdi"]
