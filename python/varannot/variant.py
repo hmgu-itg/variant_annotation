@@ -44,29 +44,31 @@ def rs2spdi(ID,build="38"):
 def rsList2position(L,build="38",alleles=False):
     '''
     Input: list of rsIDs, build (default: 38), alleles=True/False (if we need alleles as well)
-    Output: a dictionary rsID --> [{"chr":c,"pos":p}, ...], or None if query fails
+    Output: a dictionary rsID --> [{"chr":c,"pos":p,"ref":ref,"alt":alt}, ...], or None if query fails
     '''
 
     D=dict()
     z=query.restQuery(query.makeRSListQueryURL(build=build),qtype="post",data=utils.list2string(L))
     if z:
+        LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
         for x in z:
-            inputID=x["input"]
-            D[inputID]=[]
-            spdis=x["spdi"]
-            for spdi in spdis:
-                h=query.parseSPDI(spdi,build=build,alleles=alleles)
-                p=h["pos"]
-                c=h["chr"]
-                ref=h["ref"]
-                alt=h["alt"]
-                z=None
-                if alleles:
-                    z=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p and x["ref"]==ref and x["alt"]==alt),None)
-                else:
-                    z=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p),None)
-                if not z:
-                    D[inputID].append({"chr":c,"pos":p,"ref":ref,"alt":alt})
+            for x1 in x:
+                inputID=x[x1]["input"]
+                D[inputID]=[]
+                spdis=x[x1]["spdi"]
+                for spdi in spdis:
+                    h=query.parseSPDI(spdi,build=build,alleles=alleles)
+                    p=h["pos"]
+                    c=h["chr"]
+                    ref=h["ref"]
+                    alt=h["alt"]
+                    z1=None
+                    if alleles:
+                        z1=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p and x["ref"]==ref and x["alt"]==alt),None)
+                    else:
+                        z1=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p),None)
+                    if z1 is None:
+                        D[inputID].append({"chr":c,"pos":p,"ref":ref,"alt":alt})
     else:
         return None
 
@@ -79,7 +81,7 @@ def rs2position(ID,build="38",alleles=False):
     For a given rsID, return a list of dictionaries with keys chr,pos
     
     Input: rsID, build (default: 38), alleles=True/False (if we need alleles as well)
-    Output: a list of dictionaries with keys "chr", "pos", or None if query fails
+    Output: a list of dictionaries with keys "chr", "pos", "ref", "alt" or None if query fails
     '''
 
     L=[]
