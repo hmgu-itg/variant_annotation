@@ -17,13 +17,15 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
-'''
-Input: list of dictionaries with keys chr,start,end,id
-Input: build (37 or 38): build to lift over from
-Output: lifted over list of dictionaries with keys chr,start,end,id
-'''
-
 def runLiftOver(input_data,build="38"):
+    '''
+    Run liftOver
+
+    Input: list of dictionaries with keys chr,start,end,id
+    Input: build (37 or 38): build to lift over FROM
+    Output: lifted over list of dictionaries with keys chr,start,end,id
+    '''
+
     if build!="38" and build!="37":
         LOGGER.error("provided build: %s; build should be either 37 or 38" % build)
         return None
@@ -86,27 +88,26 @@ def runLiftOver(input_data,build="38"):
 
 # ==============================================================================================================================
 
-# 
-'''
-Check if "del" sequence is in genome at "seq":"pos" position
-
-Input: dict with keys seq,pos,del,ins
-Output: True/False
-'''
-
 def checkDEL(R,build="38"):
+    '''
+    Check if "del" sequence is in genome at "seq":"pos" position
+
+    Input: dict with keys seq,pos,del,ins
+    Output: True/False
+    '''
+
     return query.getRefSeq(R["seq"],R["pos"],R["pos"]+len(R["del"])-1,build)==R["del"]
 
 # ==============================================================================================================================
 
-'''
-Given a variant ID (chr_pos_a1_a2), check if a1 or a2 at chr:pos match genome sequence
-
-Input: variant ID (chr_pos_a1_a2)
-Output: True/False
-'''
-
 def checkAlleles(ID,build="38"):
+    '''
+    Given a variant ID (chr_pos_a1_a2), check if a1 or a2 at chr:pos match genome sequence
+
+    Input: variant ID (chr_pos_a1_a2)
+    Output: True/False
+    '''
+
     t=splitID(ID)
     if not t:
         return False
@@ -114,14 +115,19 @@ def checkAlleles(ID,build="38"):
 
 # ==============================================================================================================================
 
-# get the most severe VEP consequence from a list
-
 def getMostSevereConsequence(L):
+    '''
+    Get the most severe VEP consequence from a list of VEP consequences
+
+    Input: list of VEP consequences
+    Output: most severe VEP consequence
+    '''
+    
     c=0
     cons="NA"
     for x in L:
         if not x in config.VEP_CONSEQUENCES:
-            LOGGER.warning("input consequence %s is not in the dict" %(x))
+            LOGGER.warning("input consequence %s is not in the config.VEP_CONSEQUENCES" %(x))
         else:
             if config.VEP_CONSEQUENCES[x]>c:
                 c=config.VEP_CONSEQUENCES[x]
@@ -130,9 +136,14 @@ def getMostSevereConsequence(L):
 
 # ==============================================================================================================================
 
-# R:dict with "seq","pos","del","ins"
-
 def getVarType(R):
+    '''
+    For a given variant dict with keys seq,pos,ref,alt, get variant type
+
+    Input: dict with keys seq,pos,ref,alt
+    Output: SNP,INS,DEL,INDEL
+    '''
+    
     if len(R["del"])==1 and len(R["ins"])==1:
         return "SNP"
 
@@ -145,10 +156,14 @@ def getVarType(R):
 
 # ==============================================================================================================================
 
-# R:dict with "seq","pos","del","ins", VCF style
-# pos is 1-based
-
 def var2spdi(R):
+    '''
+    For a given variant dict with keys seq,pos,ref,alt (VCF style), get variant's SPDI string
+
+    Input: dict with keys seq,pos,ref,alt
+    Output: SPDI string
+    '''
+    
     t=getVarType(R)
     if t=="SNP":
         return R["seq"]+":"+str(R["pos"]-1)+":"+R["del"]+":"+R["ins"]
@@ -161,9 +176,14 @@ def var2spdi(R):
 
 # ==============================================================================================================================
 
-# returns True if both variants result in the same altered sequence
-
 def equivalentVariants(r1,r2,build="38"):
+    '''
+    Given two variant dicts with keys seq,pos,del,ins, test if both variants result in the same altered sequence
+
+    Input: two variant dicts with keys seq,pos,del,ins
+    Output: True/False
+    '''
+    
     if r1["seq"]!=r2["seq"]:
         return False
 
@@ -224,33 +244,39 @@ def equivalentVariants(r1,r2,build="38"):
 
 # ==============================================================================================================================
 
-# input: s:p:d:i
-# p is 0-based
-
 def convertSPDI(spdi,build="38"):
+    '''
+    Convert SPDI string to a dict with keys seq,pos,del,ins
+
+    Input: SPDI string
+    Output: dict with keys seq,pos,del,ins (pos is 1-based)
+    '''
+    
     L=spdi.rsplit(":")
     c=L[0]
     m=re.search("NC_0+(\d+)\.\d+",L[0])
     if m:
         c=m.group(1)
-    pos=int(L[1])
+    pos=L[1]
     D=L[2]
     I=L[3]
-    lD=len(D)
 
     m=re.match("^(\d+)$",D)
     if m:
-        return {"seq":c,"pos":pos+1,"del":query.getRefSeq(c,pos+1,pos+int(m.group(1)),build),"ins":I}
+        return {"seq":c,"pos":str(int(pos)+1),"del":query.getRefSeq(c,int(pos)+1,int(pos)+int(m.group(1)),build),"ins":I}
     else:
-        return {"seq":c,"pos":pos+1,"del":D,"ins":I}
+        return {"seq":c,"pos":str(int(pos)+1),"del":D,"ins":I}
 
 # ==============================================================================================================================
 
-# input: 1_12345_A_ACG
-# position is 1-based
-# if reverse==True, the second allele is DEL, the first: INS
-
 def convertVariantID(varid,reverse=False):
+    '''
+    Convert a given variant ID (1_12345_A1_A2) to a dict with keys seq,pos,del,ins
+
+    Input: variant ID (1_12345_A1_A2), reverse: True/False
+    Output: dict with keys seq,pos,del,ins; if reverse==True, the A2 is del, A1 is ins
+    '''
+    
     L=varid.rsplit("_")
     if reverse:
         return {"seq":L[0],"pos":int(L[1]),"del":L[3],"ins":L[2]}
@@ -323,8 +349,12 @@ def df2barchart(df):
 
 def makeLink(url,text):
     '''
-    Create an HTML liink
+    Create an HTML link
+
+    Input: url, text
+    Output: HTML href link
     '''
+
     return "<a href='"+url+"'>"+text+"</a>"
 
 # ======================================================================================================================
@@ -352,29 +382,33 @@ def checkGnomadID(var):
 
 # ======================================================================================================================
 
-# check if provided input is a valid variant ID
-# valid ID: either rsID or chr_pos_A1_A2
-def checkID(id):
-    m=re.search("^rs\d+$",id)
-    if m:
+def checkID(varid):
+    '''
+    Check if provided input is a valid variant ID (either rsID or chr_pos_A1_A2)
+
+    Input: string
+    Output: True/False
+    '''
+    
+    if isRS(varid):
         return True
     
-    m=re.search("^\d+_\d+_[ATGC]+_[ATGC]+",id)
+    m=re.search("^\d+_\d+_[ATGC]+_[ATGC]+$",varid)
     if m:
         return True
     else:
         return False
 
 # ======================================================================================================================
-'''
-Split variant ID into dict with keys chr,pos,a1,a2
-
-Input: variant ID (21_12345_AC_A)
-Output: dict with keys chr,pos,a1,a2 or None
-
-'''
 def splitID(ID):
-    m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",ID)
+    '''
+    Split variant ID into dict with keys chr,pos,a1,a2
+
+    Input: variant ID (21_12345_AC_A)
+    Output: dict with keys chr,pos,a1,a2 or None
+    '''
+    
+    m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)$",ID)
     if m:
         return {"chr":m.group(1),"pos":m.group(2),"a1":m.group(3),"a2":m.group(4)}
     else:
@@ -382,18 +416,26 @@ def splitID(ID):
 
 # ======================================================================================================================
 
-# check if provided input is an rs ID
-def isRS(id):
-    m=re.search("^rs\d+$",id)
+def isRS(varid):
+    '''
+    Check if provided input is an rs ID
+
+    Input: ID string
+    Output: True/False
+    '''
+
+    m=re.search("^rs\d+$",varid)
     if m:
         return True
-
     return False
 
 # ======================================================================================================================
 
 def chunks(L,n):
-    """Yields successive n-sized chunks from L"""
+    '''
+    Yields successive n-sized chunks from the input list L
+    '''
+
     for i in range(0, len(L), n):
         yield L[i:i + n]
 
@@ -402,7 +444,11 @@ def chunks(L,n):
 def getLocationString(chrom,pos,ref,alt):
     '''
     Input: chrom, pos, ref, alt
-    Output: VEP-style string
+    Output: VEP-style string, used in queries like "https://rest.ensembl.org/documentation/info/vep_region_get"
+
+    SNP: (1,12345,A,C) --> 1:12345-12345:A/C
+    INS: (1,12345,A,AC) --> 1:12346-12345:/C
+    DEL: (1,12345,ACT,A) --> 1:12346-12347:/-
     '''
 
     if len(ref)>1 and len(alt)==1:
@@ -421,50 +467,68 @@ def getLocationString(chrom,pos,ref,alt):
         allele1=ref
         allele2=alt
     else:
-        LOGGER.error("Wrong allele encoding ref=%s, alt=%s" %(ref,alt),file=sys.stderr)
+        LOGGER.error("Wrong allele encoding ref=%s, alt=%s" %(ref,alt))
         return None
 
     return chrom+":"+str(start)+"-"+str(end)+":"+allele1+"/"+allele2
 
 # ======================================================================================================================
 
-def list2string(snps):
-    return "{\"ids\":["+",".join(list(map(lambda x:"\""+x+"\"",snps)))+"]}"
+def list2string(varIDs):
+    '''
+    Convert a list of variant IDs to string
+
+    Input: list of variant IDs
+    Output: string {"ids":["rs1","rs2","rs3"]}
+    '''
+    
+    return "{\"ids\":["+",".join(list(map(lambda x:"\""+x+"\"",varIDs)))+"]}"
 
 # ======================================================================================================================
 
-def generateHTML(templateFile, data):
-    templateLoader = jinja2.FileSystemLoader(searchpath="/")
-    templateEnv = jinja2.Environment(loader=templateLoader)
-    template = templateEnv.get_template(templateFile)
+def generateHTML(templateFile,data):
+    '''
+    For a given HTML template and data, generate HTML page
+    '''
+    
+    templateEnv=jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="/"))
+    template=templateEnv.get_template(templateFile)
     return template.render(data)
 
 # ======================================================================================================================
 
 def checkFiles(files):
     '''
+    Check if files exist
+
     Input: list of file names
-    Output: True if files exist, False otherwise
+    Output: True if all files exist, False otherwise
     '''
 
     f=True
-    for f in files:
-        if not os.path.isfile(f):
-            LOGGER.error("File %s does not exist" % f)
+    for fn in files:
+        if not os.path.isfile(fn):
+            LOGGER.warning("File %s does not exist" % fn)
             f=False
-
     return f
 
 # ======================================================================================================================
 
 def createDir(path):
+    '''
+    Create directory
+
+    Input: directory name
+    Output: directory name if successfull or directory already exists, None otherwise
+    '''
+    
     if os.path.exists(path):
-        #LOGGER.info("%s already exists" % path)
+        LOGGER.info("%s already exists" % path)
         return path
     try:
         os.mkdir(path)
     except OSError:
-        #LOGGER.error("Creation of the directory %s failed" % path)
+        LOGGER.error("Creation of the directory %s failed" % path)
         return None
     else:
         return path
