@@ -18,9 +18,9 @@ LOGGER=logging.getLogger(__name__)
 # ==============================================================================================================================
 
 '''
-Input: list of dictionaries chr:start:end:id
+Input: list of dictionaries with keys chr,start,end,id
 Input: build (37 or 38): build to lift over from
-Output: lifted over list of dictionaries chr:start:end:id
+Output: lifted over list of dictionaries with keys chr,start,end,id
 '''
 
 def runLiftOver(input_data,build="38"):
@@ -53,7 +53,7 @@ def runLiftOver(input_data,build="38"):
         
     LOGGER.debug("Calling: liftOver %s %s %s %s" %(in_bed.name,chain,out_fname,unmapped_fname))
     cmdline="liftOver %s %s %s %s" %(in_bed.name,chain,out_fname,unmapped_fname)
-    subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT).communicate()
+    subprocess.run(cmdline,shell=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 
     if not os.path.isfile(out_fname):
         LOGGER.error("liftOver failed to create output file %s" % out_fname)
@@ -86,14 +86,25 @@ def runLiftOver(input_data,build="38"):
 
 # ==============================================================================================================================
 
-# check if "del" sequence is in genome at "seq":"pos" position
+# 
+'''
+Check if "del" sequence is in genome at "seq":"pos" position
+
+Input: dict with keys seq,pos,del,ins
+Output: True/False
+'''
 
 def checkDEL(R,build="38"):
     return query.getRefSeq(R["seq"],R["pos"],R["pos"]+len(R["del"])-1,build)==R["del"]
 
 # ==============================================================================================================================
 
-# check if a1 or a2 match RefSeq
+'''
+Given a variant ID (chr_pos_a1_a2), check if a1 or a2 at chr:pos match genome sequence
+
+Input: variant ID (chr_pos_a1_a2)
+Output: True/False
+'''
 
 def checkAlleles(ID,build="38"):
     t=splitID(ID)
@@ -355,8 +366,13 @@ def checkID(id):
         return False
 
 # ======================================================================================================================
+'''
+Split variant ID into dict with keys chr,pos,a1,a2
 
-# split variant ID into chr pos a1 a2
+Input: variant ID (21_12345_AC_A)
+Output: dict with keys chr,pos,a1,a2 or None
+
+'''
 def splitID(ID):
     m=re.search("^(\d+)_(\d+)_([ATGC]+)_([ATGC]+)",ID)
     if m:
