@@ -27,3 +27,6 @@ print(json.dumps(x,indent=4,sort_keys=True))
 
 x=variant.rsList2position(L,build="38")
 print(json.dumps(x,indent=4,sort_keys=True))
+
+x=variant.getVariantsWithPhenotypes("1","50000000")
+print(x)

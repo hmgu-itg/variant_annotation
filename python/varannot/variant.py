@@ -117,31 +117,31 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
     For a given genomic region, return dataframe containing variants with phenotype annotations
 
     Input: chromosome, position, window (default: config.PHENO_WINDOW), build (default: "38") 
-    Output: pandas dataframe with columns: "ID", "Consequence", "Location", "Phenotype", "Source", "Distance"
+    Output: pandas dataframe with columns: "ID", "Consequence", "Location", "Phenotype", "Source", "Link"
     '''
     
-    start=pos-window
-    end=pos+window
+    start=int(pos)-int(window)
+    end=int(pos)+int(window)
 
     if start<1 : 
         start=1
 
-    empty_df=pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Distance"])
+    df=pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Link"])
 
     if end-start>5000000:
         LOGGER.error("Maximal region size allowed: 5Mbp")
-        return empty_df
+        return df
 
-    LOGGER.debug("%s:%d; window: %d" %(chrom,pos,window))
+    LOGGER.debug("%s:%d; window: %d" %(chrom,int(pos),int(window)))
     variants=query.restQuery(query.makePhenoOverlapQueryURL(chrom,start,end,build=build),qtype="get")
-    #print(json.dumps(variants,indent=4,sort_keys=True))
+    LOGGER.debug("\n%s" % json.dumps(variants,indent=4,sort_keys=True))
 
     if not variants:
-        return empty_df
+        return df
 
     if len(variants)==0: 
         LOGGER.info("No variants with phenotypes were found in the region %s:%d-%d" %(chrom,start,end))
-        return empty_df
+        return df
 
     rsIDs=list()
     for var in variants:
@@ -149,25 +149,19 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
 
     if len(rsIDs)==0: 
         LOGGER.info("No variants with phenotypes were found in the region %s:%d-%d" %(chrom,start,end))
-        return empty_df
+        return df
     else:
         LOGGER.info("%d variant(s) with phenotypes were found in the region %s:%d-%d" %(len(rsIDs),chrom,start,end))
 
-    output=[]
     i=0
-    df = pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Link"])
     for L in utils.chunks(rsIDs,config.VARIATION_POST_MAX):
         r=query.restQuery(query.makeRSPhenotypeQueryURL(build=build),data=utils.list2string(L),qtype="post")
         if r:
-            #print(json.dumps(r,indent=4,sort_keys=True))
+            LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
             for rsID in r:
                 for phenotype in r[rsID]["phenotypes"]:
                     m=re.search("phenotype\s+not\s+specified",phenotype["trait"])
                     if m:
-                        continue
-
-                    x=next((m for m in r[rsID]["mappings"] if m["seq_region_name"]==chrom),None)
-                    if not x:
                         continue
 
                     link=utils.makeLink(config.ENSEMBL_PHENO_URL %rsID,"ENSEMBL")
@@ -175,9 +169,8 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
                         link=utils.makeLink(config.CLINVAR_URL+rsID,"ClinVar")
                     elif phenotype["source"]=="NHGRI-EBI GWAS catalog":
                         link=utils.makeLink(config.NHGRI_URL+rsID,"NHGRI-EBI")
-                    df.loc[i]=[rsID,r[rsID]["most_severe_consequence"].replace("_"," "),chrom+":"+str(x["start"]),phenotype["trait"],phenotype["source"],link]
+                    df.loc[i]=[rsID,r[rsID]["most_severe_consequence"].replace("_"," "),r[rsID]["mappings"][0]["location"],phenotype["trait"],phenotype["source"],link]
                     i+=1
-
     return df
 
 # ===========================================================================================================================
