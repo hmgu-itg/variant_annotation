@@ -219,7 +219,7 @@ def getVariantInfo(rs,build="38"):
     "class" : variant class
     "synonyms" : list of synonym IDs
     "consequence" : most severe consequence
-    "mappings" : list of mapping dictionaries with keys: "chr", "pos", "ref", "alt", "polyphen_score", "polyphen_prediction", "sift_score", "sift_preddiction"
+    "mappings" : list of mapping dictionaries with keys: "chr", "pos", "ref", "alt", "polyphen_score", "polyphen_prediction", "sift_score", "sift_prediction"
     "population_data" : list of dictionaries "population":{"allele":"frequency"} (from phase 3 of 1KG)
     "phenotype_data" : list of dictionaries with keys "trait", "source", "risk_allele"
     "clinical_significance" : list of clinical significance terms
@@ -228,7 +228,7 @@ def getVariantInfo(rs,build="38"):
 
     res=dict()
 
-    # in case provided ID is not an RS
+    # in case provided ID is not an rs ID
     if not utils.isRS(rs):
         t=utils.splitID(rs)
         if t: # TODO: check if ref/alt mappings are correct: compare to reference sequence

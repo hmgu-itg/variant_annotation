@@ -128,11 +128,15 @@ sys.stderr=open(logfile,"a")
 
 # ------------------------------------------------------------------------------------------------------------------------
 
-if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED,config.GXA_FILE]):
+if not utils.checkID(VAR_ID):
+    LOGGER.error("%s is not a valid variant ID" %(VAR_ID))
     sys.exit(1)
 
-if not utils.checkID(VAR_ID):
-    LOGGER.error("Provided ID (%s) is not valid" % VAR_ID)
+if not utils.isRS(VAR_ID) and not utils.checkAlleles(VAR_ID,build):
+    LOGGER.error("Alleles in %s don't match reference sequence" %(VAR_ID))
+    sys.exit(1)
+
+if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED,config.GXA_FILE]):
     sys.exit(1)
 
 LOGGER.info("Reading in GXA file")
@@ -146,16 +150,13 @@ LOGGER.info("Got %d rsID(s)" % len(rsIDs))
 LOGGER.info("rs ID(s): %s",", ".join(rsIDs))
 
 if len(rsIDs)==0:
-    if not checkAlleles(VAR_ID,build):
-        LOGGER.error("Alleles in %s don't match reference sequence")
-        sys.exit(1)
-    rsIDs.add(VAR_ID)
+    rsIDs={VAR_ID}
 
-for rsID in rsIDs:
-    LOGGER.info("Retrieving variant data for %s from ENSEMBL" % rsID)
-    variant_data=variant.getVariantInfo(rsID,build)
+for current_variant_id in rsIDs:
+    LOGGER.info("Retrieving variant data for %s from ENSEMBL" % current_variant_id)
+    variant_data=variant.getVariantInfo(current_variant_id,build)
     if variant_data is None:
-        LOGGER.error("Variant data for %s could not be retreived" % rsID)
+        LOGGER.error("Variant data for %s could not be retreived" % current_variant_id)
         continue
 
     LOGGER.info("Getting GWAVA scores")
@@ -196,12 +197,12 @@ for rsID in rsIDs:
         LOGGER.info("Creating populations dataframe")
         populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
         # relative to the output dir
-        tmp_name=utils.df2svg(populationDF,rsID)
+        tmp_name=utils.df2svg(populationDF,current_variant_id)
         populationFname=None
         if not tmp_name is None:
             populationFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
         LOGGER.info("Creating PubMed dataframe")
-        pubmedDF=pubmed.getPubmedDF(rsID,variant_data["synonyms"])
+        pubmedDF=pubmed.getPubmedDF(current_variant_id,variant_data["synonyms"])
         LOGGER.info("Retrieving genes around the variant")
         gene_list=gene.getGeneList(chrpos[i][0],chrpos[i][1],build=build)
         if gene_list:
@@ -210,9 +211,9 @@ for rsID in rsIDs:
         LOGGER.info("Creating gene dataframe")
         geneDF=gene.geneList2df(gene_list)
         LOGGER.info("Creating gnomAD dataframe")
-        gnomadDF=gnomad.getPopulationAF(rsID)
+        gnomadDF=gnomad.getPopulationAF(current_variant_id)
         # relative to the output dir
-        tmp_name=utils.df2svg(gnomadDF,rsID)
+        tmp_name=utils.df2svg(gnomadDF,current_variant_id)
         gnomadFname=None
         if not tmp_name is None:
             gnomadFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
@@ -329,7 +330,7 @@ for rsID in rsIDs:
 #----------------------------------------------------------------------------------------------------------------------
 
     if out_html:
-        outfile=config.OUTPUT_DIR+"/%s.html" % rsID
+        outfile=config.OUTPUT_DIR+"/%s.html" % current_variant_id
         LOGGER.info("Saving HTML output to %s\n" % outfile)
         template_fname=config.OUTPUT_DIR+"/template.html"
         utils.generateTemplate(mapping_names,gene_names,template_fname)
@@ -339,7 +340,7 @@ for rsID in rsIDs:
         if os.path.isfile(template_fname):
             os.remove(template_fname)
     else:
-        outfile=config.OUTPUT_DIR+"/%s.json.gz" %rsID
+        outfile=config.OUTPUT_DIR+"/%s.json.gz" %current_variant_id
         LOGGER.info("Saving JSON output to %s\n" % outfile)
         with gzip.GzipFile(outfile,"w") as fout:
             fout.write(json.dumps(D1).encode('utf-8'))
