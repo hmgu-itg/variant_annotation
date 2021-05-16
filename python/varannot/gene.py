@@ -12,10 +12,10 @@ LOGGER=logging.getLogger(__name__)
 
 def getGeneInfo (ID,build="38"):
     '''
-    This function retrieves gene related information
+    Retrieve general gene information
 
     Input: Ensembl stable ID
-    Output: dictionary with retrieved information
+    Output: pandas data frame with columns "Gene name","Description","ID","Coordinates","Strand","Type"
     '''
     response=query.restQuery(query.makeGeneQueryURL(ID,build=build))
     if response is None:
@@ -38,13 +38,13 @@ def getGeneInfo (ID,build="38"):
     gene_info["strand"] = response["strand"]
     gene_info["chromosome"] = response["seq_region_name"]
 
-    return gene_info
+    return geneInfo2df(gene_info)
 
 # ==============================================================================================================================
 
 def getGeneXrefs (ID,build="38"):
     '''
-    This function retrieves cross-references from Ensembl
+    Retrieve cross-references
 
     Input  : gene ID, build(default: "38")
     Output : dictionary with keys "MIM disease","MIM gene","GO","GOSlim GOA","UniProtKB/Swiss-Prot","Human Protein Atlas","ChEMBL"
@@ -80,10 +80,9 @@ def getGeneXrefs (ID,build="38"):
 
 def getGeneList(chrom,pos,window=config.GENE_WINDOW,build="38"):
     '''
-    Based on the submitted chromosome and position, this function returns
-    all genes overlapping a window
+    Return all genes overlapping a window around a position
 
-    Input: chromosome, position, window (default: 1Mbp), build (default: "38")
+    Input: chromosome, position, window (default: config.GENE_WINDOW), build (default: "38")
     Output: list of dictionaries with keys: 
     "start", "end", "strand", "name", "description", "biotype", "ID", "distance", "orientation" 
     '''
