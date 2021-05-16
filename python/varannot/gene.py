@@ -38,7 +38,7 @@ def getGeneInfo (ID,build="38"):
     gene_info["strand"] = response["strand"]
     gene_info["chromosome"] = response["seq_region_name"]
 
-    return geneInfo2df(gene_info)
+    return _geneInfo2df_(gene_info)
 
 # ==============================================================================================================================
 
@@ -145,7 +145,7 @@ def geneList2df(gene_data):
 
 # ======================================================================================================================
 
-def geneInfo2df(gene_info):
+def _geneInfo2df_(gene_info):
     df=pd.DataFrame(columns=["Gene name","Description","ID","Coordinates","Strand","Type"])
     if gene_info is None:
         return df
