@@ -188,11 +188,7 @@ for rsID in rsIDs:
         LOGGER.info("Creating regulatory dataframe")
         regulationDF=regulation.regulation2df(reg)
         LOGGER.info("Looking for GWAS hits around the variant")
-        #gwas_hits=gwas.getGwasHits(chrpos[i][0],chrpos[i][1])
         gwasDF=gwas.getHistByRegion(chrpos[i][0],chrpos[i][1])
-        LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
-        # LOGGER.info("Creating GWAS dataframe")
-        # gwasDF=gwas.gwas2df(gwas_hits)
         LOGGER.info("Creating VEP dataframe")
         temp=vep.getVepDF(mappings)
         vepDFtr=temp["transcript"]
@@ -283,18 +279,13 @@ for rsID in rsIDs:
                 up=None
 
         LOGGER.info("Retreiving GWAS data")
-        #gw=gwas.gene2gwas(info["name"])
         gwasDF=gwas.hitsByGene(info["name"])
         LOGGER.info("Retreiving GTEx data")
         gt=gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
         LOGGER.info("Retreiving mouse data")
         mouseDF=mouse.getMousePhenotypes(gene_ID)
-        # LOGGER.info("Creating general info dataframe")
-        # infoDF=gene.geneInfo2df(info)
         LOGGER.info("Creating GTEx dataframe")
         gtexDF=gtex.gtex2df(gt)
-        # LOGGER.info("Creating GWAS dataframe")
-        # gwasDF=gwas.geneGwas2df(gw)
         LOGGER.info("Creating GXA dataframe")
         gxaDF=gxa.getGxaDFLocal(gene_ID)
         # relative to the output dir
