@@ -267,8 +267,11 @@ for rsID in rsIDs:
         LOGGER.info("Current gene: %s",gene_ID)
         LOGGER.info("Retreiving general information")
         infoDF=gene.getGeneInfo(gene_ID,build=build)
+        
         LOGGER.info("Retreiveing cross-references")
         xrefs=gene.getGeneXrefs(gene_ID)
+        LOGGER.info("Creating GO terms dataframe")
+        goDF=gene.goterms2df(xrefs)
         if xrefs is None:
             up=None
         else:
@@ -277,15 +280,18 @@ for rsID in rsIDs:
                 up=uniprot.getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
             else:
                 up=None
-
+        LOGGER.info("Creating UniProt dataframe")
+        uniprotDF=uniprot.uniprot2df(up)
+        
         LOGGER.info("Retreiving GWAS data")
         gwasDF=gwas.hitsByGene(info["name"])
+        
         LOGGER.info("Retreiving GTEx data")
-        gt=gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
+        gtexDF=gtex.gtex2df(gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID))
+        
         LOGGER.info("Retreiving mouse data")
         mouseDF=mouse.getMousePhenotypes(gene_ID)
-        LOGGER.info("Creating GTEx dataframe")
-        gtexDF=gtex.gtex2df(gt)
+        
         LOGGER.info("Creating GXA dataframe")
         gxaDF=gxa.getGxaDFLocal(gene_ID)
         # relative to the output dir
@@ -293,10 +299,6 @@ for rsID in rsIDs:
         gxaFname=None
         if not tmp_name is None:
             gxaFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
-        LOGGER.info("Creating UniProt dataframe")
-        uniprotDF=uniprot.uniprot2df(up)
-        LOGGER.info("Creating GO terms dataframe")
-        goDF=gene.goterms2df(xrefs)
         LOGGER.info("")
 
         if out_html:
