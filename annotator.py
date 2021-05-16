@@ -266,7 +266,8 @@ for rsID in rsIDs:
         gene_names.append(gene_ID)
         LOGGER.info("Current gene: %s",gene_ID)
         LOGGER.info("Retreiving general information")
-        infoDF=gene.getGeneInfo(gene_ID,build=build)
+        info=gene.getGeneInfo(gene_ID,build=build)
+        infoDF=gene.geneInfo2df(info)
         
         LOGGER.info("Retreiveing cross-references")
         xrefs=gene.getGeneXrefs(gene_ID)
@@ -284,7 +285,7 @@ for rsID in rsIDs:
         uniprotDF=uniprot.uniprot2df(up)
         
         LOGGER.info("Retreiving GWAS data")
-        gwasDF=gwas.hitsByGene(info["name"])
+        gwasDF=gwas.hitsByGene(gene_ID)
         
         LOGGER.info("Retreiving GTEx data")
         gtexDF=gtex.gtex2df(gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID))

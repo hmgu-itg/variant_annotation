@@ -15,30 +15,26 @@ def getGeneInfo (ID,build="38"):
     Retrieve general gene information
 
     Input: Ensembl stable ID
-    Output: pandas data frame with columns "Gene name","Description","ID","Coordinates","Strand","Type"
+    Output: dictionary
     '''
     response=query.restQuery(query.makeGeneQueryURL(ID,build=build))
     if response is None:
         return None
 
-    #print(json.dumps(response,indent=4,sort_keys=True))
-
     gene_info=dict()
-    gene_info["source"] = response["source"]
-    gene_info["id"] = response["id"]
-    gene_info["start"] = response["start"]
-    gene_info["end"] = response["end"]
-    gene_info["assembly_name"] = response["assembly_name"]
+    gene_info["id"]=response["id"]
+    gene_info["chromosome"]=response["seq_region_name"]
+    gene_info["start"]=response["start"]
+    gene_info["end"]=response["end"]
     try:
-        gene_info["description"] = response["description"].split("[")[0]
+        gene_info["description"]=response["description"].split("[")[0]
     except:
-        gene_info["description"] = "NA"
-    gene_info["name"] = response["display_name"]
-    gene_info["type"] = response["biotype"]
-    gene_info["strand"] = response["strand"]
-    gene_info["chromosome"] = response["seq_region_name"]
+        gene_info["description"]="NA"
+    gene_info["name"]=response["display_name"]
+    gene_info["type"]=response["biotype"]
+    gene_info["strand"]=response["strand"]
 
-    return _geneInfo2df_(gene_info)
+    return gene_info
 
 # ==============================================================================================================================
 
@@ -145,7 +141,7 @@ def geneList2df(gene_data):
 
 # ======================================================================================================================
 
-def _geneInfo2df_(gene_info):
+def geneInfo2df(gene_info):
     df=pd.DataFrame(columns=["Gene name","Description","ID","Coordinates","Strand","Type"])
     if gene_info is None:
         return df
