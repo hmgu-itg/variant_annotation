@@ -147,7 +147,8 @@ config.GXA_DF=pd.read_table(config.GXA_FILE,header=0,compression="gzip")
 LOGGER.info("Retreiving rsIDs for %s" % VAR_ID)
 rsIDs=variant.id2rs_mod(VAR_ID,build=build)
 LOGGER.info("Got %d rsID(s)" % len(rsIDs))
-LOGGER.info("rs ID(s): %s",", ".join(rsIDs))
+if len(rsIDs)!=0:
+    LOGGER.info("rs ID(s): %s",", ".join(rsIDs))
 
 if len(rsIDs)==0:
     rsIDs={VAR_ID}
@@ -162,9 +163,10 @@ for current_variant_id in rsIDs:
     LOGGER.info("Getting GWAVA scores")
     variant.getGwavaScore(variant_data)
 
-    # a variant can have multiple chr:pos mappings
+    # variant can have multiple chr:pos mappings
     # each chr:pos mapping can have multiple ref:alt pairs
-    
+
+    # all chr:pos pairs
     chrpos=variant.getChrPosList(variant_data["mappings"])
 
     all_genes=list()
@@ -176,24 +178,27 @@ for current_variant_id in rsIDs:
 
     # loop over all chr:pos mappings
     for i in range(0,len(chrpos)):
-        LOGGER.info("Current mapping: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
-        # all ref:alt etc. information corresponding to the current chr:pos
+        LOGGER.info("Current chr:pos: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
+        # all chr:pos:ref:alt etc. information corresponding to the current chr:pos
         mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
+        
         LOGGER.info("Creating variant dataframe")
         variantDF=variant.variant2df(variant_data,mappings)
+        
         LOGGER.info("Retreiving nearby variants with phenotype annotation")
         phenotypeDF=variant.getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
+        
         LOGGER.info("Retrieving overlapping regulatory features")
-        reg=regulation.getRegulation(chrpos[i][0],chrpos[i][1])
-        LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(reg)))
-        LOGGER.info("Creating regulatory dataframe")
-        regulationDF=regulation.regulation2df(reg)
+        regulationDF=regulation.regulation2df(regulation.getRegulation(chrpos[i][0],chrpos[i][1]))
+
         LOGGER.info("Looking for GWAS hits around the variant")
-        gwasDF=gwas.getHistByRegion(chrpos[i][0],chrpos[i][1])
+        gwasDF=gwas.hitsByRegion(chrpos[i][0],chrpos[i][1])
+        
         LOGGER.info("Creating VEP dataframe")
-        temp=vep.getVepDF(mappings)
+        temp=vep.getVepDF(variant_data["rs"],mappings,build=build)
         vepDFtr=temp["transcript"]
         vepDFreg=temp["regulatory"]
+        
         LOGGER.info("Creating populations dataframe")
         populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
         # relative to the output dir

@@ -230,11 +230,14 @@ def getVariantInfo(rs,build="38"):
 
     # in case provided ID is not an rs ID
     if not utils.isRS(rs):
-        t=utils.splitID(rs)
-        if t: # TODO: check if ref/alt mappings are correct: compare to reference sequence
-            return {"minor_allele":None,"MAF":None,"rsID":None,"class":rs,"synonyms":[],"consequence":None,"mappings":[{"chr":t["chr"],"pos":t["pos"],"ref":t["a1"],"alt":t["a2"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"},{"chr":t["chr"],"pos":t["pos"],"ref":t["a2"],"alt":t["a1"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"}],"population_data":None,"phenotype_data":None,"clinical_significance":None,"scores":None}
-        else:
-            return None
+        res.update({"minor_allele":None,"MAF":None,"rsID":None,"class":None,"synonyms":[],"consequence":None,"mappings":[],"population_data":None,"phenotype_data":None,"clinical_significance":None,"scores":None})
+        R=utils.convertVariantID(rs)
+        if utils.checkDEL(R,build=build):
+            res["mappings"].append({"chr":R["seq"],"pos":R["pos"],"ref":R["del"],"alt":R["ins"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"})
+        R=utils.convertVariantID(rs,reverse=True)
+        if utils.checkDEL(R,build=build):
+            res["mappings"].append({"chr":R["seq"],"pos":R["pos"],"ref":R["del"],"alt":R["ins"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"})
+        return res
 
 #------------------- general information ---------------
 
@@ -826,8 +829,6 @@ def getGwavaScore(variant_data):
         for line in open(gwava_output_fname, 'r'):
             gwava=line.strip().split("\t")[4]
 
-        #variant_data["scores"][keystr]["avg_gerp"]=avg_gerp
-        #variant_data["scores"][keystr]["gerp"]=gerp
         variant_data["scores"][keystr]["gwava"]=gwava
 
         LOGGER.info("avg_gerp: %s: gerp: %s; gwava: %s" % (avg_gerp,gerp,gwava))
@@ -844,7 +845,7 @@ def variant2df(var_data,mappings):
     '''
     Transform variant data to dataframe
 
-    Input: variant data (output of getVariantInfo), list of variant mappings
+    Input: variant data (output of getVariantInfo), list of variant mappings (dicts of chr:pos:ref:alt:...)
     Output: dataframe with columns "Key", "Value"
     '''
 
