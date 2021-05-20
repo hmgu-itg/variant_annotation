@@ -201,8 +201,6 @@ for current_variant_id in rsIDs:
         
         LOGGER.info("Creating population dataframe")
         populationDF=variant.population2df(variant_data["population_data"])
-        
-        # relative to the output dir
         tmp_name=utils.df2svg(populationDF,current_variant_id)
         populationFname=None
         if not tmp_name is None:
@@ -222,7 +220,6 @@ for current_variant_id in rsIDs:
         
         LOGGER.info("Creating gnomAD dataframe")
         gnomadDF=gnomad.getPopulationAF(current_variant_id)
-        # relative to the output dir
         tmp_name=utils.df2svg(gnomadDF,current_variant_id)
         gnomadFname=None
         if not tmp_name is None:
