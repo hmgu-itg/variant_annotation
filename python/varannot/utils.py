@@ -301,23 +301,26 @@ def variant2vep(variant,reverse=False):
 # ==============================================================================================================================
 
 def df2svg(df,var):
+    '''
+    For dataframe with population data (there must be a column "Population"), create a barplot
+
+    Input: dataframe, variant name
+    Output: file name of the created barplot
+    '''
+    
     if df is None:
         return None
-    
     if len(df)==0:
         return None
-
     data=list()
     pops=list(df["Population"])
     for i in range(1,len(df.columns)):
         data.append(go.Bar(name=df.columns[i],x=pops,y=df.iloc[:,i]))
-    
     fig=go.Figure(data=data)
     fig.update_layout(barmode='stack')
     #out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR_FIG,suffix=".svg")
     fd,fname=tf.mkstemp(dir=config.OUTPUT_DIR_FIG,suffix="_"+var+".svg")
     LOGGER.debug("SVG: %s" % fname)
-    #out.close()
     fig.write_image(fname)
     return fname
 

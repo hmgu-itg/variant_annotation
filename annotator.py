@@ -199,8 +199,8 @@ for current_variant_id in rsIDs:
         vepDFtr=temp["transcript"]
         vepDFreg=temp["regulatory"]
         
-        LOGGER.info("Creating 1KG populations dataframe")
-        populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
+        LOGGER.info("Creating population dataframe")
+        populationDF=variant.population2df(variant_data["population_data"])
         
         # relative to the output dir
         tmp_name=utils.df2svg(populationDF,current_variant_id)
