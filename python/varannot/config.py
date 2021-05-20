@@ -1,6 +1,4 @@
-# VERSION = "3.0"
-
-## batch sizes for POST queries
+# batch sizes for POST queries
 VARIANT_RECODER_POST_MAX=200
 VARIATION_POST_MAX=200
 VEP_POST_MAX=200
@@ -17,12 +15,12 @@ GWAS_WINDOW=500000
 GNOMAD_URL="https://gnomad.broadinstitute.org/api"
 # APPRIS_URL="http://apprisws.bioinfo.cnio.es:80/rest/exporter/id/homo_sapiens/%s?format=json&db=hg19"
 
-UNIPROT_URL     = 'http://www.uniprot.org/uniprot/'
+UNIPROT_URL="http://www.uniprot.org/uniprot/"
 # GXA_URL_PREFIX  = "https://www.ebi.ac.uk/gxa/genes/"
 # GXA_URL_SUFFIX  = "?bs=%7B%22homo%20sapiens%22%3A%5B%22ORGANISM_PART%22%5D%7D&ds=%7B%22kingdom%22%3A%5B%22animals%22%5D%7D#baseline"
 
-PUBMED_URL_VAR  = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%%22%s%%22%%5BAll%%20Fields%%5D&retmode=json&retmax=1000'
-PUBMED_URL_PMID = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&rettype=abstract&id=%s'
+PUBMED_URL_VAR="http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%%22%s%%22%%5BAll%%20Fields%%5D&retmode=json&retmax=1000"
+PUBMED_URL_PMID="http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&rettype=abstract&id=%s"
 PUBMED_URL="https://pubmed.ncbi.nlm.nih.gov/"
 
 # links for various phenotype sources 
@@ -37,6 +35,7 @@ GWAS_FILE_SFX="gwas/gwas_full.tsv.gz"
 GTEX_BED_SFX="gtex/gtex.bed.gz"
 GXA_TSV_SFX="gxa/GXA.tsv.gz"
 
+# VEP consequences severity
 VEP_CONSEQUENCES={
     "transcript_ablation"      : 36,
     "splice_acceptor_variant"  : 35,
