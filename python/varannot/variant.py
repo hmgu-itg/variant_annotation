@@ -293,9 +293,9 @@ def getVariantInfo(rs,build="38"):
         population_data["alleles"]=a1+"/"+a2
         population_data["frequency"]=dict()
         for pdata in data["populations"]:
-            pop_name=pop["population"]
-            f=float(pop["frequency"])
-            if a1!=pop["allele"]:
+            pop_name=pdata["population"]
+            f=float(pdata["frequency"])
+            if a1!=pdata["allele"]:
                 f=1.0-f
             population_data["frequency"][pop_name]=str(f)+"/"+str(1.0-f)
 

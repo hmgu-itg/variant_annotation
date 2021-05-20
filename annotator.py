@@ -37,8 +37,8 @@ input_options = parser.add_argument_group('Input options')
 input_options.add_argument('--build','-b', action="store",type=str,help="Optional: genome build; default: 38", default=build,required=False)
 input_options.add_argument("--id", "-i", help="Required: input variant, rsID or variant ID: 14_94844947_C_T",required=True)
 input_options.add_argument("--data", "-d", help="Required: directory with GWAVA, GTEx, GWAS and Ensembl Regulation data",required=True)
-input_options.add_argument('--output','-o', action="store",help="Optional: output directory; default: to current directory",required=False)
-input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
+input_options.add_argument('--output','-o', action="store",help="Optional: output directory; default: current directory",required=False)
+input_options.add_argument("--verbose", "-v", help="Optional: verbosity level; default: info", required=False,choices=("debug","info","warning","error"),default="info")
 input_options.add_argument("--json", "-j", help="Optional: output JSON.GZ instead of default HTML", required=False, action='store_true')
 input_options.add_argument("--reg-window", "-reg-window", help="Optional: bp window around the input variant to look for overlapping ENSEMBL regulatory elements; default: %d" % config.REG_WINDOW, type=int, default=config.REG_WINDOW, required=False, action='store',dest="reg_window")
 input_options.add_argument("--pheno-window", "-pheno-window", help="Optional: bp window around the input variant to look for variants annotated with phenotypes; default: %d" % config.PHENO_WINDOW, type=int, default=config.PHENO_WINDOW, required=False, action='store',dest="pheno_window")
@@ -107,7 +107,7 @@ LOGGER.setLevel(verbosity)
 #ch=logging.StreamHandler()
 ch=logging.FileHandler(logfile,'w')
 ch.setLevel(verbosity)
-formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+formatter=logging.Formatter('%(levelname)s - %(name)s - %(funcName)s -%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -154,7 +154,7 @@ if len(rsIDs)==0:
     rsIDs={VAR_ID}
 
 for current_variant_id in rsIDs:
-    LOGGER.info("Retrieving variant data for %s from ENSEMBL" % current_variant_id)
+    LOGGER.info("Retrieving variant data for %s" % current_variant_id)
     variant_data=variant.getVariantInfo(current_variant_id,build)
     if variant_data is None:
         LOGGER.error("Variant data for %s could not be retreived" % current_variant_id)
