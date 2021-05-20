@@ -45,3 +45,7 @@ for rs in L:
 
 x=query.restQuery(query.makeGeneOverlapQueryURL("1",16067095,18067095))
 print(json.dumps(x,indent=4,sort_keys=True))
+
+x=query.restQuery(query.makeGeneQueryURL("ENSG00000288398"))
+print(json.dumps(x,indent=4,sort_keys=True))
+
