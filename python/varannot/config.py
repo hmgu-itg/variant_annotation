@@ -13,11 +13,7 @@ GENE_WINDOW=1000000
 GWAS_WINDOW=500000
 
 GNOMAD_URL="https://gnomad.broadinstitute.org/api"
-# APPRIS_URL="http://apprisws.bioinfo.cnio.es:80/rest/exporter/id/homo_sapiens/%s?format=json&db=hg19"
-
 UNIPROT_URL="http://www.uniprot.org/uniprot/"
-# GXA_URL_PREFIX  = "https://www.ebi.ac.uk/gxa/genes/"
-# GXA_URL_SUFFIX  = "?bs=%7B%22homo%20sapiens%22%3A%5B%22ORGANISM_PART%22%5D%7D&ds=%7B%22kingdom%22%3A%5B%22animals%22%5D%7D#baseline"
 
 PUBMED_URL_VAR="http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=%%22%s%%22%%5BAll%%20Fields%%5D&retmode=json&retmax=1000"
 PUBMED_URL_PMID="http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&rettype=abstract&id=%s"
@@ -121,6 +117,3 @@ PopulationNames = {
     "AMR" : "Total American Ancestry",
     "ALL" : "Total 1000 Genomes dataset"
 }
-
-# how many tissues with highest expression values to report from GXA
-# GXA_HIGHEST=10
