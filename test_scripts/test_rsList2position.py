@@ -38,3 +38,6 @@ print(x)
 x=gwas.hitsByRegion("9","22700000")
 print(x)
 
+for rs in L:
+    x=variant.getVariantInfo(rs)
+    print(json.dumps(x,indent=4,sort_keys=True))

@@ -138,9 +138,9 @@ def getMostSevereConsequence(L):
 
 def getVarType(R):
     '''
-    For a given variant dict with keys seq,pos,ref,alt, get variant type
+    For a given variant dict with keys seq,pos,del,ins, get variant type
 
-    Input: dict with keys seq,pos,ref,alt
+    Input: dict with keys seq,pos,del,ins
     Output: SNP,INS,DEL,INDEL
     '''
     
@@ -158,9 +158,9 @@ def getVarType(R):
 
 def var2spdi(R):
     '''
-    For a given variant dict with keys seq,pos,ref,alt (VCF style), get variant's SPDI string
+    For a given variant dict with keys seq,pos,del,ins (VCF style), get variant's SPDI string
 
-    Input: dict with keys seq,pos,ref,alt
+    Input: dict with keys seq,pos,del,ins
     Output: SPDI string
     '''
     

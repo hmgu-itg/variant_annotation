@@ -49,3 +49,6 @@ logging.getLogger("varannot.variant").setLevel(logging.DEBUG)
 
 for x in variant.rs2spdi(varID,build):
     print(x,file=sys.stdout)
+
+x=variant.getVariantInfo(varID)
+print(json.dumps(x,indent=4,sort_keys=True))

@@ -220,7 +220,7 @@ def getVariantInfo(rs,build="38"):
     "synonyms" : list of synonym IDs
     "consequence" : most severe consequence
     "mappings" : list of mapping dictionaries with keys: "chr", "pos", "ref", "alt", "polyphen_score", "polyphen_prediction", "sift_score", "sift_prediction"
-    "population_data" : list of dictionaries "population":{"allele":"frequency"} (from phase 3 of 1KG)
+    "population_data" : dictionary "alleles":A1/A2,"frequency":{"population name":"f1/f2"}
     "phenotype_data" : list of dictionaries with keys "trait", "source", "risk_allele"
     "clinical_significance" : list of clinical significance terms
     "scores" : dictionary mapping "chr:pos" string to a dictionary with keys "avg_gerp", "gerp", "gwava"
@@ -242,11 +242,9 @@ def getVariantInfo(rs,build="38"):
 #------------------- general information ---------------
 
     data=query.restQuery(query.makeRsPhenotypeQuery2URL(rs,build))
-    #print(json.dumps(data,indent=4,sort_keys=True))
-
+    LOGGER.debug("\n%s" % json.dumps(data,indent=4,sort_keys=True))
     if not data:
         return None
-
     res["minor_allele"]=data["minor_allele"]
     if re.search("[01]\.\d+",str(data["MAF"])):
         res["MAF"]=str(data["MAF"])
@@ -264,34 +262,42 @@ def getVariantInfo(rs,build="38"):
 #------------------- mappings----------------------
 
     mappings=list()
-
     z=query.restQuery(query.makeRSQueryURL(rs,build=build))
+    LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
     if z is None:
         return None
-
     for x in z:
-        spdis=x["spdi"]
-        for spdi in spdis:
-            h=query.parseSPDI(spdi,alleles=True)
-            ref=h["ref"]
-            alt=h["alt"]
-            p=h["pos"]
-            c=h["chr"]
-            mappings.append({"chr":c,"pos":p,"ref":ref,"alt":alt,"sift_score":"NA","sift_prediction":"NA","polyphen_score":"NA","polyphen_prediction":"NA"})        
+        for k in x:
+            spdis=x[k]["spdi"]
+            for spdi in spdis:
+                h=query.parseSPDI(spdi,alleles=True)
+                ref=h["ref"]
+                alt=h["alt"]
+                p=h["pos"]
+                c=h["chr"]
+                mappings.append({"chr":c,"pos":p,"ref":ref,"alt":alt,"sift_score":"NA","sift_prediction":"NA","polyphen_score":"NA","polyphen_prediction":"NA"})        
 
 #------------------ population data ----------------
+#                
+# only consider biallelic variants
 
-    population_data=list()
-
-    for pop in data["populations"]:
-        pop_name = pop["population"].split(":")
-        if pop_name[0] == "1000GENOMES" and pop_name[1] == "phase_3":
-            name=pop_name[2]
-            try:
-                z=next(x for x in population_data if name==x["population"])
-                z["frequency"][pop["allele"]]=pop["frequency"]
-            except:
-                population_data.append({"population":name,"frequency":{pop["allele"]:pop["frequency"]}})
+    population_data=dict()
+    all_alleles=set()
+    for m in data["mappings"]:
+        s=m["allele_string"]
+        for a in s.split("/"):
+            all_alleles.add(a)
+    if len(all_alleles)==2:
+        a1=all_alleles.pop()
+        a2=all_alleles.pop()
+        population_data["alleles"]=a1+"/"+a2
+        population_data["frequency"]=dict()
+        for pdata in data["populations"]:
+            pop_name=pop["population"]
+            f=float(pop["frequency"])
+            if a1!=pop["allele"]:
+                f=1.0-f
+            population_data["frequency"][pop_name]=str(f)+"/"+str(1.0-f)
 
 #------------------ phenotype data -------------------
 
@@ -890,65 +896,20 @@ def variant2df(var_data,mappings):
     
 # ==============================================================================================================================
 
-def population2df(pop_data,ref):
+def population2df(pop_data):
     '''
     Transform variant's population data into a dataframe
 
-    Input: population data: "population_data" dictionary of variant data (output of getVariantInfo), REF allele
-    Output: dataframe
+    Input: population data: dictionary "alleles":A1/A2,"frequency":{"population name":"f1/f2"}
+    Output: dataframe with columns Population,A1,A2
     '''
 
     if not pop_data:
         return None
-    
-    all_alleles=set()
-    for z in pop_data:
-        for a in z["frequency"]:
-            all_alleles.add(a)
-
-    A=list(all_alleles)
-    A.sort()
-
-    # first element should be REF
-    try:
-        i=A.index(ref)
-        tmp=A[0]
-        A[0]=ref
-        A[i]=tmp
-    except:
-        LOGGER.error("Could not find %s in alleles" % ref)
-        C=["Population"]
-        for a in A:
-            C.append("%s" %a)
-        df=pd.DataFrame(columns=C)
-        return df
-        
-    C=["Population"]
-    for a in A:
-        C.append("%s" %a)
-
-    df=pd.DataFrame(columns=C)
-    if len(pop_data)==0:
-        return df
-
+    df=pd.DataFrame(columns=["Population",pop_data["alleles"].split("/")[0],pop_data["alleles"].split("/")[1]])
     i=0
-
-    for p in config.PopulationNames:
-        #LOGGER.debug("Population: %s" %p)
-        x=next((z for z in pop_data if z["population"]==p),None)
-        L=[p]
-        if x:
-            D=x["frequency"].copy()
-            for a in A:
-                if a not in D:
-                    D[a]=0.0000
-                L.append(str(round(D[a],4)))
-        else:
-            for j in range(0,len(A)):
-                L.append("NA")
-
-        df.loc[i]=L
+    for p in pop_data["frequency"]:
+        df.loc[i]=[p,str(round(float(pop_data["frequency"][p].split("/")[0]),4)),str(round(float(pop_data["frequency"][p].split("/")[1]),4))]
         i+=1
-
     return df
 

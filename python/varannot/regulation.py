@@ -56,6 +56,6 @@ def regulation2df(reg_data):
     for r in reg_data:
         for cell in reg_data[r]["cells"]:
             df.loc[i]=[r,reg_data[r]["class"],cell]
-            i+=1
+            i+=1b
     return df
 

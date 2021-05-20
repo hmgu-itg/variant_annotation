@@ -185,10 +185,10 @@ for current_variant_id in rsIDs:
         LOGGER.info("Creating variant dataframe")
         variantDF=variant.variant2df(variant_data,mappings)
         
-        LOGGER.info("Retreiving nearby variants with phenotype annotation")
+        LOGGER.info("Nearby variants with phenotype annotation")
         phenotypeDF=variant.getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
         
-        LOGGER.info("Retrieving overlapping regulatory features")
+        LOGGER.info("Overlapping regulatory features")
         regulationDF=regulation.regulation2df(regulation.getRegulation(chrpos[i][0],chrpos[i][1]))
 
         LOGGER.info("Looking for GWAS hits around the variant")
@@ -199,22 +199,27 @@ for current_variant_id in rsIDs:
         vepDFtr=temp["transcript"]
         vepDFreg=temp["regulatory"]
         
-        LOGGER.info("Creating populations dataframe")
+        LOGGER.info("Creating 1KG populations dataframe")
         populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
+        
         # relative to the output dir
         tmp_name=utils.df2svg(populationDF,current_variant_id)
         populationFname=None
         if not tmp_name is None:
             populationFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
+        
         LOGGER.info("Creating PubMed dataframe")
         pubmedDF=pubmed.getPubmedDF(current_variant_id,variant_data["synonyms"])
+        
         LOGGER.info("Retrieving genes around the variant")
         gene_list=gene.getGeneList(chrpos[i][0],chrpos[i][1],build=build)
         if gene_list:
             all_genes.extend(gene_list)
             LOGGER.info("Got %d gene(s)" %(len(gene_list)))
+
         LOGGER.info("Creating gene dataframe")
         geneDF=gene.geneList2df(gene_list)
+        
         LOGGER.info("Creating gnomAD dataframe")
         gnomadDF=gnomad.getPopulationAF(current_variant_id)
         # relative to the output dir
@@ -222,6 +227,7 @@ for current_variant_id in rsIDs:
         gnomadFname=None
         if not tmp_name is None:
             gnomadFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
+            
         LOGGER.info("Creating GTEx dataframe")
         GTEx_genesDF=gtex.getGTExDF(mappings)    
         LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
@@ -264,6 +270,8 @@ for current_variant_id in rsIDs:
             D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json(orient="records")
 
 #----------------------------------------------------------------------------------------------------------------------
+            
+    # Gene information for all genes near the variant
 
     gene_names=list()
     LOGGER.info("Total genes: %d" % len(all_genes))
@@ -332,7 +340,7 @@ for current_variant_id in rsIDs:
             D1["mouse_table_%s" %gene_ID]=mouseDF.to_json(orient="records")
             D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
                 
-#----------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------- CREATING OUTPUT ---------------------------------------------------------
 
     if out_html:
         outfile=config.OUTPUT_DIR+"/%s.html" % current_variant_id
