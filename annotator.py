@@ -191,11 +191,11 @@ for current_variant_id in rsIDs:
         LOGGER.info("Overlapping regulatory features")
         regulationDF=regulation.regulation2df(regulation.getRegulation(chrpos[i][0],chrpos[i][1]))
 
-        LOGGER.info("Looking for GWAS hits around the variant")
+        LOGGER.info("Looking for GWAS hits around the input variant")
         gwasDF=gwas.hitsByRegion(chrpos[i][0],chrpos[i][1])
         
         LOGGER.info("Creating VEP dataframe")
-        temp=vep.getVepDF(variant_data["rs"],mappings,build=build)
+        temp=vep.getVepDF(variant_data["rsID"],mappings,build=build)
         vepDFtr=temp["transcript"]
         vepDFreg=temp["regulatory"]
         
