@@ -538,8 +538,8 @@ def createDir(path):
 
 # ======================================================================================================================
 
-def getGxaURL(ID):
-    return config.GXA_URL_PREFIX+ID+config.GXA_URL_SUFFIX
+# def getGxaURL(ID):
+#     return config.GXA_URL_PREFIX+ID+config.GXA_URL_SUFFIX
 
 # ======================================================================================================================
 
