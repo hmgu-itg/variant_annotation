@@ -5,6 +5,7 @@ import logging
 
 from varannot import variant
 from varannot import gwas
+from varannot import query
 
 ch=logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -41,3 +42,6 @@ print(x)
 for rs in L:
     x=variant.getVariantInfo(rs)
     print(json.dumps(x,indent=4,sort_keys=True))
+
+x=query.restQuery(query.makeGeneOverlapQueryURL("1",16067095,18067095))
+print(json.dumps(x,indent=4,sort_keys=True))

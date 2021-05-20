@@ -106,7 +106,7 @@ def getGeneList(chrom,pos,window=config.GENE_WINDOW,build="38"):
             "start" : int(gene["start"]),
             "end" : int(gene["end"]),
             "strand" : gene["strand"],
-            "name" : gene["external_name"],
+            "name" : gene["external_name"] if "external_name" in gene else gene["id"],
             "description" : gene["description"],
             "biotype" : gene["biotype"],
             "ID" : gene["id"],
