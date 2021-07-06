@@ -25,16 +25,24 @@ def makeRSQueryURL(rsID,build="38"):
     ext="/variant_recoder/homo_sapiens/"
     return getServerName(build)+ext+rsID+"?"
 
-def makeHomologyURL(ID,species="mouse",build="38"):
-    ext="/homology/id/%s?&target_species=%s&aligned=0&sequence=none&type=orthologues" %(ID,species)
+def makeHomologyURL(ID,species="mouse",build="38",homology_type="orthologues"):
+    ext="/homology/id/%s?&target_species=%s&aligned=0&sequence=none&type=%s" %(ID,species,homology_type)
+    return getServerName(build)+ext
+
+def makeHomologySymbolURL(name,source_species="human",target_species="mouse",build="38",homology_type="orthologues"):
+    ext="/homology/symbol/%s/%s?&target_species=%s&aligned=0&sequence=none&type=%s" %(source_species,name,target_species,homology_type)
     return getServerName(build)+ext
 
 def makeGeneQueryURL(ID,build="38"):
     ext="/lookup/id/"
     return getServerName(build)+ext+ID
 
+def makeGeneSymbolQueryURL(name,build="38",species="homo_sapiens"):
+    ext="/lookup/symbol/%s/%s" %(species,name)
+    return getServerName(build)+ext
+
 def makeGeneNameXQueryURL(name,build="38",species="homo_sapiens"):
-    ext="/xrefs/species/"
+    ext="/xrefs/symbol/"
     return getServerName(build)+ext+"%s/%s" % (species,name)
 
 def makeGeneXQueryURL(ID,build="38"):
