@@ -33,6 +33,10 @@ def makeGeneQueryURL(ID,build="38"):
     ext="/lookup/id/"
     return getServerName(build)+ext+ID
 
+def makeGeneNameXQueryURL(name,build="38",species="homo_sapiens"):
+    ext="/xrefs/species/"
+    return getServerName(build)+ext+"%s/%s" % (species,name)
+
 def makeGeneXQueryURL(ID,build="38"):
     ext="/xrefs/id/"
     return getServerName(build)+ext+"%s?all_levels=1" % ID
