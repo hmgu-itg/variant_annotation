@@ -3,15 +3,9 @@ import os
 import logging
 import pandas as pd
 
-from . import config
+from varannot import config
 
 LOGGER=logging.getLogger(__name__)
-# LOGGER.setLevel(logging.DEBUG)
-# ch=logging.StreamHandler()
-# ch.setLevel(logging.DEBUG)
-# formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(funcName)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
-# ch.setFormatter(formatter)
-# LOGGER.addHandler(ch)
 
 # ======================================================================================================================
 
@@ -30,8 +24,8 @@ def getRegulation(chrom,pos,window=config.REG_WINDOW):
         start=1
     end=pos+window
 
-    regulatoryFile = config.REGULATORY_FILE
-    FNULL = open(os.devnull, 'w')
+    regulatoryFile=config.REGULATORY_FILE
+    FNULL=open(os.devnull, 'w')
     query="intersectBed -wb -a <(echo -e \"%s\\t%s\\t%s\\n\") -b %s -sorted" % (chrom,start,end,regulatoryFile)
     output=subprocess.Popen(query.strip(),shell=True,universal_newlines=True,stdout=subprocess.PIPE,stderr=FNULL)
 
@@ -63,6 +57,5 @@ def regulation2df(reg_data):
         for cell in reg_data[r]["cells"]:
             df.loc[i]=[r,reg_data[r]["class"],cell]
             i+=1
-    
     return df
 

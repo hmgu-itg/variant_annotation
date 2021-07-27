@@ -10,33 +10,29 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
-def getGeneInfo (ID,build="38"):
+def getGeneInfo(ID,build="38"):
     '''
-    This function retrieves gene related information
+    Retrieve general gene information
 
     Input: Ensembl stable ID
-    Output: dictionary with retrieved information
+    Output: dictionary
     '''
     response=query.restQuery(query.makeGeneQueryURL(ID,build=build))
     if response is None:
         return None
 
-    #print(json.dumps(response,indent=4,sort_keys=True))
-
     gene_info=dict()
-    gene_info["source"] = response["source"]
-    gene_info["id"] = response["id"]
-    gene_info["start"] = response["start"]
-    gene_info["end"] = response["end"]
-    gene_info["assembly_name"] = response["assembly_name"]
+    gene_info["id"]=response["id"]
+    gene_info["chromosome"]=response["seq_region_name"]
+    gene_info["start"]=response["start"]
+    gene_info["end"]=response["end"]
     try:
-        gene_info["description"] = response["description"].split("[")[0]
+        gene_info["description"]=response["description"].split("[")[0]
     except:
-        gene_info["description"] = "NA"
-    gene_info["name"] = response["display_name"]
-    gene_info["type"] = response["biotype"]
-    gene_info["strand"] = response["strand"]
-    gene_info["chromosome"] = response["seq_region_name"]
+        gene_info["description"]="NA"
+    gene_info["name"]=response["external_name"] if "external_name" in response else "NA"
+    gene_info["type"]=response["biotype"]
+    gene_info["strand"]=response["strand"]
 
     return gene_info
 
@@ -44,7 +40,7 @@ def getGeneInfo (ID,build="38"):
 
 def getGeneXrefs (ID,build="38"):
     '''
-    This function retrieves cross-references from Ensembl
+    Retrieve cross-references
 
     Input  : gene ID, build(default: "38")
     Output : dictionary with keys "MIM disease","MIM gene","GO","GOSlim GOA","UniProtKB/Swiss-Prot","Human Protein Atlas","ChEMBL"
@@ -80,10 +76,9 @@ def getGeneXrefs (ID,build="38"):
 
 def getGeneList(chrom,pos,window=config.GENE_WINDOW,build="38"):
     '''
-    Based on the submitted chromosome and position, this function returns
-    all genes overlapping a window
+    Return all genes overlapping a window around a position
 
-    Input: chromosome, position, window (default: 1Mbp), build (default: "38")
+    Input: chromosome, position, window (default: config.GENE_WINDOW), build (default: "38")
     Output: list of dictionaries with keys: 
     "start", "end", "strand", "name", "description", "biotype", "ID", "distance", "orientation" 
     '''
@@ -111,7 +106,7 @@ def getGeneList(chrom,pos,window=config.GENE_WINDOW,build="38"):
             "start" : int(gene["start"]),
             "end" : int(gene["end"]),
             "strand" : gene["strand"],
-            "name" : gene["external_name"],
+            "name" : gene["external_name"] if "external_name" in gene else gene["id"],
             "description" : gene["description"],
             "biotype" : gene["biotype"],
             "ID" : gene["id"],

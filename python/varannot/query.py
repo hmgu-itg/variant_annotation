@@ -25,13 +25,25 @@ def makeRSQueryURL(rsID,build="38"):
     ext="/variant_recoder/homo_sapiens/"
     return getServerName(build)+ext+rsID+"?"
 
-def makeHomologyURL(ID,species="mouse",build="38"):
-    ext="/homology/id/%s?&target_species=%s&aligned=0&sequence=none&type=orthologues" %(ID,species)
+def makeHomologyURL(ID,species="mouse",build="38",homology_type="orthologues"):
+    ext="/homology/id/%s?&target_species=%s&aligned=0&sequence=none&type=%s" %(ID,species,homology_type)
+    return getServerName(build)+ext
+
+def makeHomologySymbolURL(name,source_species="human",target_species="mouse",build="38",homology_type="orthologues"):
+    ext="/homology/symbol/%s/%s?&target_species=%s&aligned=0&sequence=none&type=%s" %(source_species,name,target_species,homology_type)
     return getServerName(build)+ext
 
 def makeGeneQueryURL(ID,build="38"):
     ext="/lookup/id/"
     return getServerName(build)+ext+ID
+
+def makeGeneSymbolQueryURL(name,build="38",species="homo_sapiens"):
+    ext="/lookup/symbol/%s/%s" %(species,name)
+    return getServerName(build)+ext
+
+def makeGeneNameXQueryURL(name,build="38",species="homo_sapiens"):
+    ext="/xrefs/symbol/"
+    return getServerName(build)+ext+"%s/%s" % (species,name)
 
 def makeGeneXQueryURL(ID,build="38"):
     ext="/xrefs/id/"
@@ -40,22 +52,6 @@ def makeGeneXQueryURL(ID,build="38"):
 def makeGeneXQueryURL2(ID,build="38"):
     ext="/xrefs/id/"
     return getServerName(build)+ext+"%s?external_db=MGI" % ID
-
-def makeRSPhenotypeQueryURL(build="38"):
-    ext="/variation/homo_sapiens/"
-    return getServerName(build)+ext+"?phenotypes=1"
-
-def makePhenoOverlapQueryURL(chrom,start,end,build="38"):
-    ext="/overlap/region/human/"
-    return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_variants" %(chrom,start,end)
-
-def makeOverlapVarGWASCATQueryURL(chrom,start,end,build="38"):
-    ext="/overlap/region/human/"
-    return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_nhgri" %(chrom,start,end)
-
-def makeRsPhenotypeQuery2URL(rs,build="38"):
-    ext="/variation/human/"
-    return getServerName(build)+ext+"%s?pops=1;phenotypes=1" %rs
 
 def makeRSListQueryURL(build="38"):
     ext="/variant_recoder/homo_sapiens/"
@@ -80,6 +76,35 @@ def makeVepRSListQueryURL(build="38"):
 def makeGeneOverlapQueryURL(chrom,start,end,build="38"):
     ext="/overlap/region/human/%s:%d-%d?feature=gene" %(chrom,start,end)
     return getServerName(build)+ext
+
+# PHENOTYPE QUERIES
+
+def makeRSPhenotypeQueryURL(build="38"):
+    ext="/variation/homo_sapiens/"
+    return getServerName(build)+ext+"?phenotypes=1"
+
+# https://rest.ensembl.org/documentation/info/overlap_region
+def makePhenoOverlapQueryURL(chrom,start,end,build="38"):
+    ext="/overlap/region/human/"
+    return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_variants" %(chrom,start,end)
+
+def makeOverlapVarGWASCATQueryURL(chrom,start,end,build="38"):
+    ext="/overlap/region/human/"
+    return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_nhgri" %(chrom,start,end)
+
+def makeRsPhenotypeQuery2URL(rs,build="38"):
+    ext="/variation/human/"
+    return getServerName(build)+ext+"%s?pops=1;phenotypes=1" %rs
+
+# https://rest.ensembl.org/documentation/info/phenotype_region
+def makeOverlapPhenotypeQueryURL(chrom,start,end,build="38"):
+    ext="/phenotype/region/homo_sapiens/"
+    return getServerName(build)+ext+"%s:%d-%d?feature_type=Variation;include_pubmed_id=1" %(chrom,start,end)
+
+# https://rest.ensembl.org/documentation/info/phenotype_gene
+def makeGenePhenotypeQueryURL(gene,build="38"):
+    ext="/phenotype/gene/homo_sapiens/"
+    return getServerName(build)+ext+"%s?include_associated=1;include_overlap=1;include_pubmed_id=1" %(gene)
 
 # ===========================================================================================================================
 

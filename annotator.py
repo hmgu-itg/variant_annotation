@@ -37,8 +37,8 @@ input_options = parser.add_argument_group('Input options')
 input_options.add_argument('--build','-b', action="store",type=str,help="Optional: genome build; default: 38", default=build,required=False)
 input_options.add_argument("--id", "-i", help="Required: input variant, rsID or variant ID: 14_94844947_C_T",required=True)
 input_options.add_argument("--data", "-d", help="Required: directory with GWAVA, GTEx, GWAS and Ensembl Regulation data",required=True)
-input_options.add_argument('--output','-o', action="store",help="Optional: output directory; default: to current directory",required=False)
-input_options.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
+input_options.add_argument('--output','-o', action="store",help="Optional: output directory; default: current directory",required=False)
+input_options.add_argument("--verbose", "-v", help="Optional: verbosity level; default: info", required=False,choices=("debug","info","warning","error"),default="info")
 input_options.add_argument("--json", "-j", help="Optional: output JSON.GZ instead of default HTML", required=False, action='store_true')
 input_options.add_argument("--reg-window", "-reg-window", help="Optional: bp window around the input variant to look for overlapping ENSEMBL regulatory elements; default: %d" % config.REG_WINDOW, type=int, default=config.REG_WINDOW, required=False, action='store',dest="reg_window")
 input_options.add_argument("--pheno-window", "-pheno-window", help="Optional: bp window around the input variant to look for variants annotated with phenotypes; default: %d" % config.PHENO_WINDOW, type=int, default=config.PHENO_WINDOW, required=False, action='store',dest="pheno_window")
@@ -107,7 +107,7 @@ LOGGER.setLevel(verbosity)
 #ch=logging.StreamHandler()
 ch=logging.FileHandler(logfile,'w')
 ch.setLevel(verbosity)
-formatter=logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+formatter=logging.Formatter('%(levelname)s - %(name)s - %(funcName)s -%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -128,11 +128,15 @@ sys.stderr=open(logfile,"a")
 
 # ------------------------------------------------------------------------------------------------------------------------
 
-if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED,config.GXA_FILE]):
+if not utils.checkID(VAR_ID):
+    LOGGER.error("%s is not a valid variant ID" %(VAR_ID))
     sys.exit(1)
 
-if not utils.checkID(VAR_ID):
-    LOGGER.error("Provided ID (%s) is not valid" % VAR_ID)
+if not utils.isRS(VAR_ID) and not utils.checkAlleles(VAR_ID,build):
+    LOGGER.error("Alleles in %s don't match reference sequence" %(VAR_ID))
+    sys.exit(1)
+
+if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED,config.GXA_FILE]):
     sys.exit(1)
 
 LOGGER.info("Reading in GXA file")
@@ -143,27 +147,26 @@ config.GXA_DF=pd.read_table(config.GXA_FILE,header=0,compression="gzip")
 LOGGER.info("Retreiving rsIDs for %s" % VAR_ID)
 rsIDs=variant.id2rs_mod(VAR_ID,build=build)
 LOGGER.info("Got %d rsID(s)" % len(rsIDs))
-LOGGER.info("rs ID(s): %s",", ".join(rsIDs))
+if len(rsIDs)!=0:
+    LOGGER.info("rs ID(s): %s",", ".join(rsIDs))
 
 if len(rsIDs)==0:
-    if not checkAlleles(VAR_ID,build):
-        LOGGER.error("Alleles in %s don't match reference sequence")
-        sys.exit(1)
-    rsIDs.add(VAR_ID)
+    rsIDs={VAR_ID}
 
-for rsID in rsIDs:
-    LOGGER.info("Retrieving variant data for %s from ENSEMBL" % rsID)
-    variant_data=variant.getVariantInfo(rsID,build)
+for current_variant_id in rsIDs:
+    LOGGER.info("Retrieving variant data for %s" % current_variant_id)
+    variant_data=variant.getVariantInfo(current_variant_id,build)
     if variant_data is None:
-        LOGGER.error("Variant data for %s could not be retreived" % rsID)
+        LOGGER.error("Variant data for %s could not be retreived" % current_variant_id)
         continue
 
     LOGGER.info("Getting GWAVA scores")
     variant.getGwavaScore(variant_data)
 
-    # a variant can have multiple chr:pos mappings
+    # variant can have multiple chr:pos mappings
     # each chr:pos mapping can have multiple ref:alt pairs
-    
+
+    # all chr:pos pairs
     chrpos=variant.getChrPosList(variant_data["mappings"])
 
     all_genes=list()
@@ -175,50 +178,53 @@ for rsID in rsIDs:
 
     # loop over all chr:pos mappings
     for i in range(0,len(chrpos)):
-        LOGGER.info("Current mapping: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
-        # all ref:alt etc. information corresponding to the current chr:pos
+        LOGGER.info("Current chr:pos: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
+        # all chr:pos:ref:alt etc. information corresponding to the current chr:pos
         mappings=variant.getMappingList(chrpos[i],variant_data["mappings"])
+        
         LOGGER.info("Creating variant dataframe")
         variantDF=variant.variant2df(variant_data,mappings)
-        LOGGER.info("Retreiving nearby variants with phenotype annotation")
+        
+        LOGGER.info("Nearby variants with phenotype annotation")
         phenotypeDF=variant.getVariantsWithPhenotypes(chrpos[i][0],chrpos[i][1])
-        LOGGER.info("Retrieving overlapping regulatory features")
-        reg=regulation.getRegulation(chrpos[i][0],chrpos[i][1])
-        LOGGER.info("Found %d overlapping regulatory feature(s)\n" %(len(reg)))
-        LOGGER.info("Creating regulatory dataframe")
-        regulationDF=regulation.regulation2df(reg)
-        LOGGER.info("Looking for GWAS hits around the variant")
-        gwas_hits=gwas.getGwasHits(chrpos[i][0],chrpos[i][1])
-        LOGGER.info("Found %d GWAS hit(s)\n" %(len(gwas_hits)))
-        LOGGER.info("Creating GWAS dataframe")
-        gwasDF=gwas.gwas2df(gwas_hits)
+        
+        LOGGER.info("Overlapping regulatory features")
+        regulationDF=regulation.regulation2df(regulation.getRegulation(chrpos[i][0],chrpos[i][1]))
+
+        LOGGER.info("Looking for GWAS hits around the input variant")
+        gwasDF=gwas.hitsByRegion(chrpos[i][0],chrpos[i][1])
+        
         LOGGER.info("Creating VEP dataframe")
-        temp=vep.getVepDF(mappings)
+        temp=vep.getVepDF(variant_data["rsID"],mappings,build=build)
         vepDFtr=temp["transcript"]
         vepDFreg=temp["regulatory"]
-        LOGGER.info("Creating populations dataframe")
-        populationDF=variant.population2df(variant_data["population_data"],variant_data["mappings"][0]["ref"])
-        # relative to the output dir
-        tmp_name=utils.df2svg(populationDF,rsID)
+        
+        LOGGER.info("Creating population dataframe")
+        populationDF=variant.population2df(variant_data["population_data"])
+        tmp_name=utils.df2svg(populationDF,current_variant_id)
         populationFname=None
         if not tmp_name is None:
             populationFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
+        
         LOGGER.info("Creating PubMed dataframe")
-        pubmedDF=pubmed.getPubmedDF(rsID,variant_data["synonyms"])
+        pubmedDF=pubmed.getPubmedDF(current_variant_id,variant_data["synonyms"])
+        
         LOGGER.info("Retrieving genes around the variant")
         gene_list=gene.getGeneList(chrpos[i][0],chrpos[i][1],build=build)
         if gene_list:
             all_genes.extend(gene_list)
             LOGGER.info("Got %d gene(s)" %(len(gene_list)))
+
         LOGGER.info("Creating gene dataframe")
         geneDF=gene.geneList2df(gene_list)
+        
         LOGGER.info("Creating gnomAD dataframe")
-        gnomadDF=gnomad.getPopulationAF(rsID)
-        # relative to the output dir
-        tmp_name=utils.df2svg(gnomadDF,rsID)
+        gnomadDF=gnomad.getPopulationAF(current_variant_id)
+        tmp_name=utils.df2svg(gnomadDF,current_variant_id)
         gnomadFname=None
         if not tmp_name is None:
             gnomadFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
+            
         LOGGER.info("Creating GTEx dataframe")
         GTEx_genesDF=gtex.getGTExDF(mappings)    
         LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
@@ -261,6 +267,8 @@ for rsID in rsIDs:
             D1["gtex_genes_table%d" %i]=GTEx_genesDF.to_json(orient="records")
 
 #----------------------------------------------------------------------------------------------------------------------
+            
+    # Gene information for all genes near the variant
 
     gene_names=list()
     LOGGER.info("Total genes: %d" % len(all_genes))
@@ -270,8 +278,12 @@ for rsID in rsIDs:
         LOGGER.info("Current gene: %s",gene_ID)
         LOGGER.info("Retreiving general information")
         info=gene.getGeneInfo(gene_ID,build=build)
+        infoDF=gene.geneInfo2df(info)
+        
         LOGGER.info("Retreiveing cross-references")
         xrefs=gene.getGeneXrefs(gene_ID)
+        LOGGER.info("Creating GO terms dataframe")
+        goDF=gene.goterms2df(xrefs)
         if xrefs is None:
             up=None
         else:
@@ -280,19 +292,18 @@ for rsID in rsIDs:
                 up=uniprot.getUniprotData(xrefs["UniProtKB/Swiss-Prot"][0][0])
             else:
                 up=None
-
+        LOGGER.info("Creating UniProt dataframe")
+        uniprotDF=uniprot.uniprot2df(up)
+        
         LOGGER.info("Retreiving GWAS data")
-        gw=gwas.gene2gwas(info["name"])
+        gwasDF=gwas.hitsByGene(gene_ID)
+        
         LOGGER.info("Retreiving GTEx data")
-        gt=gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID)
+        gtexDF=gtex.gtex2df(gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID))
+        
         LOGGER.info("Retreiving mouse data")
         mouseDF=mouse.getMousePhenotypes(gene_ID)
-        LOGGER.info("Creating general info dataframe")
-        infoDF=gene.geneInfo2df(info)
-        LOGGER.info("Creating GTEx dataframe")
-        gtexDF=gtex.gtex2df(gt)
-        LOGGER.info("Creating GWAS dataframe")
-        gwasDF=gwas.geneGwas2df(gw)
+        
         LOGGER.info("Creating GXA dataframe")
         gxaDF=gxa.getGxaDFLocal(gene_ID)
         # relative to the output dir
@@ -300,10 +311,6 @@ for rsID in rsIDs:
         gxaFname=None
         if not tmp_name is None:
             gxaFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
-        LOGGER.info("Creating UniProt dataframe")
-        uniprotDF=uniprot.uniprot2df(up)
-        LOGGER.info("Creating GO terms dataframe")
-        goDF=gene.goterms2df(xrefs)
         LOGGER.info("")
 
         if out_html:
@@ -330,10 +337,10 @@ for rsID in rsIDs:
             D1["mouse_table_%s" %gene_ID]=mouseDF.to_json(orient="records")
             D1["go_table_%s" %gene_ID]=goDF.to_json(orient="records")
                 
-#----------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------- CREATING OUTPUT ---------------------------------------------------------
 
     if out_html:
-        outfile=config.OUTPUT_DIR+"/%s.html" % rsID
+        outfile=config.OUTPUT_DIR+"/%s.html" % current_variant_id
         LOGGER.info("Saving HTML output to %s\n" % outfile)
         template_fname=config.OUTPUT_DIR+"/template.html"
         utils.generateTemplate(mapping_names,gene_names,template_fname)
@@ -343,7 +350,7 @@ for rsID in rsIDs:
         if os.path.isfile(template_fname):
             os.remove(template_fname)
     else:
-        outfile=config.OUTPUT_DIR+"/%s.json.gz" %rsID
+        outfile=config.OUTPUT_DIR+"/%s.json.gz" %current_variant_id
         LOGGER.info("Saving JSON output to %s\n" % outfile)
         with gzip.GzipFile(outfile,"w") as fout:
             fout.write(json.dumps(D1).encode('utf-8'))

@@ -136,6 +136,7 @@ if [[ "$prepgtex" -eq 1 ]];then
     bgzip -f "$out/gtex/gtex.bed"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Indexing GTEx file"
     tabix -f -p bed "$out/gtex/gtex.bed.gz"
+    rm "$out/gtex/gencode.gtf.gz" "$out/gtex/GTEx.lookup.txt.gz"
 fi
 
 # ----------------------------- GWAS ---------------------------------------

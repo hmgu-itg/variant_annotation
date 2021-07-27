@@ -15,7 +15,18 @@ LOGGER=logging.getLogger(__name__)
 # ==============================================================================================================================
 
 def rs2spdi(ID,build="38"):
-    L=[]
+    '''
+    For a given rs ID, return a list of SPDI strings
+
+    Input: rs ID
+    Output: list of SPDI strings
+    '''
+    
+    L=list()
+    if not utils.isRS(ID):
+        LOGGER.warning("%s is not a rs ID" %(ID))
+        return L
+        
     z=query.restQuery(query.makeRSQueryURL(ID,build=build))
     if z:
         LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
@@ -26,44 +37,38 @@ def rs2spdi(ID,build="38"):
                     for spdi in spdis:
                         if not spdi in L:
                             L.append(spdi)
-
     return L
 
 # ==============================================================================================================================
 
 def rsList2position(L,build="38",alleles=False):
     '''
-    Input: list of rsID, build (default: 38), alleles=True/False (if we need alleles as well)
-    Output: a dictionary rsID --> [{"chr":c,"pos":p}, ...], or None if query fails
+    Input: list of rsIDs, build (default: 38), alleles=True/False (if we need alleles as well)
+    Output: a dictionary rsID --> [{"chr":c,"pos":p,"ref":ref,"alt":alt}, ...], or None if query fails
     '''
 
-    D={}
-    data=utils.list2string(L)
-    url=query.makeRSListQueryURL(build=build)
-    z=query.restQuery(url,qtype="post",data=data)
+    D=dict()
+    z=query.restQuery(query.makeRSListQueryURL(build=build),qtype="post",data=utils.list2string(L))
     if z:
+        LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
         for x in z:
-            inputID=x["input"]
-            D[inputID]=[]
-            spdis=x["spdi"]
-            for spdi in spdis:
-                h=query.parseSPDI(spdi,build=build,alleles=alleles)
-                p=h["pos"]
-                c=h["chr"]
-                ref=h["ref"]
-                alt=h["alt"]
-                z=None
-                if alleles:
-                    z=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p and x["ref"]==ref and x["alt"]==alt),None)
-                else:
-                    z=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p),None)
-                if not z:
-                    D[inputID].append({"chr":c,"pos":p,"ref":ref,"alt":alt})
-                    
-        # in case some input IDs are missing in the response
-        # for ID in L:
-        #     if not ID in D:
-        #         D[ID]=[{"chr":None,"pos":None,"ref":None,"alt":None}]
+            for x1 in x:
+                inputID=x[x1]["input"]
+                D[inputID]=[]
+                spdis=x[x1]["spdi"]
+                for spdi in spdis:
+                    h=query.parseSPDI(spdi,build=build,alleles=alleles)
+                    p=h["pos"]
+                    c=h["chr"]
+                    ref=h["ref"]
+                    alt=h["alt"]
+                    z1=None
+                    if alleles:
+                        z1=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p and x["ref"]==ref and x["alt"]==alt),None)
+                    else:
+                        z1=next((x for x in D[inputID] if x["chr"]==c and x["pos"]==p),None)
+                    if z1 is None:
+                        D[inputID].append({"chr":c,"pos":p,"ref":ref,"alt":alt})
     else:
         return None
 
@@ -73,16 +78,16 @@ def rsList2position(L,build="38",alleles=False):
 
 def rs2position(ID,build="38",alleles=False):
     '''
-    Given rsID, return a list of dictionaries with keys "chr", "pos"
+    For a given rsID, return a list of dictionaries with keys chr,pos
     
     Input: rsID, build (default: 38), alleles=True/False (if we need alleles as well)
-    Output: a list of dictionaries with keys "chr", "pos", or None if query fails
+    Output: a list of dictionaries with keys "chr", "pos", "ref", "alt" or None if query fails
     '''
 
     L=[]
     z=query.restQuery(query.makeRSQueryURL(ID,build=build))
     if z:
-        print(json.dumps(z,indent=4,sort_keys=True))
+        LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
         for x in z:
             for x1 in x:
                 spdis=x[x1]["spdi"]
@@ -112,31 +117,31 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
     For a given genomic region, return dataframe containing variants with phenotype annotations
 
     Input: chromosome, position, window (default: config.PHENO_WINDOW), build (default: "38") 
-    Output: pandas dataframe with columns: "ID", "Consequence", "Location", "Phenotype", "Source", "Distance"
+    Output: pandas dataframe with columns: "ID", "Consequence", "Location", "Phenotype", "Source", "Link"
     '''
     
-    start=pos-window
-    end=pos+window
+    start=int(pos)-int(window)
+    end=int(pos)+int(window)
 
     if start<1 : 
         start=1
 
-    empty_df=pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Distance"])
+    df=pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Link"])
 
     if end-start>5000000:
         LOGGER.error("Maximal region size allowed: 5Mbp")
-        return empty_df
+        return df
 
-    LOGGER.debug("%s:%d; window: %d" %(chrom,pos,window))
+    LOGGER.debug("%s:%d; window: %d" %(chrom,int(pos),int(window)))
     variants=query.restQuery(query.makePhenoOverlapQueryURL(chrom,start,end,build=build),qtype="get")
-    #print(json.dumps(variants,indent=4,sort_keys=True))
+    LOGGER.debug("\n%s" % json.dumps(variants,indent=4,sort_keys=True))
 
     if not variants:
-        return empty_df
+        return df
 
     if len(variants)==0: 
         LOGGER.info("No variants with phenotypes were found in the region %s:%d-%d" %(chrom,start,end))
-        return empty_df
+        return df
 
     rsIDs=list()
     for var in variants:
@@ -144,35 +149,31 @@ def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
 
     if len(rsIDs)==0: 
         LOGGER.info("No variants with phenotypes were found in the region %s:%d-%d" %(chrom,start,end))
-        return empty_df
+        return df
     else:
         LOGGER.info("%d variant(s) with phenotypes were found in the region %s:%d-%d" %(len(rsIDs),chrom,start,end))
 
-    output=[]
     i=0
-    df = pd.DataFrame(columns=["ID","Consequence","Location","Phenotype","Source","Link"])
     for L in utils.chunks(rsIDs,config.VARIATION_POST_MAX):
         r=query.restQuery(query.makeRSPhenotypeQueryURL(build=build),data=utils.list2string(L),qtype="post")
         if r:
-            #print(json.dumps(r,indent=4,sort_keys=True))
+            LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
             for rsID in r:
                 for phenotype in r[rsID]["phenotypes"]:
                     m=re.search("phenotype\s+not\s+specified",phenotype["trait"])
                     if m:
                         continue
 
-                    x=next((m for m in r[rsID]["mappings"] if m["seq_region_name"]==chrom),None)
-                    if not x:
-                        continue
-
-                    link=utils.makeLink(config.ENSEMBL_PHENO_URL %rsID,"ENSEMBL")
+                    # default link
+                    link=utils.makeLink(config.ENSEMBL_PHENO_URL % rsID,"ENSEMBL")
+                    
                     if phenotype["source"] == "ClinVar":
                         link=utils.makeLink(config.CLINVAR_URL+rsID,"ClinVar")
                     elif phenotype["source"]=="NHGRI-EBI GWAS catalog":
                         link=utils.makeLink(config.NHGRI_URL+rsID,"NHGRI-EBI")
-                    df.loc[i]=[rsID,r[rsID]["most_severe_consequence"].replace("_"," "),chrom+":"+str(x["start"]),phenotype["trait"],phenotype["source"],link]
+                        
+                    df.loc[i]=[rsID,r[rsID]["most_severe_consequence"].replace("_"," "),r[rsID]["mappings"][0]["location"],phenotype["trait"],phenotype["source"],link]
                     i+=1
-
     return df
 
 # ===========================================================================================================================
@@ -196,7 +197,7 @@ def getChrPosList(mappings):
 
 def getMappingList(t,mappings):
     '''
-    For a list of variant mappings and a chr:pos pair, return a list of mappings corresponding to chr:pos
+    For a list of variant mappings and a chr:pos pair, return a list of mappings corresponding to a given chr:pos pair
 
     Input: chr:pos tuple, list of mappings
     Output: list
@@ -205,7 +206,6 @@ def getMappingList(t,mappings):
     for m in mappings:
         if t[0]==m["chr"] and t[1]==m["pos"]:
             L.append(m)
-
     return L
 
 # ===========================================================================================================================
@@ -219,8 +219,8 @@ def getVariantInfo(rs,build="38"):
     "class" : variant class
     "synonyms" : list of synonym IDs
     "consequence" : most severe consequence
-    "mappings" : list of mapping dictionaries with keys: "chr", "pos", "ref", "alt", "polyphen_score", "polyphen_prediction", "sift_score", "sift_preddiction"
-    "population_data" : list of dictionaries "population":{"allele":"frequency"} (from phase 3 of 1KG)
+    "mappings" : list of mapping dictionaries with keys: "chr", "pos", "ref", "alt", "polyphen_score", "polyphen_prediction", "sift_score", "sift_prediction"
+    "population_data" : dictionary "alleles":A1/A2,"frequency":{"population name":"f1/f2"}
     "phenotype_data" : list of dictionaries with keys "trait", "source", "risk_allele"
     "clinical_significance" : list of clinical significance terms
     "scores" : dictionary mapping "chr:pos" string to a dictionary with keys "avg_gerp", "gerp", "gwava"
@@ -228,22 +228,23 @@ def getVariantInfo(rs,build="38"):
 
     res=dict()
 
-    # in case provided ID is not an RS
+    # in case provided ID is not an rs ID
     if not utils.isRS(rs):
-        t=utils.splitID(rs)
-        if t: # TODO: check if ref/alt mappings are correct: compare to reference sequence
-            return {"minor_allele":None,"MAF":None,"rsID":None,"class":rs,"synonyms":[],"consequence":None,"mappings":[{"chr":t["chr"],"pos":t["pos"],"ref":t["a1"],"alt":t["a2"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"},{"chr":t["chr"],"pos":t["pos"],"ref":t["a2"],"alt":t["a1"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"}],"population_data":None,"phenotype_data":None,"clinical_significance":None,"scores":None}
-        else:
-            return None
+        res.update({"minor_allele":None,"MAF":None,"rsID":None,"class":None,"synonyms":[],"consequence":None,"mappings":[],"population_data":None,"phenotype_data":None,"clinical_significance":None,"scores":None})
+        R=utils.convertVariantID(rs)
+        if utils.checkDEL(R,build=build):
+            res["mappings"].append({"chr":R["seq"],"pos":R["pos"],"ref":R["del"],"alt":R["ins"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"})
+        R=utils.convertVariantID(rs,reverse=True)
+        if utils.checkDEL(R,build=build):
+            res["mappings"].append({"chr":R["seq"],"pos":R["pos"],"ref":R["del"],"alt":R["ins"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"})
+        return res
 
 #------------------- general information ---------------
 
     data=query.restQuery(query.makeRsPhenotypeQuery2URL(rs,build))
-    #print(json.dumps(data,indent=4,sort_keys=True))
-
+    LOGGER.debug("\n%s" % json.dumps(data,indent=4,sort_keys=True))
     if not data:
         return None
-
     res["minor_allele"]=data["minor_allele"]
     if re.search("[01]\.\d+",str(data["MAF"])):
         res["MAF"]=str(data["MAF"])
@@ -261,34 +262,42 @@ def getVariantInfo(rs,build="38"):
 #------------------- mappings----------------------
 
     mappings=list()
-
     z=query.restQuery(query.makeRSQueryURL(rs,build=build))
+    LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
     if z is None:
         return None
-
     for x in z:
-        spdis=x["spdi"]
-        for spdi in spdis:
-            h=query.parseSPDI(spdi,alleles=True)
-            ref=h["ref"]
-            alt=h["alt"]
-            p=h["pos"]
-            c=h["chr"]
-            mappings.append({"chr":c,"pos":p,"ref":ref,"alt":alt,"sift_score":"NA","sift_prediction":"NA","polyphen_score":"NA","polyphen_prediction":"NA"})        
+        for k in x:
+            spdis=x[k]["spdi"]
+            for spdi in spdis:
+                h=query.parseSPDI(spdi,alleles=True)
+                ref=h["ref"]
+                alt=h["alt"]
+                p=h["pos"]
+                c=h["chr"]
+                mappings.append({"chr":c,"pos":p,"ref":ref,"alt":alt,"sift_score":"NA","sift_prediction":"NA","polyphen_score":"NA","polyphen_prediction":"NA"})        
 
 #------------------ population data ----------------
+#                
+# only consider biallelic variants
 
-    population_data=list()
-
-    for pop in data["populations"]:
-        pop_name = pop["population"].split(":")
-        if pop_name[0] == "1000GENOMES" and pop_name[1] == "phase_3":
-            name=pop_name[2]
-            try:
-                z=next(x for x in population_data if name==x["population"])
-                z["frequency"][pop["allele"]]=pop["frequency"]
-            except:
-                population_data.append({"population":name,"frequency":{pop["allele"]:pop["frequency"]}})
+    population_data=dict()
+    all_alleles=set()
+    for m in data["mappings"]:
+        s=m["allele_string"]
+        for a in s.split("/"):
+            all_alleles.add(a)
+    if len(all_alleles)==2:
+        a1=all_alleles.pop()
+        a2=all_alleles.pop()
+        population_data["alleles"]=a1+"/"+a2
+        population_data["frequency"]=dict()
+        for pdata in data["populations"]:
+            pop_name=pdata["population"]
+            f=float(pdata["frequency"])
+            if a1!=pdata["allele"]:
+                f=1.0-f
+            population_data["frequency"][pop_name]=str(f)+"/"+str(1.0-f)
 
 #------------------ phenotype data -------------------
 
@@ -826,8 +835,6 @@ def getGwavaScore(variant_data):
         for line in open(gwava_output_fname, 'r'):
             gwava=line.strip().split("\t")[4]
 
-        #variant_data["scores"][keystr]["avg_gerp"]=avg_gerp
-        #variant_data["scores"][keystr]["gerp"]=gerp
         variant_data["scores"][keystr]["gwava"]=gwava
 
         LOGGER.info("avg_gerp: %s: gerp: %s; gwava: %s" % (avg_gerp,gerp,gwava))
@@ -844,7 +851,7 @@ def variant2df(var_data,mappings):
     '''
     Transform variant data to dataframe
 
-    Input: variant data (output of getVariantInfo), list of variant mappings
+    Input: variant data (output of getVariantInfo), list of variant mappings (dicts of chr:pos:ref:alt:...)
     Output: dataframe with columns "Key", "Value"
     '''
 
@@ -889,65 +896,20 @@ def variant2df(var_data,mappings):
     
 # ==============================================================================================================================
 
-def population2df(pop_data,ref):
+def population2df(pop_data):
     '''
     Transform variant's population data into a dataframe
 
-    Input: population data: "population_data" dictionary of variant data (output of getVariantInfo), REF allele
-    Output: dataframe
+    Input: population data: dictionary "alleles":A1/A2,"frequency":{"population name":"f1/f2"}
+    Output: dataframe with columns Population,A1,A2
     '''
 
     if not pop_data:
         return None
-    
-    all_alleles=set()
-    for z in pop_data:
-        for a in z["frequency"]:
-            all_alleles.add(a)
-
-    A=list(all_alleles)
-    A.sort()
-
-    # first element should be REF
-    try:
-        i=A.index(ref)
-        tmp=A[0]
-        A[0]=ref
-        A[i]=tmp
-    except:
-        LOGGER.error("Could not find %s in alleles" % ref)
-        C=["Population"]
-        for a in A:
-            C.append("%s" %a)
-        df=pd.DataFrame(columns=C)
-        return df
-        
-    C=["Population"]
-    for a in A:
-        C.append("%s" %a)
-
-    df=pd.DataFrame(columns=C)
-    if len(pop_data)==0:
-        return df
-
+    df=pd.DataFrame(columns=["Population",pop_data["alleles"].split("/")[0],pop_data["alleles"].split("/")[1]])
     i=0
-
-    for p in config.PopulationNames:
-        #LOGGER.debug("Population: %s" %p)
-        x=next((z for z in pop_data if z["population"]==p),None)
-        L=[p]
-        if x:
-            D=x["frequency"].copy()
-            for a in A:
-                if a not in D:
-                    D[a]=0.0000
-                L.append(str(round(D[a],4)))
-        else:
-            for j in range(0,len(A)):
-                L.append("NA")
-
-        df.loc[i]=L
+    for p in pop_data["frequency"]:
+        df.loc[i]=[p,str(round(float(pop_data["frequency"][p].split("/")[0]),4)),str(round(float(pop_data["frequency"][p].split("/")[1]),4))]
         i+=1
-
     return df
 
