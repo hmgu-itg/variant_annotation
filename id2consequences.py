@@ -59,13 +59,13 @@ for L in utils.chunks([line.rstrip() for line in sys.stdin.readlines()],config.V
     LOGGER.debug("data: %s" %(string))
     r=query.restQuery(query.makeVepListQueryURL(build=build),data=string,qtype="post")
     if r:
-        print(json.dumps(r,indent=4,sort_keys=True))
+        LOGGER.debug(json.dumps(r,indent=4,sort_keys=True))
         for x in r:
             rsid="NA"
             if "colocated_variants" in x:
                 if "id" in x["colocated_variants"][0]:
                     rsid=x["colocated_variants"][0]["id"]
-            mcsq=x["most_severe_consequence"] if "most_severe_consequence" in x else "NA";
+            mcsq=x["most_severe_consequence"] if "most_severe_consequence" in x else "NA"
             H={}
             if "transcript_consequences" in x:
                 for g in x["transcript_consequences"]:
