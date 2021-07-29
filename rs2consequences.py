@@ -57,6 +57,7 @@ msqs=list()
 g2c=dict()
 r=query.restQuery(query.makeVepRSQueryURL(rsID,build=build))
 LOGGER.debug(json.dumps(r,indent=4,sort_keys=True))
+
 if r:
     for x in r:
         msqs.append(x["most_severe_consequence"])
