@@ -192,14 +192,14 @@ def equivalentVariants(r1,r2,build="38"):
     
     c=r1["seq"]
     
-    if r1["pos"]<r2["pos"]:
+    if int(r1["pos"])<int(r2["pos"]):
         R1=r1
         R2=r2
     else:
         R1=r2
         R2=r1
         
-    x=R2["pos"]-R1["pos"]
+    x=int(R2["pos"])-int(R1["pos"])
     d1=len(R1["del"])
     d2=len(R2["del"])
 
@@ -211,14 +211,14 @@ def equivalentVariants(r1,r2,build="38"):
         if x==0:
             ss1=""
         else:
-            ss1=query.getRefSeq(c,R1["pos"],R1["pos"]+x-1,build)
+            ss1=query.getRefSeq(c,int(R1["pos"]),int(R1["pos"])+x-1,build)
         ss2=R2["ins"]
         str1=ss1+ss2
         LOGGER.debug("str1=%s+%s" % (ss1,ss2))
         
         ss1=R1["ins"]
-        if R1["pos"]+d1<=R1["pos"]+d2+x-1:
-            ss2=query.getRefSeq(c,R1["pos"]+d1,R1["pos"]+d2+x-1,build)
+        if int(R1["pos"])+d1<=int(R1["pos"])+d2+x-1:
+            ss2=query.getRefSeq(c,int(R1["pos"])+d1,int(R1["pos"])+d2+x-1,build)
         else:
             ss2=""
         str2=ss1+ss2
@@ -229,10 +229,10 @@ def equivalentVariants(r1,r2,build="38"):
         if x==0:
             ss1=""
         else:
-            ss1=query.getRefSeq(c,R1["pos"],R1["pos"]+x-1,build)
+            ss1=query.getRefSeq(c,int(R1["pos"]),int(R1["pos"])+x-1,build)
         ss2=R2["ins"]
-        if R1["pos"]+x+d2<=R1["pos"]+d1-1:
-            ss3=query.getRefSeq(c,R1["pos"]+x+d2,R1["pos"]+d1-1,build)
+        if int(R1["pos"])+x+d2<=int(R1["pos"])+d1-1:
+            ss3=query.getRefSeq(c,int(R1["pos"])+x+d2,int(R1["pos"])+d1-1,build)
         else:
             ss3=""
         str1=ss1+ss2+ss3
