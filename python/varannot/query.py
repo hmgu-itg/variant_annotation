@@ -69,6 +69,10 @@ def makeVepRSQueryURL(rsID,build="38"):
     ext="/vep/homo_sapiens/id/%s?" % rsID
     return getServerName(build)+ext
 
+def makeGTEXQueryURL(rsID,build="38"):
+    ext="/eqtl/variant_name/homo_sapiens/%s" % rsID
+    return getServerName(build)+ext
+
 def makeVepRSListQueryURL(build="38"):
     ext="/vep/homo_sapiens/id"
     return getServerName(build)+ext
