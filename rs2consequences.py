@@ -17,7 +17,8 @@ verbosity=logging.INFO
 parser = argparse.ArgumentParser(description="Get VEP consequences for rs ID")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38",required=False)
 parser.add_argument('--id','-i', action="store",help="rs ID",required=True)
-parser.add_argument('--gene','-g', action="store",help="Gene name",required=False)
+parser.add_argument('--gene','-g', action="store",help="Gene name/ID",required=False)
+parser.add_argument('--name','-n', action="store_true",help="Use gene name instead of ENSEMBL ID",required=False)
 parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 
 try:
@@ -39,6 +40,8 @@ if args.verbose is not None:
 
 rsID=args.id
 gene=args.gene
+
+use_name=args.name
 
 LOGGER=logging.getLogger("rs2consequences")
 LOGGER.setLevel(verbosity)
@@ -63,7 +66,10 @@ if r:
         msqs.append(x["most_severe_consequence"])
         if "transcript_consequences" in x:
             for t in x["transcript_consequences"]:
-                g2c.setdefault(t["gene_symbol"],[]).extend(t["consequence_terms"])
+                if use_name:
+                    g2c.setdefault(t["gene_symbol"],[]).extend(t["consequence_terms"])
+                else:
+                    g2c.setdefault(t["gene_id"],[]).extend(t["consequence_terms"])
 if gene in g2c:
     msq=utils.getMostSevereConsequence(g2c[gene])
     print("%s\t%s\t%s" %(rsID,gene,msq))
