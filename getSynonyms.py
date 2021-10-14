@@ -64,6 +64,5 @@ if data:
     LOGGER.debug(json.dumps(data,indent=4,sort_keys=True))
     if "synonyms" in data:
         L=list(filter(lambda x:x!=rs,data["synonyms"]))
-
 for x in L:
-    print(x)
+    print("%s\t%s" %(rs,x))
