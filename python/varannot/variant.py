@@ -43,7 +43,7 @@ def rs2spdi(ID,build="38"):
 
 def rsList2position(L,build="38",alleles=False):
     '''
-    Input: list of rsIDs, build (default: 38), alleles=True/False (if we need alleles as well)
+    Input: list of rsIDs, build (default: 38), alleles=True/False (if we want to output REF/ALT alleles as well)
     Output: a dictionary rsID --> [{"chr":c,"pos":p,"ref":ref,"alt":alt}, ...], or None if query fails
     '''
 
@@ -53,6 +53,11 @@ def rsList2position(L,build="38",alleles=False):
         LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
         for x in z:
             for x1 in x:
+                LOGGER.debug("Allele: %s" % x1)
+                if x1 == "warnings":
+                    for w in x[x1]:
+                        LOGGER.warn("%s" % w)
+                    continue
                 inputID=x[x1]["input"]
                 D[inputID]=[]
                 spdis=x[x1]["spdi"]
@@ -71,7 +76,6 @@ def rsList2position(L,build="38",alleles=False):
                         D[inputID].append({"chr":c,"pos":p,"ref":ref,"alt":alt})
     else:
         return None
-
     return D
 
 # ==============================================================================================================================
