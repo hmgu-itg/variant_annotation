@@ -52,6 +52,9 @@ def rsList2position(L,build="38",alleles=False):
     if z:
         LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
         for x in z:
+            LOGGER.debug("\n%s" % json.dumps(x,indent=8,sort_keys=True))
+            if x is None:
+                continue
             for x1 in x:
                 LOGGER.debug("Allele: %s" % x1)
                 if x1 == "warnings":
