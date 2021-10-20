@@ -146,11 +146,16 @@ def parseSPDI(string,alleles=False,build="38"):
         else:
             delseq=ref
 
+        if delseq is None:
+            return None
+
         if isSNP:
             return {"chr":c,"pos":pos+1,"ref":delseq[0],"alt":alt}
         else:
             # base before the deleted sequence
             base=getRefSeq(c,pos,pos,build)
+            if base is None:
+                return None
             # deletion
             if len(delseq)>len(alt):
                 if delseq.endswith(alt):

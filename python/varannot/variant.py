@@ -63,9 +63,13 @@ def rsList2position(L,build="38",alleles=False):
                     continue
                 inputID=x[x1]["input"]
                 D[inputID]=[]
+                if not "spdi" in x[x1]:
+                    continue
                 spdis=x[x1]["spdi"]
                 for spdi in spdis:
                     h=query.parseSPDI(spdi,build=build,alleles=alleles)
+                    if h is None:
+                        continue
                     p=h["pos"]
                     c=h["chr"]
                     ref=h["ref"]
