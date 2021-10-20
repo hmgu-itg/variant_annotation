@@ -16,7 +16,7 @@ from varannot import variant
 build="38"
 verbosity=logging.INFO
 
-parser = argparse.ArgumentParser(description="Get chr/pos/ref/alt info for rs IDs (read from STDIN)")
+parser = argparse.ArgumentParser(description="Get functional consequences for a list of rs IDs (read from STDIN)")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38",required=False)
 parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 
@@ -57,9 +57,9 @@ i=1
 for L in utils.chunks([line.rstrip() for line in sys.stdin.readlines()],config.VEP_POST_MAX):
     LOGGER.info("Current chunk: %d" % i)
     i+=1
-    r=variant.rsList2position(L,build,alleles=True)
+    r=variant.addConsequencesToRSList(L,build=build,most_severe_only=True,gene_key="gene_id")
     if r is None:
         continue
     for ID in r:
-        for z in r[ID]:
-            print("%s\t%s\t%d\t%s\t%s" %(ID,z["chr"],z["pos"],z["ref"],z["alt"]))        
+        for g in r[ID]:
+            print("%s\t%s\t%s" %(ID,g,r[ID][g]))        

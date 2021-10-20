@@ -568,33 +568,31 @@ def addConsequencesToIDList(varIDs,build="38",most_severe_only=False,gene_key="g
 def addConsequencesToRSList(rsIDs,build="38",most_severe_only=False,gene_key="gene_id"):
     LOGGER.debug("Input rs list: %d variants" % len(rsIDs))
     R=dict()
-    # exclude possible NAs from the input list first
-    for L in utils.chunks(list(filter(lambda x:x!="NA",rsIDs)),config.VEP_POST_MAX):
-        r=query.restQuery(query.makeVepRSListQueryURL(build=build),data=utils.list2string(L),qtype="post")
-        if not r is None:
-            LOGGER.debug("\n======= VEP query ========\n%s\n==========================\n" % json.dumps(r,indent=4,sort_keys=True))
-            for x in r:
-                rs=x["id"]
-                mcsq=x["most_severe_consequence"] if "most_severe_consequence" in x else "NA"
-                H=dict()
-                if "transcript_consequences" in x:
-                    for g in x["transcript_consequences"]:
-                        H.setdefault(g[gene_key],[]).extend(g["consequence_terms"])
+    r=query.restQuery(query.makeVepRSListQueryURL(build=build),data=utils.list2string(rsIDs),qtype="post")
+    if not r is None:
+        LOGGER.debug("\n======= VEP query ========\n%s\n==========================\n" % json.dumps(r,indent=4,sort_keys=True))
+        for x in r:
+            rs=x["id"]
+            mcsq=x["most_severe_consequence"] if "most_severe_consequence" in x else "NA"
+            H=dict()
+            if "transcript_consequences" in x:
+                for g in x["transcript_consequences"]:
+                    H.setdefault(g[gene_key],[]).extend(g["consequence_terms"])
+                for g in H:
+                    H[g]=utils.getMostSevereConsequence(H[g])
+            else:
+                H["NA"]=mcsq
+            if most_severe_only is True:
+                if mcsq=="NA":
+                    R[rs]={"NA":"NA"}
+                else:
+                    g0="NA"
                     for g in H:
-                        H[g]=utils.getMostSevereConsequence(H[g])
-                else:
-                    H["NA"]=mcsq
-                if most_severe_only is True:
-                    if mcsq=="NA":
-                        R[rs]={"NA":"NA"}
-                    else:
-                        g0="NA"
-                        for g in H:
-                            if H[g]==mcsq:
-                                g0=g
-                        R[rs]={g0:mcsq}
-                else:
-                    R[rs]=H
+                        if H[g]==mcsq:
+                            g0=g
+                    R[rs]={g0:mcsq}
+            else:
+                R[rs]=H
     s=set(rsIDs)-(set(R.keys())-{"NA"})
     LOGGER.debug("No consequences found for %d rs IDs" % len(s))
     for v in s:
