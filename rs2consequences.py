@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(description="Get VEP consequences for rs ID")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38",required=False)
 parser.add_argument('--id','-i', action="store",help="rs ID",required=True)
 parser.add_argument('--gene','-g', action="store",help="Gene name/ID",required=False)
+parser.add_argument('--all','-a', action="store_true",help="Report all consequences",required=False)
 parser.add_argument('--name','-n', action="store_true",help="Use gene name instead of ENSEMBL ID",required=False)
 parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 
@@ -40,6 +41,7 @@ if args.verbose is not None:
 
 rsID=args.id
 gene=args.gene
+report_all=args.all
 
 use_name=args.name
 
@@ -60,6 +62,19 @@ msqs=list()
 g2c=dict()
 r=query.restQuery(query.makeVepRSQueryURL(rsID,build=build))
 LOGGER.debug(json.dumps(r,indent=4,sort_keys=True))
+
+if report_all:
+    if r:
+        for x in r:
+            if "transcript_consequences" in x:
+                for t in x["transcript_consequences"]:
+                    if "consequence_terms" in t:
+                        for z in t["consequence_terms"]:
+                            if use_name:
+                                print("%s\t%s\t%s" %(rsID,t["gene_symbol"],z))
+                            else:
+                                print("%s\t%s\t%s" %(rsID,t["gene_id"],z))
+    sys.exit(0)
 
 if r:
     for x in r:
