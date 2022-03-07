@@ -14,7 +14,7 @@ from varannot import query
 build="38"
 verbosity=logging.INFO
 
-parser = argparse.ArgumentParser(description="For a  gene ID/name,get basic info")
+parser = argparse.ArgumentParser(description="For a gene ID/name, get basic info")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38",required=False)
 parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 parser.add_argument("--input", "-i", help="Input gene ID/gene name",required=True,action='store')
@@ -35,7 +35,7 @@ if args.verbose is not None:
     elif args.verbose=="error":
         verbosity=logging.ERROR
 
-LOGGER=logging.getLogger("getHomologs")
+LOGGER=logging.getLogger("getGeneInfo")
 LOGGER.setLevel(verbosity)
 ch=logging.StreamHandler()
 ch.setLevel(verbosity)
