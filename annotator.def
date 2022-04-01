@@ -44,7 +44,7 @@ From: ubuntu:18.04
     	printf '#!/bin/bash \nxvfb-run --auto-servernum --server-args "-screen 0 640x480x24" /opt/orca/squashfs-root/app/orca "$@"' > /usr/bin/orca && chmod +x /usr/bin/orca
 
 	cd /usr/local/bin
-	git clone https://github.com/hmgu-itg/variant_annotation
+	git clone --branch dev --single-branch https://github.com/hmgu-itg/variant_annotation
 
 	# liftOver
 	wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v385/liftOver
