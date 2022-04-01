@@ -155,7 +155,7 @@ fi
 if [[ "$prepreg" -eq 1 ]];then
     regdir="$out/temp/regulation"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Creating regulation file"|tee -a "$logfile"
-    "$reg_script" -i "$regdir" -o "$out/regulation/regulation.bed"
+    "$reg_script" -i "$regdir" -o "$out/regulation/regulation.bed" >> "$logfile"
 fi
 
 # ----------------------------- GTEx --------------------------------------
@@ -176,7 +176,7 @@ fi
 if [[ "$prepgwas" -eq 1 ]];then
     gwas="$out/gwas/gwas_full.tsv.gz"
     echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GWAS file"|tee -a "$logfile"
-    "$gwas_script" -i "$gwas" | gzip - > "$out/gwas/gwas.tsv.gz"
+    "$gwas_script" -i "$gwas" 2>>"$logfile" | gzip - > "$out/gwas/gwas.tsv.gz" 
 fi
 
 # ------------------------ POST-PROCESSING GWAVA --------------------------
