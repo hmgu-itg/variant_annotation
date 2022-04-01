@@ -63,6 +63,10 @@ gxa_script="$DIR"/"prepareGXA.sh"
 regdir=${regdir/%\/}
 out=${out/%\/}
 
+mkdir -p "$out"
+logfile="$out"/prepare_data.log
+: > "$logfile"
+
 # ------------------------------- URLs ------------------------------------
 
 gtexURL="https://storage.googleapis.com/gtex_analysis_v8/single_tissue_qtl_data/GTEx_Analysis_v8_eQTL.tar"
@@ -71,10 +75,11 @@ gtexgencodeURL="https://storage.googleapis.com/gtex_analysis_v8/reference/gencod
 gwasURL="https://www.ebi.ac.uk/gwas/api/search/downloads/alternative"
 ensregURL="ftp://ftp.ensembl.org/pub/release-100/regulation/homo_sapiens/RegulatoryFeatureActivity/"
 gwavaURL="ftp://ftp.sanger.ac.uk/pub/resources/software/gwava/v1.0/"
+hg19chrom="https://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.chrom.sizes"
 
 # -------------------------------------------------------------------------
 
-echo $(date '+%d/%m/%Y %H:%M:%S') "Creating output directories"
+echo $(date '+%d/%m/%Y %H:%M:%S') "Creating output directories"|tee -a "$logfile"
 mkdir -p "$out/gwas"
 mkdir -p "$out/gtex"
 mkdir -p "$out/regulation"
@@ -85,20 +90,38 @@ mkdir -p "$out/gxa"
 # ----------------------- DOWNLOADING DATA --------------------------------
 
 if [[ "$prepgtex" -eq 1 ]];then
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx data"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx data"|tee -a "$logfile"
     wget --quiet -c "$gtexURL" -O "$out/temp/GTEx.tar"
+    if [[ $? -ne 0 ]];then
+	echo "ERROR: could not download $gtexURL"|tee -a "$logfile"
+	exit 1
+    fi
 
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx lookup data"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx lookup data"|tee -a "$logfile"
     wget --quiet -c "$gtexlookupURL" -O "$out/gtex/GTEx.lookup.txt.gz"
+    if [[ $? -ne 0 ]];then
+	echo "ERROR: could not download $gtexlookupURL"|tee -a "$logfile"
+	exit 1
+    fi
 
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx Gencode data"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GTEx Gencode data"|tee -a "$logfile"
     wget --quiet -c "$gtexgencodeURL" -O "$out/gtex/gencode.gtf"
+    if [[ $? -ne 0 ]];then
+	echo "ERROR: could not download $gtexgencodeURL"|tee -a "$logfile"
+	exit 1
+    fi
+    
     gzip -f "$out/gtex/gencode.gtf"
 fi
 
 if [[ "$prepgwas" -eq 1 ]];then
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GWAS catalog"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GWAS catalog"|tee -a "$logfile"
     wget --quiet -c "$gwasURL" -O "$out/gwas/gwas_full.tsv"
+    if [[ $? -ne 0 ]];then
+	echo "ERROR: could not download $gwasURL"|tee -a "$logfile"
+	exit 1
+    fi
+    
     gzip -f "$out/gwas/gwas_full.tsv"
 fi
 
@@ -106,23 +129,32 @@ if [[ "$prepreg" -eq 1 ]];then
     cd "$out/temp"
     mkdir -p regulation
     cd regulation
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading Ensembl Regulation"
-    lftp -c "open $ensregURL; mirror -P . ." > /dev/null 2> /dev/null
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading Ensembl Regulation"|tee -a "$logfile"
+    lftp -c "open $ensregURL; mirror -P . ." >> "$logfile" 2>> "$logfile"
     cd "$CDIR"
 fi
 
 
 if [[ "$prepgwava" -eq 1 ]];then
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GWAVA"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Downloading GWAVA"|tee -a "$logfile"
     wget -r -N -l inf --cut-dirs 5 -np -nH -P $out/gwava --quiet -c "$gwavaURL"
-    wget -q https://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.chrom.sizes -O $out/gwava/source_data/hg19/human.hg19.genome
+    if [[ $? -ne 0 ]];then
+	echo "ERROR: could not download $gwavaURL"|tee -a "$logfile"
+	exit 1
+    fi
+
+    wget -q "$hg19chrom" -O $out/gwava/source_data/hg19/human.hg19.genome
+    if [[ $? -ne 0 ]];then
+	echo "ERROR: could not download $hg19chrom"|tee -a "$logfile"
+	exit 1
+    fi
 fi
 
 # -------------------------- REGULATION -----------------------------------
 
 if [[ "$prepreg" -eq 1 ]];then
     regdir="$out/temp/regulation"
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating regulation file"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating regulation file"|tee -a "$logfile"
     "$reg_script" -i "$regdir" -o "$out/regulation/regulation.bed"
 fi
 
@@ -130,11 +162,11 @@ fi
 
 if [[ "$prepgtex" -eq 1 ]];then
     gtex="$out/temp/GTEx.tar"
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GTEx file"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GTEx file"|tee -a "$logfile"
     "$gtex_script" -i "$gtex" -g "$out/gtex/gencode.gtf.gz" -l "$out/gtex/GTEx.lookup.txt.gz" -t "$out/temp" | sort -k1,1 -k2,2n > "$out/gtex/gtex.bed"
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Compressing GTEx file"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Compressing GTEx file"|tee -a "$logfile"
     bgzip -f "$out/gtex/gtex.bed"
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Indexing GTEx file"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Indexing GTEx file"|tee -a "$logfile"
     tabix -f -p bed "$out/gtex/gtex.bed.gz"
     rm "$out/gtex/gencode.gtf.gz" "$out/gtex/GTEx.lookup.txt.gz"
 fi
@@ -143,14 +175,14 @@ fi
 
 if [[ "$prepgwas" -eq 1 ]];then
     gwas="$out/gwas/gwas_full.tsv.gz"
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GWAS file"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GWAS file"|tee -a "$logfile"
     "$gwas_script" -i "$gwas" | gzip - > "$out/gwas/gwas.tsv.gz"
 fi
 
 # ------------------------ POST-PROCESSING GWAVA --------------------------
 
 if [[ "$prepgwava" -eq 1 ]];then
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Patching GWAVA"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Patching GWAVA"|tee -a "$logfile"
     patch -b $out/gwava/src/gwava_annotate.py /usr/bin/variant_annotation/patches/gwava_annotate.py.patch
     patch -b $out/gwava/src/gwava.py /usr/bin/variant_annotation/patches/gwava.py.patch
     zcat "$out/gwava/source_data/encode/Gencodev10_TSS_May2012.gff.gz" | sort -k1,1 -k4,5n | gzip - > "$out/temp/tmp.gff.gz"
@@ -160,13 +192,13 @@ fi
 # ----------------------------- GXA ---------------------------------------
 
 if [[ "$prepgxa" -eq 1 ]];then
-    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GXA file"
+    echo $(date '+%d/%m/%Y %H:%M:%S') "Creating GXA file"|tee -a "$logfile"
     "$gxa_script" -o "$out/gxa"
 fi
 
 # -------------------------------------------------------------------------
 
-echo $(date '+%d/%m/%Y %H:%M:%S') "Deleting temporary data"
+echo $(date '+%d/%m/%Y %H:%M:%S') "Deleting temporary data"|tee -a "$logfile"
 rm -rf "$out/temp/"
 
 exit 0
