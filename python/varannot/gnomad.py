@@ -65,6 +65,8 @@ def getPopulationAF(var, dataset="gnomad_r3"):
                     
                 df.loc[i]=L
                 i+=1
+        for i in range(1,len(df.columns)):
+            df.iloc[:,i]=df.iloc[:,i].astype("float")
         return df
     else:
         LOGGER.info("No GnomAD info for %s" % var)

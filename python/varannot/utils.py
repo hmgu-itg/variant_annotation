@@ -17,6 +17,15 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
+def liftOverMappings(mappings,source_build):
+    outlist=list()
+    for x in runLiftOver([{"chr":m["chr"],"start":m["pos"]-1,"end":m["pos"],"id":m["chr"]+"_"+str(m["pos"])+"_"+m["ref"]+"_"+m["alt"]} for m in mappings],build=source_build):
+        varid=x["id"]
+        ref=varid.rsplit("_")[2]
+        alt=varid.rsplit("_")[3]
+        outlist.append({"chr":x["chr"],"pos":int(x["end"]),"ref":ref,"alt":alt})
+    return outlist
+
 def runLiftOver(input_data,build="38"):
     '''
     Run liftOver
@@ -27,7 +36,7 @@ def runLiftOver(input_data,build="38"):
     '''
 
     if build!="38" and build!="37":
-        LOGGER.error("provided build: %s; build should be either 37 or 38" % build)
+        LOGGER.error("provided source build: %s; source build should be either 37 or 38" % build)
         return None
     
     L=list()
@@ -312,13 +321,12 @@ def df2svg(df,var):
         return None
     if len(df)==0:
         return None
-    data=list()
-    pops=list(df["Population"])
+    
+    fig=go.Figure()
     for i in range(1,len(df.columns)):
-        data.append(go.Bar(name=df.columns[i],x=pops,y=df.iloc[:,i]))
-    fig=go.Figure(data=data)
+        fig.add_trace(go.Bar(name=df.columns[i],x=list(df["Population"]),y=df.iloc[:,i]))
     fig.update_layout(barmode='stack')
-    #out=tf.NamedTemporaryFile(dir=config.OUTPUT_DIR_FIG,suffix=".svg")
+    
     fd,fname=tf.mkstemp(dir=config.OUTPUT_DIR_FIG,suffix="_"+var+".svg")
     LOGGER.debug("SVG: %s" % fname)
     fig.write_image(fname)
@@ -493,9 +501,12 @@ def generateHTML(templateFile,data):
     '''
     For a given HTML template and data, generate HTML page
     '''
-    
+
+    LOGGER.debug("Generating HTML, template: %s" % templateFile)
     templateEnv=jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="/"))
+    LOGGER.debug("Generating HTML, jinja got template env")
     template=templateEnv.get_template(templateFile)
+    LOGGER.debug("Generating HTML, jinja got template")
     return template.render(data)
 
 # ======================================================================================================================
@@ -529,7 +540,7 @@ def createDir(path):
         LOGGER.info("%s already exists" % path)
         return path
     try:
-        os.mkdir(path)
+        os.makedirs(path,exist_ok=True)
     except OSError:
         LOGGER.error("Creation of the directory %s failed" % path)
         return None
@@ -544,7 +555,7 @@ def createDir(path):
 # ======================================================================================================================
 
 def generateTemplate(mapping_names,gene_names,fname):
-    f = open(fname,"w")
+    f=open(fname,"w")
     f.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<html>\n<head>\n")
     f.write("<style>\n\nth{ text-align: left; }\n")
     f.write("#common {\nborder-collapse: collapse;\nwidth: 100%;\ncolumn-width=auto;\ncolor: black;\nfont-family: \"Times New Roman\", Times, serif;\nfont-size: 15px;\n}\n\n")
@@ -592,15 +603,15 @@ def generateTemplate(mapping_names,gene_names,fname):
         f.write("<div class=\"content\">\n{{ variant_table%d }}\n</div>\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
-        f.write("<button type=\"button\" class=\"collapsible\">Nearby variants associated with phenotypes</button>\n")
+        f.write("<button type=\"button\" class=\"collapsible\">Nearby (%d bp) variants associated with phenotypes</button>\n" % config.PHENO_WINDOW)
         f.write("<div class=\"content\">\n{{ phenotype_table%d }}\n</div>\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
-        f.write("<button type=\"button\" class=\"collapsible\">Nearby GWAS signals</button>\n")
+        f.write("<button type=\"button\" class=\"collapsible\">Nearby (%d bp) GWAS signals</button>\n" % config.GWAS_WINDOW)
         f.write("<div class=\"content\">\n{{ gwas_table%d }}\n</div>\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
-        f.write("<button type=\"button\" class=\"collapsible\">Predicted consequences</button>\n")
+        f.write("<button type=\"button\" class=\"collapsible\">Predicted consequences (regulatory, transcript)</button>\n")
         f.write("<div class=\"content\">\n{{ vep_table%d  }}\n</div>\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
@@ -613,7 +624,7 @@ def generateTemplate(mapping_names,gene_names,fname):
         f.write("<div class=\"content\">\n{{ gnomad_table%d  }}\n</div>\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
-        f.write("<button type=\"button\" class=\"collapsible\">ENSEMBL Regulation</button>\n")
+        f.write("<button type=\"button\" class=\"collapsible\">Overlapping (%d bp) regulatory features</button>\n" % config.REG_WINDOW)
         f.write("<div class=\"content\">\n{{ regulation_table%d }}\n</div>\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
@@ -621,7 +632,7 @@ def generateTemplate(mapping_names,gene_names,fname):
         f.write("<div class=\"content\">\n{{ gtex_genes_table%d }}\n</div>\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
-        f.write("<button type=\"button\" class=\"collapsible\">Nearby genes</button>\n")
+        f.write("<button type=\"button\" class=\"collapsible\">Nearby (%d bp) genes</button>\n" % config.GENE_WINDOW)
         f.write("<div class=\"content\">\n{{ gene_table%d }}\n</div>\n" %i)
         f.write("<div id=\"space\"></div>\n")
 
@@ -656,7 +667,7 @@ def generateTemplate(mapping_names,gene_names,fname):
         f.write("<div class=\"content\">\n{{gene_table_%s }}\n</div>\n" % gene_names[i])
         f.write("<div id=\"space\"></div>\n")
 
-        f.write("<button type=\"button\" class=\"collapsible\">Gene Onthology Annotation</button>\n")
+        f.write("<button type=\"button\" class=\"collapsible\">Gene Onthology Annotations</button>\n")
         f.write("<div class=\"content\">\n{{go_table_%s }}\n</div>\n" % gene_names[i])
         f.write("<div id=\"space\"></div>\n")
 
@@ -668,7 +679,7 @@ def generateTemplate(mapping_names,gene_names,fname):
         f.write("<div class=\"content\">\n{{gwas_table_%s }}\n</div>\n" % gene_names[i])
         f.write("<div id=\"space\"></div>\n")
 
-        f.write("<button type=\"button\" class=\"collapsible\">eQTLs</button>\n")
+        f.write("<button type=\"button\" class=\"collapsible\">GTEx eQTLs</button>\n")
         f.write("<div class=\"content\">\n{{gtexVariants_table_%s }}\n</div>\n" % gene_names[i])
         f.write("<div id=\"space\"></div>\n")
 

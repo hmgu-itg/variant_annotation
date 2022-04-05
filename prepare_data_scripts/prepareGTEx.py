@@ -61,6 +61,7 @@ if version=="8":
 
 gene_map=dict() # gene --> chr,start,end
 
+# v8 is b38 based
 if version=="8":
     gdf=pd.read_table(gname,header=None,comment="#",compression="gzip")
     gdf=gdf[gdf[2]=="gene"]

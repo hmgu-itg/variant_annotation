@@ -1,10 +1,13 @@
 #!/bin/bash
 
+# GWAS info is queried online by the main script, so no need for GWAS download
+
 function usage {
     echo ""
     echo "Usage:" $(basename $0) "-o <output dir> { -h -g -x -r -w -a}"
     echo " -h : this help message"
-    echo " -g -x -r -w -a are optional, for selecting which data to prepare (GWAS, GTEx, Regulation, GWAVA or GXA), by default all."
+#    echo " -g -x -r -w -a are optional, for selecting which data to prepare (GWAS, GTEx, Regulation, GWAVA or GXA), by default all."
+    echo " -x -r -w -a are optional, for selecting which data to prepare (GTEx, Regulation, GWAVA or GXA), by default all."
 
     exit 0
 }
@@ -17,9 +20,10 @@ prepreg=0
 prepgxa=0
 prepgwava=0
 
-while getopts "gxrwao:h" optname; do
+#while getopts "gxrwao:h" optname; do
+while getopts "xrwao:h" optname; do
     case "$optname" in
-        "g" ) prepgwas=1;;
+#        "g" ) prepgwas=1;;
         "x" ) prepgtex=1;;
         "r" ) prepreg=1;;
         "w" ) prepgwava=1;;
@@ -36,7 +40,7 @@ if [[ $# -eq 0 ]];then
 fi
 
 if [ "$prepgxa" -eq 0 ] &&[ "$prepgwas" -eq 0 ] && [ "$prepgtex" -eq 0 ] && [ "$prepreg" -eq 0 ] && [ "$prepgwava" -eq 0 ];then
-    prepgwas=1
+    #prepgwas=1
     prepgtex=1
     prepreg=1
     prepgwava=1
@@ -67,6 +71,7 @@ mkdir -p "$out"
 logfile="$out"/prepare_data.log
 : > "$logfile"
 
+# GTEx v8 id b38 based
 # ------------------------------- URLs ------------------------------------
 
 gtexURL="https://storage.googleapis.com/gtex_analysis_v8/single_tissue_qtl_data/GTEx_Analysis_v8_eQTL.tar"
@@ -80,7 +85,7 @@ hg19chrom="https://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.chrom.si
 # -------------------------------------------------------------------------
 
 echo $(date '+%d/%m/%Y %H:%M:%S') "Creating output directories"|tee -a "$logfile"
-mkdir -p "$out/gwas"
+#mkdir -p "$out/gwas"
 mkdir -p "$out/gtex"
 mkdir -p "$out/regulation"
 mkdir -p "$out/temp"

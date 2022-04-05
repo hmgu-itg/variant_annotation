@@ -30,7 +30,7 @@ def getGeneInfo(ID,build="38"):
         gene_info["description"]=response["description"].split("[")[0]
     except:
         gene_info["description"]="NA"
-    gene_info["name"]=response["external_name"] if "external_name" in response else "NA"
+    gene_info["name"]=response["display_name"] if "display_name" in response else "NA"
     gene_info["type"]=response["biotype"]
     gene_info["strand"]=response["strand"]
 

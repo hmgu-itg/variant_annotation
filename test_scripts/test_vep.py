@@ -2,10 +2,12 @@
 
 import sys, time
 import os
+import json
 import argparse
 import re
 import datetime
-from functions import *
+from varannot import variant
+from varannot import vep
 import pandas as pd
 
 #----------------------------------------------------------------------------------------------------------------------------------
@@ -32,13 +34,16 @@ if args.build!=None:
 
 rsID=args.rs
 
-info=getVariantInfo(rsID)
-#print(json.dumps(info,indent=4,sort_keys=True))
+info=variant.getVariantInfo(rsID)
+
+# T=pd.from_json(info)
+# print(T)
+print(json.dumps(info,indent=4,sort_keys=True))
 #c=info["consequence"]
 #print(c)
 for m in info["mappings"]:
 #    print("%s/%s" %(m["ref"],m["alt"]))
-    vep=getVepData(m)
+    vep=vep.getVepData(m)
     print(json.dumps(vep,indent=4,sort_keys=True))
 print("")
 #print(json.dumps(info,indent=4,sort_keys=True))

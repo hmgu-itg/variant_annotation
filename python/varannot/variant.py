@@ -125,7 +125,7 @@ def rs2position(ID,build="38",alleles=False):
 
 def getVariantsWithPhenotypes(chrom,pos,window=config.PHENO_WINDOW,build="38"):
     '''
-    For a given genomic region, return dataframe containing variants with phenotype annotations
+    For a given genomic position, return dataframe containing variants having phenotype annotations
 
     Input: chromosome, position, window (default: config.PHENO_WINDOW), build (default: "38") 
     Output: pandas dataframe with columns: "ID", "Consequence", "Location", "Phenotype", "Source", "Link"
@@ -221,7 +221,7 @@ def getMappingList(t,mappings):
 
 # ===========================================================================================================================
 
-def getVariantInfo(rs,build="38"):
+def getVariantInfo(variant_ID,build="38"):
     '''
     For a given variant ID, return a dictionary with variant information; keys are:
     "minor_allele"
@@ -240,19 +240,19 @@ def getVariantInfo(rs,build="38"):
     res=dict()
 
     # in case provided ID is not an rs ID
-    if not utils.isRS(rs):
+    if not utils.isRS(variant_ID):
         res.update({"minor_allele":None,"MAF":None,"rsID":None,"class":None,"synonyms":[],"consequence":None,"mappings":[],"population_data":None,"phenotype_data":None,"clinical_significance":None,"scores":None})
-        R=utils.convertVariantID(rs)
+        R=utils.convertVariantID(variant_ID)
         if utils.checkDEL(R,build=build):
             res["mappings"].append({"chr":R["seq"],"pos":R["pos"],"ref":R["del"],"alt":R["ins"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"})
-        R=utils.convertVariantID(rs,reverse=True)
+        R=utils.convertVariantID(variant_ID,reverse=True)
         if utils.checkDEL(R,build=build):
             res["mappings"].append({"chr":R["seq"],"pos":R["pos"],"ref":R["del"],"alt":R["ins"],"polyphen_score":"NA","polyphen_prediction":"NA","sift_score":"NA","sift_prediction":"NA"})
         return res
 
 #------------------- general information ---------------
 
-    data=query.restQuery(query.makeRsPhenotypeQuery2URL(rs,build))
+    data=query.restQuery(query.makeRsPhenotypeQuery2URL(variant_ID,build))
     LOGGER.debug("\n%s" % json.dumps(data,indent=4,sort_keys=True))
     if not data:
         return None
@@ -262,18 +262,18 @@ def getVariantInfo(rs,build="38"):
     else:
         res["MAF"]="NA"
 
-    res["rsID"]=rs
+    res["rsID"]=variant_ID
     res["class"]=data["var_class"]
     res["consequence"]=data["most_severe_consequence"]
     if "synonyms" in data:
-        res["synonyms"]=list(filter(lambda x:x!=rs,data["synonyms"]))
+        res["synonyms"]=list(filter(lambda x:x!=variant_ID,data["synonyms"]))
     else:
         res["synonyms"]=[]
 
 #------------------- mappings----------------------
 
     mappings=list()
-    z=query.restQuery(query.makeRSQueryURL(rs,build=build))
+    z=query.restQuery(query.makeRSQueryURL(variant_ID,build=build))
     LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
     if z is None:
         return None
@@ -441,6 +441,7 @@ def id2rs_mod(varid,build="38"):
 
     batchsize=100
 
+    # A1/A2 might be REF/ALT or ALT/REF; for both possibilities, check if the DEL part is actually in the reference sequence
     V=utils.convertVariantID(varid)
     V1=utils.convertVariantID(varid,reverse=True)
     b=utils.checkDEL(V,build=build)
@@ -449,19 +450,18 @@ def id2rs_mod(varid,build="38"):
     window=max(len(V["del"]),len(V["ins"]))
         
     if utils.getVarType(V)=="SNP":
+        # for SNPs: all variants overlapping variant's position
         r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"],V["pos"],build=build))
         if not r:
             return S
-
         for v in r:
             if V["del"] in v["alleles"] and V["ins"] in v["alleles"] and v["strand"]==1 and v["start"]==v["end"]:
                 S.add(v["id"])
-
     else:
+        # for INDELs: all variants inside a window around the variant's position
         r=query.restQuery(query.makeOverlapVarQueryURL(V["seq"],V["pos"]-window,V["pos"]+window,build=build))
         if not r:
-            return S
-        
+            return S        
         LOGGER.debug("\n%s" % json.dumps(r,indent=4,sort_keys=True))
         LOGGER.debug("Got %d variants around %s:%d\n" %(len(r),V["seq"],V["pos"]))
         for v in r:
@@ -469,7 +469,6 @@ def id2rs_mod(varid,build="38"):
             z=query.restQuery(query.makeRSQueryURL(v["id"],build=build))
             if not z:
                 continue
-
             LOGGER.debug("\n%s" % json.dumps(z,indent=4,sort_keys=True))
             for x in z:
                 for x1 in x:
@@ -487,7 +486,6 @@ def id2rs_mod(varid,build="38"):
                             if utils.equivalentVariants(V1,V2,build=build):
                                 S.add(var)
                                 break
-                        
     return S
 
 # ===========================================================================================================================
@@ -920,5 +918,8 @@ def population2df(pop_data):
     for p in pop_data["frequency"]:
         df.loc[i]=[p,str(round(float(pop_data["frequency"][p].split("/")[0]),4)),str(round(float(pop_data["frequency"][p].split("/")[1]),4))]
         i+=1
+        
+    for i in range(1,len(df.columns)):
+        df.iloc[:,i]=df.iloc[:,i].astype("float")
     return df
 

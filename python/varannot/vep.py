@@ -25,7 +25,7 @@ def getApprisInfo(gene_ID):
     data=dict()
     r=requests.get(URL)
     if not r.ok:
-        LOGGER.warning("Query failed for gene: %s (URL: %s)" % (gene_ID,URL))
+        LOGGER.warning("Appris query failed for gene: %s (URL: %s)" % (gene_ID,URL))
         return data
 
     decoded=r.json()
@@ -121,7 +121,8 @@ def getVepData(rsID,mapping_data,build="38"):
     if VEP is None:
         return VEP_data
 
-    #print(json.dumps(VEP,indent=4,sort_keys=True))
+    LOGGER.debug("VEP:")
+    LOGGER.debug(json.dumps(VEP,indent=4,sort_keys=True))
 
     sift_score=None
     polyphen_score=None
@@ -156,7 +157,6 @@ def getVepData(rsID,mapping_data,build="38"):
     if sift_score is not None:
         mapping_data["sift_score"]=sift_score
         mapping_data["sift_prediction"]=sift_prediction
-        
     if polyphen_score is not None:
         mapping_data["polyphen_score"]=polyphen_score
         mapping_data["polyphen_prediction"]=polyphen_prediction
@@ -174,7 +174,6 @@ def getVepData(rsID,mapping_data,build="38"):
     for t in VEP_data["transcript"]:
         if not t["gene_id"] in all_genes:
             all_genes.append(t["gene_id"])
-
     for gene_id in all_genes:
         appris_data=getApprisInfo(gene_id)
 
@@ -183,7 +182,6 @@ def getVepData(rsID,mapping_data,build="38"):
                 if t["ID"] in appris_data:
                     if "reliability" in appris_data[t["ID"]]:
                         t["principal"]=appris_data[t["ID"]]["reliability"]
-
     return VEP_data
 
 # =======================================================================================================================

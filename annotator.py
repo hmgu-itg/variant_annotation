@@ -56,8 +56,8 @@ if not datadir.endswith("/"):
     datadir+="/"
 
 config.REGULATORY_FILE=datadir+config.REGULATORY_FILE_SFX
-config.GWAS_FILE_VAR=datadir+config.GWAS_FILE_VAR_SFX
-config.GWAS_FILE=datadir+config.GWAS_FILE_SFX
+#config.GWAS_FILE_VAR=datadir+config.GWAS_FILE_VAR_SFX
+#config.GWAS_FILE=datadir+config.GWAS_FILE_SFX
 config.GTEX_BED=datadir+config.GTEX_BED_SFX
 config.GWAVA_DIR=datadir+"gwava"
 config.GXA_FILE=datadir+config.GXA_TSV_SFX
@@ -81,7 +81,7 @@ if outdir.endswith("/"):
     outdir=outdir[:-1]
 
 config.OUTPUT_DIR=outdir
-config.OUTPUT_DIR_FIG=config.OUTPUT_DIR+"/figures"
+config.OUTPUT_DIR_FIG=config.OUTPUT_DIR+"/figures/"+VAR_ID
 
 logfile=outdir+"/"+VAR_ID+".log"
 
@@ -136,7 +136,8 @@ if not utils.isRS(VAR_ID) and not utils.checkAlleles(VAR_ID,build):
     LOGGER.error("Alleles in %s don't match reference sequence" %(VAR_ID))
     sys.exit(1)
 
-if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED,config.GXA_FILE]):
+#if not utils.checkFiles([config.REGULATORY_FILE,config.GWAS_FILE_VAR,config.GWAS_FILE,config.GTEX_BED,config.GXA_FILE]):
+if not utils.checkFiles([config.REGULATORY_FILE,config.GTEX_BED,config.GXA_FILE]):
     sys.exit(1)
 
 LOGGER.info("Reading in GXA file")
@@ -149,9 +150,8 @@ rsIDs=variant.id2rs_mod(VAR_ID,build=build)
 LOGGER.info("Got %d rsID(s)" % len(rsIDs))
 if len(rsIDs)!=0:
     LOGGER.info("rs ID(s): %s",", ".join(rsIDs))
-
-if len(rsIDs)==0:
-    rsIDs={VAR_ID}
+else:
+    rsIDs={VAR_ID} # if no rsIDs have been found, try to work with the original ID
 
 for current_variant_id in rsIDs:
     LOGGER.info("Retrieving variant data for %s" % current_variant_id)
@@ -160,8 +160,8 @@ for current_variant_id in rsIDs:
         LOGGER.error("Variant data for %s could not be retreived" % current_variant_id)
         continue
 
-    LOGGER.info("Getting GWAVA scores")
-    variant.getGwavaScore(variant_data)
+    # LOGGER.info("Getting GWAVA scores")
+    # variant.getGwavaScore(variant_data)
 
     # variant can have multiple chr:pos mappings
     # each chr:pos mapping can have multiple ref:alt pairs
@@ -176,7 +176,7 @@ for current_variant_id in rsIDs:
 
 #----------------------------------------------------------------------------------------------------------------------
 
-    # loop over all chr:pos mappings
+    # loop over all chr:pos
     for i in range(0,len(chrpos)):
         LOGGER.info("Current chr:pos: %s" %(chrpos[i][0]+":"+str(chrpos[i][1])))
         # all chr:pos:ref:alt etc. information corresponding to the current chr:pos
@@ -199,12 +199,13 @@ for current_variant_id in rsIDs:
         vepDFtr=temp["transcript"]
         vepDFreg=temp["regulatory"]
         
-        LOGGER.info("Creating population dataframe")
+        LOGGER.info("Creating population AF dataframe")
         populationDF=variant.population2df(variant_data["population_data"])
         tmp_name=utils.df2svg(populationDF,current_variant_id)
         populationFname=None
         if not tmp_name is None:
             populationFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
+        LOGGER.debug("Population SVG name: %s, populationFname: %s" %(tmp_name,populationFname))
         
         LOGGER.info("Creating PubMed dataframe")
         pubmedDF=pubmed.getPubmedDF(current_variant_id,variant_data["synonyms"])
@@ -213,20 +214,21 @@ for current_variant_id in rsIDs:
         gene_list=gene.getGeneList(chrpos[i][0],chrpos[i][1],build=build)
         if gene_list:
             all_genes.extend(gene_list)
-            LOGGER.info("Got %d gene(s)" %(len(gene_list)))
+            LOGGER.info("Got %d gene(s) around the current variant position" %(len(gene_list)))
 
         LOGGER.info("Creating gene dataframe")
         geneDF=gene.geneList2df(gene_list)
         
-        LOGGER.info("Creating gnomAD dataframe")
+        LOGGER.info("Creating gnomAD AF dataframe")
         gnomadDF=gnomad.getPopulationAF(current_variant_id)
         tmp_name=utils.df2svg(gnomadDF,current_variant_id)
         gnomadFname=None
         if not tmp_name is None:
             gnomadFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
+        LOGGER.debug("gnomAD SVG name: %s, gnomadFname: %s" %(tmp_name,gnomadFname))
             
         LOGGER.info("Creating GTEx dataframe")
-        GTEx_genesDF=gtex.getGTExDF(mappings)    
+        GTEx_genesDF=gtex.getGTExDF(mappings,build=build)    
         LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
 
         if out_html:
@@ -271,7 +273,7 @@ for current_variant_id in rsIDs:
     # Gene information for all genes near the variant
 
     gene_names=list()
-    LOGGER.info("Total genes: %d" % len(all_genes))
+    LOGGER.info("Total genes near the variant: %d" % len(all_genes))
     for i in range(0,len(all_genes)):
         gene_ID=all_genes[i]["ID"]
         gene_names.append(gene_ID)
@@ -299,7 +301,10 @@ for current_variant_id in rsIDs:
         gwasDF=gwas.hitsByGene(gene_ID)
         
         LOGGER.info("Retreiving GTEx data")
-        gtexDF=gtex.gtex2df(gtex.parseGTEx(info["chromosome"],info["start"],info["end"],gene_ID))
+        info38=info
+        if build!="38":
+            info38=gene.getGeneInfo(gene_ID,build="38")
+        gtexDF=gtex.gtex2df(gtex.parseGTEx(info38["chromosome"],info38["start"],info38["end"],gene_ID))
         
         LOGGER.info("Retreiving mouse data")
         mouseDF=mouse.getMousePhenotypes(gene_ID)
@@ -311,6 +316,7 @@ for current_variant_id in rsIDs:
         gxaFname=None
         if not tmp_name is None:
             gxaFname="./"+os.path.relpath(tmp_name,config.OUTPUT_DIR)
+        LOGGER.debug("GXA SVG name: %s, gxaFname: %s" %(tmp_name,gxaFname))
         LOGGER.info("")
 
         if out_html:
@@ -343,8 +349,9 @@ for current_variant_id in rsIDs:
         outfile=config.OUTPUT_DIR+"/%s.html" % current_variant_id
         LOGGER.info("Saving HTML output to %s\n" % outfile)
         template_fname=config.OUTPUT_DIR+"/template.html"
+        LOGGER.info("HTML template: %s\n" % template_fname)
         utils.generateTemplate(mapping_names,gene_names,template_fname)
-        f = open(outfile,"w")
+        f=open(outfile,"w")
         f.write(utils.generateHTML(template_fname,D))
         f.close()
         if os.path.isfile(template_fname):

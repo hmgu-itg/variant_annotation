@@ -13,6 +13,7 @@ def getServerName(build="38"):
         server="https://rest.ensembl.org"
     return server
 
+# get all variants overlapping the given position
 def makeOverlapVarQueryURL(chrom,start,end,build="38"):
     ext="/overlap/region/human/"
     return getServerName(build)+ext+"%s:%s-%s?feature=variation"  % (chrom,str(start),str(end))
