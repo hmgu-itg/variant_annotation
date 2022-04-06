@@ -16,11 +16,11 @@ def getServerName(build="38"):
 # get all variants overlapping the given position
 def makeOverlapVarQueryURL(chrom,start,end,build="38"):
     ext="/overlap/region/human/"
-    return getServerName(build)+ext+"%s:%s-%s?feature=variation"  % (chrom,str(start),str(end))
+    return getServerName(build)+ext+"%s:%s-%s?feature=variation"  % (str(chrom),str(start),str(end))
 
 def makeRefSeqQueryURL(chrom,start,end,build="38"):
     ext="/sequence/region/human/"
-    return getServerName(build)+ext+"%s:%s..%s:1?"  % (chrom,str(start),str(end))
+    return getServerName(build)+ext+"%s:%s..%s:1?"  % (str(chrom),str(start),str(end))
 
 def makeRSQueryURL(rsID,build="38"):
     ext="/variant_recoder/homo_sapiens/"

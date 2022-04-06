@@ -864,6 +864,7 @@ def variant2df(var_data,mappings):
 
     df=pd.DataFrame(columns=["Key","Value"])
 
+    df.loc["Input ID"]=["Input ID",var_data["input_ID"]]
     df.loc["ID"]=["ID",var_data["rsID"]]
     
     keystr=mappings[0]["chr"]+":"+str(mappings[0]["pos"])

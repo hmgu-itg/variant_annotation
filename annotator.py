@@ -159,6 +159,7 @@ for current_variant_id in rsIDs:
     if variant_data is None:
         LOGGER.error("Variant data for %s could not be retreived" % current_variant_id)
         continue
+    variant_data["input_ID"]=VAR_ID
 
     # LOGGER.info("Getting GWAVA scores")
     # variant.getGwavaScore(variant_data)
@@ -347,6 +348,8 @@ for current_variant_id in rsIDs:
 
     if out_html:
         outfile=config.OUTPUT_DIR+"/%s.html" % current_variant_id
+        if current_variant_id!=VAR_ID:
+            outfile=config.OUTPUT_DIR+"/%s.html" % (VAR_ID+"_"+current_variant_id)
         LOGGER.info("Saving HTML output to %s\n" % outfile)
         template_fname=config.OUTPUT_DIR+"/template.html"
         LOGGER.info("HTML template: %s\n" % template_fname)

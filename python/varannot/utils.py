@@ -120,7 +120,9 @@ def checkAlleles(ID,build="38"):
     t=splitID(ID)
     if not t:
         return False
-    return query.getRefSeq(t["chr"],t["pos"],t["pos"]+len(t["a1"])-1,build)==t["a1"] or query.getRefSeq(t["chr"],t["pos"],t["pos"]+len(t["a2"])-1,build)==t["a2"]
+    s1=query.getRefSeq(t["chr"],t["pos"],str(int(t["pos"])+len(t["a1"])-1),build)
+    s2=query.getRefSeq(t["chr"],t["pos"],str(int(t["pos"])+len(t["a2"])-1),build)
+    return s1==t["a1"] or s2==t["a2"]
 
 # ==============================================================================================================================
 
@@ -580,7 +582,7 @@ def generateTemplate(mapping_names,gene_names,fname):
 
     f.write("<div class=\"tab\">\n")
     f.write("<button class=\"tablinks2\" onclick=\"openTab2(event, 'Variant')\" id=\"defaultTabOpen\">Variant</button>\n")
-    f.write("<button class=\"tablinks2\" onclick=\"openTab2(event, 'Genes')\">Genes</button>\n")
+    f.write("<button class=\"tablinks2\" onclick=\"openTab2(event, 'Genes')\">Nearby (%d bp) genes</button>\n" %  config.GENE_WINDOW)
     f.write("</div>\n\n")
 
     # Variant tab
