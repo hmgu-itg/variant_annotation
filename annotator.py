@@ -73,13 +73,15 @@ if args.verbose is not None:
     elif args.verbose=="error":
         verbosity=logging.ERROR
 
-outdir=os.getcwd()+"/"+VAR_ID
+outdir=os.getcwd()
 if args.output:
     outdir=args.output
     
 if outdir.endswith("/"):
     outdir=outdir[:-1]
 
+outdir=os.path.abspath(outdir)
+    
 config.OUTPUT_DIR=outdir
 config.OUTPUT_DIR_FIG=config.OUTPUT_DIR+"/figures/"+VAR_ID
 
