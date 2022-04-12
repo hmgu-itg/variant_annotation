@@ -4,43 +4,52 @@ import logging
 
 from varannot import config
 from varannot import utils
+from varannot import variant
 
 LOGGER=logging.getLogger(__name__)
 
 # ===============================================================================================================================
 
-def gtex2df(gtex_data):
+def gtex2df(gtex_data=None):
     df=pd.DataFrame(columns=["Tissue","P-value","Beta (SE)","ID","Distance from TSS"])
+    if gtex_data is None:
+        return df
     i=0
     for x in gtex_data:
         for z in gtex_data[x]:
             df.loc[i]=[z["tissue"],z["p-value"],z["beta"]+" ("+z["SE"]+")",x,z["dist"]]
             i+=1
-
     LOGGER.debug("DF: %d" % len(df))
     return df
 
 # ================================================================================================================================
 
 # GTEx data is in b38 coordinates, if build!="38", liftOver on mappings must be preformed
-def getGTExDF(mappings,build="38"):
+def getGTExDF(mappings,varID,build="38"):
     '''
     For a given list of variant mappings (containing chr/pos/ref/alt information), 
     return a merged dataframe
     
-    Input  : list of mappings
+    Input  : chrom, pos, build
     Output : dataframe with columns: "Tissue","P-value","Beta (SE)","ID","Distance from TSS"
     '''
 
     LOGGER.debug("Input: %d mappings" %  len(mappings))
     mappings38=mappings
     if build!="38":
-        mappings38=utils.liftOverMappings(mappings,source_build=build)
+        if utils.isRS(varID): # if we have a rsID, get mappings from it, otherwise try liftOver
+            mappings38=list()
+            z=variant.rs2position(varID,build="38",alleles=True)
+            for x in z:
+                mappings38.append({"chr":x["chr"],"pos":int(x["pos"]),"ref":x["ref"],"alt":x["alt"]})
+        else:
+            mappings38=utils.liftOverMappings(mappings,source_build=build)
     df=pd.DataFrame(columns=["Tissue","P-value","Beta (SE)","ID","Distance from TSS"])
 
     for m in mappings38:
         df=pd.concat([df,gtex2df(parseGTEx(m["chr"],m["pos"],m["pos"],m["chr"]+"_"+str(m["pos"])+"_"+m["ref"]+"_"+m["alt"]))]).drop_duplicates().reset_index(drop=True)
-
+        if utils.isRS(varID):
+            df=pd.concat([df,gtex2df(parseGTEx(m["chr"],m["pos"],m["pos"],varID))]).drop_duplicates().reset_index(drop=True)
     return df
 
 # ================================================================================================================================

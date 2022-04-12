@@ -231,7 +231,7 @@ for current_variant_id in rsIDs:
         LOGGER.debug("gnomAD SVG name: %s, gnomadFname: %s" %(tmp_name,gnomadFname))
             
         LOGGER.info("Creating GTEx dataframe")
-        GTEx_genesDF=gtex.getGTExDF(mappings,build=build)    
+        GTEx_genesDF=gtex.getGTExDF(mappings,current_variant_id,build=build)    
         LOGGER.info("Found %d eQTL(s)\n" % len(GTEx_genesDF))
 
         if out_html:
@@ -307,7 +307,10 @@ for current_variant_id in rsIDs:
         info38=info
         if build!="38":
             info38=gene.getGeneInfo(gene_ID,build="38")
-        gtexDF=gtex.gtex2df(gtex.parseGTEx(info38["chromosome"],info38["start"],info38["end"],gene_ID))
+        if info38:
+            gtexDF=gtex.gtex2df(gtex.parseGTEx(info38["chromosome"],info38["start"],info38["end"],gene_ID))
+        else:
+            gtexDF=gtex.gtex2df()
         
         LOGGER.info("Retreiving mouse data")
         mouseDF=mouse.getMousePhenotypes(gene_ID)
