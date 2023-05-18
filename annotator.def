@@ -13,6 +13,8 @@ From: ubuntu:18.04
 	ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 	apt install -y locales gnupg software-properties-common bc
+	apt-add-repository ppa:ubuntu-elisp/ppa
+	apt update
 	sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
 	locale-gen
 	dpkg-reconfigure --frontend=noninteractive locales
@@ -22,105 +24,23 @@ From: ubuntu:18.04
 
 	DEBIAN_FRONTEND="noninteractive" apt install -y software-properties-common build-essential git python3 python3-pip wget tabix moreutils python2.7 r-base lftp
 	
-	sed -i 's/SECLEVEL=2/SECLEVEL=1/' /etc/ssl/openssl.cnf
-	apt install -y python-pip
-	#wget https://bootstrap.pypa.io/get-pip.py
-	#python2.7 get-pip.py
-	pip2 install numpy matplotlib sklearn scipy pandas 
-	apt install -y python-tk
-
-	#libraries for orca
-	DEBIAN_FRONTEND="noninteractive" apt install -y curl libgtk2.0-0 libx11-xcb-dev libxtst6 libxss1 libgconf-2-4 libnss3 libasound2 xvfb xauth firefox-geckodriver
-
+	pip3 install numpy matplotlib sklearn scipy pandas scikit-learn
 	pip3 install --upgrade setuptools 
 	pip3 install argparse jinja2 pandas selenium psutil plotly requests kaleido
-	curl -sL https://deb.nodesource.com/setup_12.x | bash - && apt-get install -y nodejs && npm install --unsafe-perm=true -g electron@1.8.4
-	
-    	mkdir -p /opt/orca && \
-    	cd /opt/orca && \
-    	wget https://github.com/plotly/orca/releases/download/v1.2.1/orca-1.2.1-x86_64.AppImage && \
-    	chmod +x orca-1.2.1-x86_64.AppImage && ./orca-1.2.1-x86_64.AppImage --appimage-extract && \
-    	rm orca-1.2.1-x86_64.AppImage && chmod -R a+rx /opt/orca/squashfs-root &&\
-    	printf '#!/bin/bash \nxvfb-run --auto-servernum --server-args "-screen 0 640x480x24" /opt/orca/squashfs-root/app/orca "$@"' > /usr/bin/orca && chmod +x /usr/bin/orca
 
 	cd /usr/local/bin
-	git clone --branch dev --single-branch https://github.com/hmgu-itg/variant_annotation
+	git clone --branch genereport --single-branch https://github.com/hmgu-itg/variant_annotation
 
-	# liftOver
-	wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v385/liftOver
-	chmod +x liftOver
-	wget ftp://hgdownload.cse.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHg19.over.chain.gz
-	wget ftp://hgdownload.cse.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz
+	apt-get install -y zlib1g zlib1g-dev python-dev emacs-snapshot
 
-	# # R packages needed for shiny app
-	# apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
-	# add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran40/'
-	# DEBIAN_FRONTEND="noninteractive" apt-get install -y r-base
-	# apt-get install -y libcurl4-openssl-dev libssl-dev
-	# Rscript --vanilla -e "install.packages(c(\"shiny\",\"plotly\",\"shinyjs\",\"jsonlite\"),repos = \"http://cran.us.r-project.org\")"
-
-	apt-get install -y zlib1g zlib1g-dev firefox python-dev emacs
-	
-	cd /
-	git clone https://github.com/arq5x/bedtools2.git
-	cd /bedtools2
-	# gwava needs a version without "sam header" error messages
-	git checkout tags/v2.27.1
-	make && make install
-
-	pip2 install pybedtools scipy pandas numpy scikit-learn==0.14.1
-
-	# locuszoom
-	cd /opt
-	wget https://statgen.sph.umich.edu/locuszoom/download/locuszoom_1.4_srconly.tgz
-	tar -zxf locuszoom_1.4_srconly.tgz
-	rm locuszoom_1.4_srconly.tgz
-	
-	mkdir locuszoom/conf
-	touch locuszoom/conf/m2zfast.conf
-	cat <<-EOF >locuszoom/conf/m2zfast.conf
-	METAL2ZOOM_PATH="bin/locuszoom.R"
-	NEWFUGUE_PATH=""
-	PLINK_PATH="plink"
-	RSCRIPT_PATH="Rscript"
-	TABIX_PATH="tabix"
-	SQLITE_DB={"b38":""}
-	DEFAULT_BUILD="b38"
-	DEFAULT_POP="EUR"
-	DEFAULT_SOURCE="b38"
-	GWAS_CATS={"b38":{}}
-	LD_DB={"b38":{}}
-	EOF
-	
-	mkdir locuszoom/data
-	cd locuszoom/data
-	wget http://hgdownload.cse.ucsc.edu/goldenpath/hg38/database/refFlat.txt.gz
-	echo geneName name chrom strand txStart txEnd cdsStart cdsEnd exonCount exonStarts exonEnds | tr ' ' '\t' > refFlat_b38.txt
-	gunzip -c refFlat.txt.gz >> refFlat_b38.txt
-	rm refFlat.txt.gz
-	wget https://data.broadinstitute.org/alkesgroup/Eagle/downloads/tables/genetic_map_hg38_withX.txt.gz
-	echo chr pos recomb cm_pos | tr ' ' '\t' > recomb_rate_b38.txt
-	gunzip -c genetic_map_hg38_withX.txt.gz | tail -n +2 | tr ' ' '\t' >> recomb_rate_b38.txt
-	rm genetic_map_hg38_withX.txt.gz
-	
-	# PLINK
-	cd /opt
-	mkdir plink
-	cd plink
-	wget http://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20201019.zip
-	unzip plink_linux_x86_64_20201019.zip
-	rm plink_linux_x86_64_20201019.zip
-
-	pip3 install bokeh asr
-	
 	CREATIONDATE=`date`
 
 %runscript
 	echo "This container was created: $CREATIONDATE"
 
 %labels
-	Author Arthur Gilly, Andrei Barysenka, Daniel Suveges
-	Version v0.2
+	Author Andrei Barysenka
+	Version v0.1
 
 %help
-	This container wraps the variant annotator at https://github.com/hmgu-itg/variant_annotation.
+	https://github.com/hmgu-itg/variant_annotation.
