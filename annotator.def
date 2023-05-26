@@ -33,7 +33,6 @@ From: ubuntu:18.04
 	git clone --branch dev --single-branch https://github.com/hmgu-itg/variant_annotation
 
 	apt-get install -y zlib1g zlib1g-dev python-dev emacs-snapshot
-
 	CREATIONDATE=`date`
 
 %runscript
