@@ -26,7 +26,8 @@ From: ubuntu:18.04
 	apt install -y python-pip
 	#wget https://bootstrap.pypa.io/get-pip.py
 	#python2.7 get-pip.py
-	pip2 install numpy matplotlib sklearn scipy pandas 
+	#pip2 install numpy matplotlib sklearn scipy pandas 
+	pip2 install numpy matplotlib scipy pandas 
 	apt install -y python-tk
 
 	#libraries for orca
