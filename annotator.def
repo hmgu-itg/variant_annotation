@@ -24,6 +24,7 @@ From: ubuntu:18.04
         add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/'
 
 	DEBIAN_FRONTEND="noninteractive" apt install -y software-properties-common build-essential git python3 python3-pip wget tabix moreutils python2.7 r-base lftp
+	DEBIAN_FRONTEND="noninteractive" apt install -y curl libgtk2.0-0 libx11-xcb-dev libxtst6 libxss1 libgconf-2-4 libnss3 libasound2 xvfb xauth firefox-geckodriver
 	
 	pip3 install numpy matplotlib scipy pandas scikit-learn
 	pip3 install --upgrade setuptools 
