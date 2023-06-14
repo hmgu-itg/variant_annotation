@@ -55,4 +55,6 @@ df["consequence2"]=df["consequence"].map(config.VEP_CONSEQUENCES)
 # df.replace({"consequence":config.VEP_CONSEQUENCES},inplace=True)
 df2=df[df["consequence2"]==df["consequence2"].max()]
 df2[["varId","consequence","pValue","phenotype","dbSNP","maf"]].to_csv(sys.stdout,sep="\t",index=False)
+idx=df.groupby("phenotype")["pValue"].idxmin()
+print(df.loc[idx][["varId","dbSNP","consequence","pValue","phenotype"]].sort_values(by="pValue").reset_index())
 # print(df[["varId","consequence","pValue","phenotype"]])
