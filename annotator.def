@@ -34,6 +34,9 @@ From: ubuntu:18.04
 	git clone --branch dev --single-branch https://github.com/hmgu-itg/variant_annotation
 
 	apt-get install -y zlib1g zlib1g-dev python-dev emacs-snapshot
+	cd /usr/local/bin
+	wget http://ftp.gnu.org/gnu/datamash/datamash-1.8.tar.gz && tar -xzf datamash-1.8.tar.gz && cd datamash-1.8 && ./configure && make && make check && make install
+	apt-get install -y git
 	CREATIONDATE=`date`
 
 %runscript
