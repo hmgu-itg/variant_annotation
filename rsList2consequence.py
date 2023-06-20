@@ -18,6 +18,7 @@ verbosity=logging.INFO
 
 parser = argparse.ArgumentParser(description="Get functional consequences for a list of rs IDs (read from STDIN)")
 parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38",required=False)
+parser.add_argument('--name','-n', action="store_true",help="Use gene name instead of ENSEMBL ID",required=False)
 parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 
 try:
@@ -36,6 +37,8 @@ if args.verbose is not None:
         verbosity=logging.WARNING
     elif args.verbose=="error":
         verbosity=logging.ERROR
+
+use_name=args.name
 
 LOGGER=logging.getLogger("rsList2consequence")
 LOGGER.setLevel(verbosity)
@@ -57,7 +60,10 @@ i=1
 for L in utils.chunks([line.rstrip() for line in sys.stdin.readlines()],config.VEP_POST_MAX):
     LOGGER.info("Current chunk: %d" % i)
     i+=1
-    r=variant.addConsequencesToRSList(L,build=build,most_severe_only=True,gene_key="gene_id")
+    if use_name:
+        r=variant.addConsequencesToRSList(L,build=build,most_severe_only=False,gene_key="gene_symbol")
+    else:
+        r=variant.addConsequencesToRSList(L,build=build,most_severe_only=False,gene_key="gene_id")
     if r is None:
         continue
     for ID in r:
