@@ -24,7 +24,7 @@ def main():
 
     parser=argparse.ArgumentParser(description="Get VEP consequences for rsID(s)")
     parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38",required=False)
-    parser.add_argument('--id','-i', action="store",help="rs ID",required=False)
+    parser.add_argument('--id','-i', action="store",help="rsID",required=False,default=None)
     parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
 
     try:
@@ -57,6 +57,11 @@ def main():
     logging.getLogger("varannot.utils").addHandler(ch)
     logging.getLogger("varannot.utils").setLevel(verbosity)
 
+    if sys.stdin.isatty() and rsID is None:
+        LOGGER.error("No rsID specified")
+        parser.print_help()
+        sys.exit(1)
+        
     #---------------------------------------------------------------------------------------------------------------------------
 
     if sys.stdin.isatty():
