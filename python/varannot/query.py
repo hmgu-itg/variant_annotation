@@ -84,6 +84,7 @@ def makeGeneOverlapQueryURL(chrom,start,end,build="38"):
 
 # PHENOTYPE QUERIES
 
+# for POST
 def makeRSPhenotypeQueryURL(build="38"):
     ext="/variation/homo_sapiens/"
     return getServerName(build)+ext+"?phenotypes=1"
@@ -97,9 +98,9 @@ def makeOverlapVarGWASCATQueryURL(chrom,start,end,build="38"):
     ext="/overlap/region/human/"
     return getServerName(build)+ext+"%s:%d-%d?feature=variation;variant_set=ph_nhgri" %(chrom,start,end)
 
-def makeRsPhenotypeQuery2URL(rs,build="38"):
+def makeRsPhenotypeQuery2URL(rs,build="38",pops=True,phenotypes=True):
     ext="/variation/human/"
-    return getServerName(build)+ext+"%s?pops=1;phenotypes=1" %rs
+    return getServerName(build)+ext+"%s?pops=%s;phenotypes=%s" %(rs,"1" if pops else "0","1" if phenotypes else "0")
 
 # https://rest.ensembl.org/documentation/info/phenotype_region
 def makeOverlapPhenotypeQueryURL(chrom,start,end,build="38"):
