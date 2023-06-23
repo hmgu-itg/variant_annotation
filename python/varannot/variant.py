@@ -89,7 +89,7 @@ def rsList2position(L,build="38",alleles=False):
 
 def rs2position(ID,build="38",alleles=False):
     '''
-    For a given rsID, return a list of dictionaries with keys chr,pos
+    For a given rsID, return a list of dictionaries with keys chr,pos,ref,alt
     
     Input: rsID, build (default: 38), alleles=True/False (if we need alleles as well)
     Output: a list of dictionaries with keys "chr", "pos", "ref", "alt" or None if query fails
