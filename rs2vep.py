@@ -14,16 +14,15 @@ from varannot import config
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
-def join_consequences(string):
-    # print("String: "+string)
-    # ",".join(list(map(lambda x:x.replace('\'',''),re.split(',\s*',re.sub(r'[][]','',string)))))
-    return ",".join(string)
+def get_consequence_rank(row):
+    c=row["consequence_terms"]
+    return max(list(map(lambda x:config.VEP_CONSEQUENCES[x] if x in config.VEP_CONSEQUENCES else -1,c)))    
 
 def main():
     build="38"
     verbosity=logging.INFO
 
-    parser=argparse.ArgumentParser(description="Get VEP consequences for rsID")
+    parser=argparse.ArgumentParser(description="Get VEP consequences for rsID(s)")
     parser.add_argument('--build','-b', action="store",help="Genome build: default: 38", default="38",required=False)
     parser.add_argument('--id','-i', action="store",help="rs ID",required=False)
     parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
@@ -72,7 +71,9 @@ def main():
             for c in ["rsID","gene_symbol","gene_id","transcript_id","variant_allele","sift_prediction","sift_score","polyphen_prediction","polyphen_score","consequence_terms"]:
                 if c not in df:
                     df[c]="NA"
-            df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["rsID","gene_symbol","gene_id","transcript_id","consequence_terms","variant_allele","sift_prediction","sift_score","polyphen_prediction","polyphen_score"])
+            df["consequence_max_rank"]=df.apply(lambda row:get_consequence_rank(row),axis=1)
+            df["consequence_terms"]=df["consequence_terms"].transform(lambda x:",".join(x))
+            df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["rsID","gene_symbol","gene_id","transcript_id","consequence_terms","consequence_max_rank","variant_allele","sift_prediction","sift_score","polyphen_prediction","polyphen_score"])
     else:
         dfs=list()
         i=1
@@ -94,8 +95,9 @@ def main():
                         df[c]="NA"
                 dfs.append(df)
         DF=pd.concat(dfs)
+        DF["consequence_max_rank"]=DF.apply(lambda row:get_consequence_rank(row),axis=1)
         DF["consequence_terms"]=DF["consequence_terms"].transform(lambda x:",".join(x))
-        DF.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["rsID","gene_symbol","gene_id","transcript_id","consequence_terms","variant_allele","sift_prediction","sift_score","polyphen_prediction","polyphen_score"])
+        DF.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["rsID","gene_symbol","gene_id","transcript_id","consequence_terms","consequence_max_rank","variant_allele","sift_prediction","sift_score","polyphen_prediction","polyphen_score"])
 
 if __name__=="__main__":
     main()
