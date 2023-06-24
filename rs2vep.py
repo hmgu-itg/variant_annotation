@@ -58,12 +58,12 @@ def main():
     logging.getLogger("varannot.utils").setLevel(verbosity)
 
     if sys.stdin.isatty() and rsID is None:
-        LOGGER.error("No rsID specified")
         parser.print_help()
         sys.exit(1)
         
     #---------------------------------------------------------------------------------------------------------------------------
 
+    dfs=list()
     if sys.stdin.isatty():
         r=query.restQuery(query.makeVepRSQueryURL(rsID,build=build))
         LOGGER.debug("Record length: %d" %(len(r)))
@@ -78,9 +78,10 @@ def main():
                     df[c]="NA"
             df["consequence_max_rank"]=df.apply(lambda row:get_consequence_rank(row),axis=1)
             df["consequence_terms"]=df["consequence_terms"].transform(lambda x:",".join(x))
-            df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["rsID","gene_symbol","gene_id","transcript_id","consequence_terms","consequence_max_rank","variant_allele","sift_prediction","sift_score","polyphen_prediction","polyphen_score"])
+            dfs.append(df)
+        DF=pd.concat(dfs)
+        DF.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["rsID","gene_symbol","gene_id","transcript_id","consequence_terms","consequence_max_rank","variant_allele","sift_prediction","sift_score","polyphen_prediction","polyphen_score"])
     else:
-        dfs=list()
         i=1
         for L in utils.chunks([line.rstrip() for line in sys.stdin.readlines()],config.VEP_POST_MAX):
             LOGGER.info("Current chunk: %d" % i)
