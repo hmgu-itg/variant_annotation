@@ -70,6 +70,9 @@ def makeVepRSQueryURL(rsID,build="38"):
     ext="/vep/homo_sapiens/id/%s?" % rsID
     return getServerName(build)+ext
 
+# wget -q --header='Content-type:application/json' 'https://www.ebi.ac.uk/eqtl/api/associations/rs200141179' -O -
+# http://www.ebi.ac.uk/eqtl/api/associations/?study=GTEx_V8&variant_id=rs302759
+# https://www.ebi.ac.uk/eqtl/api/associations/rs74676797?study=GTEx_V8
 def makeGTEXQueryURL(rsID,build="38"):
     ext="/eqtl/variant_name/homo_sapiens/%s" % rsID
     return getServerName(build)+ext
