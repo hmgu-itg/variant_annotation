@@ -55,6 +55,7 @@ def getGeneXrefs (ID,build="38"):
     if not r:
         return  None
 
+    LOGGER.debug("\n%s\n" % json.dumps(r,indent=4,sort_keys=True))
     xrefs = {
         "MIM disease" : [],
         "MIM gene" : [],
