@@ -3,18 +3,12 @@
 import sys
 import os
 import argparse
-# import re
 import logging
 import json
 import pandas as pd
 
 from varannot import uniprot
 from varannot import gene
-
-# from varannot import variant
-# from varannot import query
-# from varannot import utils
-# from varannot import config
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -53,8 +47,6 @@ def main():
     logging.getLogger("varannot.uniprot").setLevel(verbosity)
     logging.getLogger("varannot.gene").addHandler(ch)
     logging.getLogger("varannot.gene").setLevel(verbosity)
-    # logging.getLogger("varannot.query").addHandler(ch)
-    # logging.getLogger("varannot.query").setLevel(verbosity)
 
     if sys.stdin.isatty() and ID is None:
         parser.print_help()
@@ -62,8 +54,6 @@ def main():
         
     #---------------------------------------------------------------------------------------------------------------------------
 
-# https://rest.uniprot.org/uniprotkb/P00746?format=tsv
-    
     xrefs=gene.getGeneXrefs(ID,build=build)
     LOGGER.debug("\n%s\n" % json.dumps(xrefs,indent=4,sort_keys=True))
     uniprotID=xrefs["UniProtKB/Swiss-Prot"][0][0]
