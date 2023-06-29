@@ -21,13 +21,15 @@ def getGeneInfo(ID,build="38"):
     if response is None:
         return None
 
+    LOGGER.debug("%s" % json.dumps(response,indent=4,sort_keys=True))    
     gene_info=dict()
     gene_info["id"]=response["id"]
     gene_info["chromosome"]=response["seq_region_name"]
     gene_info["start"]=response["start"]
     gene_info["end"]=response["end"]
     try:
-        gene_info["description"]=response["description"].split("[")[0]
+        # gene_info["description"]=response["description"].split("[")[0]
+        gene_info["description"]=response["description"]
     except:
         gene_info["description"]="NA"
     gene_info["name"]=response["display_name"] if "display_name" in response else "NA"
