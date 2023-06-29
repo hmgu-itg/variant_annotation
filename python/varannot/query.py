@@ -115,6 +115,10 @@ def makeGenePhenotypeQueryURL(gene,build="38"):
     ext="/phenotype/gene/homo_sapiens/"
     return getServerName(build)+ext+"%s?include_associated=1;include_overlap=1;include_pubmed_id=1" %(gene)
 
+def makeOntologyQueryURL(term,build="38",simple=True):
+    ext="/ontology/id/"
+    return getServerName(build)+ext+"%s?simple=%s" %(term,"1" if simple else "0")
+
 # ===========================================================================================================================
 
 # if alleles==True, also return alleles
