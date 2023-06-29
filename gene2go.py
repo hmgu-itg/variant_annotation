@@ -6,9 +6,17 @@ import argparse
 import logging
 import json
 import pandas as pd
+from functools import partial
 
 from varannot import gene
+from varannot import query
 
+def getGOdetails(goterm,build):
+    r=query.restQuery(query.makeOntologyQueryURL(goterm,build=build,simple=True))
+    if not r:
+        return "NA","NA"
+    return r["namespace"],r["definition"]
+    
 #----------------------------------------------------------------------------------------------------------------------------------
 
 def main():
@@ -44,6 +52,8 @@ def main():
 
     logging.getLogger("varannot.gene").addHandler(ch)
     logging.getLogger("varannot.gene").setLevel(verbosity)
+    logging.getLogger("varannot.query").addHandler(ch)
+    logging.getLogger("varannot.query").setLevel(verbosity)
 
     if sys.stdin.isatty() and ID is None:
         parser.print_help()
@@ -56,8 +66,9 @@ def main():
         sys.exit(1)
     LOGGER.debug("\n%s\n" % json.dumps(xrefs,indent=4,sort_keys=True))
     df=gene.goterms2df(xrefs)
+    df["Namespace"],df["Definition"]=zip(*df["GO term ID"].map(partial(getGOdetails,build=build)))
     df["ID"]=ID
-    df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["ID","GO term ID","Description"])
+    df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["ID","GO term ID","Namespace","Description","Definition"])
 
 if __name__=="__main__":
     main()
