@@ -10,6 +10,13 @@ LOGGER=logging.getLogger(__name__)
 
 # ==============================================================================================================================
 
+def getGeneID(name,build="38"):
+    response=query.restQuery(query.makeGeneNameXQueryURL(name,build=build))
+    if response is None:
+        return None
+    LOGGER.debug("%s" % json.dumps(response,indent=4,sort_keys=True))
+    return [x["id"] for x in response]
+
 def getGeneInfo(ID,build="38"):
     '''
     Retrieve general gene information
@@ -21,7 +28,7 @@ def getGeneInfo(ID,build="38"):
     if response is None:
         return None
 
-    LOGGER.debug("%s" % json.dumps(response,indent=4,sort_keys=True))    
+    LOGGER.debug("%s" % json.dumps(response,indent=4,sort_keys=True))
     gene_info=dict()
     gene_info["id"]=response["id"]
     gene_info["chromosome"]=response["seq_region_name"]
