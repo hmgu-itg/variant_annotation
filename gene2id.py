@@ -53,6 +53,8 @@ def main():
     #---------------------------------------------------------------------------------------------------------------------------
 
     r=gene.getGeneID(name,build=build)
+    if r is None:
+        sys.exit(1)
     for ID in r:
         print("%s\t%s" %(name,ID))
 
