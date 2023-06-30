@@ -111,9 +111,9 @@ def makeOverlapPhenotypeQueryURL(chrom,start,end,build="38"):
     return getServerName(build)+ext+"%s:%d-%d?feature_type=Variation;include_pubmed_id=1" %(chrom,start,end)
 
 # https://rest.ensembl.org/documentation/info/phenotype_gene
-def makeGenePhenotypeQueryURL(gene,build="38"):
+def makeGenePhenotypeQueryURL(gene,build="38",pubmed=True,overlap=True,associated=True):
     ext="/phenotype/gene/homo_sapiens/"
-    return getServerName(build)+ext+"%s?include_associated=1;include_overlap=1;include_pubmed_id=1" %(gene)
+    return getServerName(build)+ext+"%s?include_associated=%s;include_overlap=%s;include_pubmed_id=%s" %(gene,"1" if associated else "0","1" if overlap else "0","1" if pubmed else "0")
 
 def makeOntologyQueryURL(term,build="38",simple=True):
     ext="/ontology/id/"
