@@ -18,6 +18,7 @@ def byGene(gene,build="38"):
     
     # df=pd.DataFrame(columns=["rs","Location","Phenotype","P-value","Link"])
     r=query.restQuery(query.makeGenePhenotypeQueryURL(gene,build=build,pubmed=False))
-    LOGGER.debug("%s" % json.dumps(r,indent=4,sort_keys=True))
-    return None
+    if r:
+        LOGGER.debug("%s" % json.dumps(r,indent=4,sort_keys=True))
+    return r
 
