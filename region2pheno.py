@@ -19,7 +19,6 @@ def main():
     parser.add_argument("--verbose", "-v", help="Optional: verbosity level",required=False,choices=("debug","info","warning","error"),default="info")
     parser.add_argument('--source','-s',action="append",choices=list(PHENO_SOURCE.keys()),help="Optional: source",required=False,default=None)
     parser.add_argument('--region','-r',action="store",help="Region: chr:start-end",required=False,default=None)
-    parser.add_argument('--id','-i',action="store",help="Gene ID",required=False,default=None)
     parser.add_argument('--build','-b',action="store",help="Genome build: default: 38",required=False,default="38")
 
     try:
@@ -65,7 +64,7 @@ def main():
         start=m.group(2)
         end=m.group(3)
     else:
-        LOGGER.error("Wrong region")
+        LOGGER.error("Malformed region")
         sys.exit(1)
         
     #---------------------------------------------------------------------------------------------------------------------------

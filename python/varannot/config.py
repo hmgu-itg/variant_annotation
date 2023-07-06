@@ -1,4 +1,4 @@
-# batch sizes for POST queries
+# batch size for POST queries
 VARIANT_RECODER_POST_MAX=200
 VARIATION_POST_MAX=200
 VEP_POST_MAX=200
