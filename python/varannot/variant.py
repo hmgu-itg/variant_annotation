@@ -513,7 +513,7 @@ def addPhenotypesToRSList(rsIDs,build="38"):
 # ===========================================================================================================================
 
 # add VEP consequences to a list of variant IDs (1_12345_AC_A)
-# most_severe_only==True: only output one gene:consequence pair, where gene's consequence is "most_severe_consequence"
+# most_severe_only==True: only output one gene:consequence pair, having max consequence
 def addConsequencesToIDList(varIDs,build="38",most_severe_only=False,gene_key="gene_id"):
     LOGGER.debug("Input ID list: %d variants" % len(varIDs))
     R=dict()
@@ -532,31 +532,27 @@ def addConsequencesToIDList(varIDs,build="38",most_severe_only=False,gene_key="g
         if not r is None:
             LOGGER.debug("\n======= VEP query ========\n%s\n==========================\n" % json.dumps(r,indent=4,sort_keys=True))
             for x in r:
-                rs=x["id"]
-                mcsq=x["most_severe_consequence"] if "most_severe_consequence" in x else "NA"
-                H=dict()
+                inputID=x["id"]
+                H=dict() # gene name / ID --> most severe consequence for that gene
                 if "transcript_consequences" in x:
                     for g in x["transcript_consequences"]:
                         H.setdefault(g[gene_key],[]).extend(g["consequence_terms"])
                     for g in H:
                         H[g]=utils.getMostSevereConsequence(H[g])
                 else:
-                    H["NA"]=mcsq
-                if most_severe_only is True:
-                    if mcsq=="NA":
-                        R[rs]={"NA":"NA"}
+                    H["NA"]="NA"
+                if most_severe_only:
+                    most_severe_cons=utils.getMostSevereConsequence([x for x in H.values() if x!="NA"])
+                    if most_severe_cons=="NA":
+                        R[inputID]={"NA":"NA"}
                     else:
                         g0="NA"
                         for g in H:
-                            if H[g]==mcsq:
+                            if H[g]==most_severe_cons:
                                 g0=g
-                        R[rs]={g0:mcsq}
+                        R[inputID]={g0:most_severe_cons}
                 else:
-                    R[rs]=H
-    s=set(varIDs)-(set(R.keys())-{"NA"})
-    LOGGER.debug("No consequences found for %d IDs" % len(s))
-    for v in s:
-        R[v]={"NA":"NA"}
+                    R[inputID]=H
     return R
 
 # ===========================================================================================================================
