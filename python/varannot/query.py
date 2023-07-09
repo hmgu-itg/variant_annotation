@@ -34,9 +34,9 @@ def makeHomologySymbolURL(name,source_species="human",target_species="mouse",bui
     ext="/homology/symbol/%s/%s?&target_species=%s&aligned=0&sequence=none&type=%s" %(source_species,name,target_species,homology_type)
     return getServerName(build)+ext
 
-def makeGeneQueryURL(ID,build="38"):
+def makeGeneQueryURL(ID,build="38",expand=False):
     ext="/lookup/id/"
-    return getServerName(build)+ext+ID
+    return getServerName(build)+ext+ID+"?expand=%s" %("1" if expand else "0")
 
 def makeGeneSymbolQueryURL(name,build="38",species="homo_sapiens"):
     ext="/lookup/symbol/%s/%s" %(species,name)
@@ -46,9 +46,9 @@ def makeGeneNameXQueryURL(name,build="38",species="homo_sapiens"):
     ext="/xrefs/symbol/"
     return getServerName(build)+ext+"%s/%s" % (species,name)
 
-def makeGeneXQueryURL(ID,build="38"):
+def makeGeneXQueryURL(ID,build="38",all_levels=True,external_dbname=None):
     ext="/xrefs/id/"
-    return getServerName(build)+ext+"%s?all_levels=1" % ID
+    return getServerName(build)+ext+"%s?all_levels=%s%s" % (ID,"1" if all_levels else "0",";external_db="+external_dbname if external_dbname else "")
 
 def makeGeneXQueryURL2(ID,build="38"):
     ext="/xrefs/id/"
@@ -118,6 +118,11 @@ def makeGenePhenotypeQueryURL(gene,build="38",pubmed=True,overlap=True,associate
 def makeOntologyQueryURL(term,build="38",simple=True):
     ext="/ontology/id/"
     return getServerName(build)+ext+"%s?simple=%s" %(term,"1" if simple else "0")
+
+# get transcripts overlapping gene
+def makeOverlapGeneQueryURL(gene,build="38",regulatory=False):
+    ext="/overlap/id/"
+    return getServerName(build)+ext+"%s?feature=transcript%s" %(gene,"&feature=regulatory" if regulatory else "")
 
 # ===========================================================================================================================
 

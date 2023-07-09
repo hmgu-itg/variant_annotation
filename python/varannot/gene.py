@@ -17,6 +17,42 @@ def getGeneID(name,build="38"):
     LOGGER.debug("%s" % json.dumps(response,indent=4,sort_keys=True))
     return [x["id"] for x in response]
 
+# for a transcript ID, return ENSP, AA length, UniprotID
+def getTranslationInfo(ID,build="38"):
+    response=query.restQuery(query.makeGeneQueryURL(ID,build=build,expand=True))
+    if response is None:
+        return None,None,None
+    LOGGER.debug("%s" % json.dumps(response,indent=4,sort_keys=True))
+    if "Translation" in response:
+        r2=query.restQuery(query.makeGeneXQueryURL(response["Translation"]["id"],build=build))
+        LOGGER.debug("%s" % json.dumps(r2,indent=4,sort_keys=True))
+        uniprot_id=None
+        # looking for primary_id when dbname==Uniprot/SWISSPROT or Uniprot/SPTREMBL
+        id1=None
+        id2=None
+        if r2:
+            for r in r2:
+                if r["dbname"]=="Uniprot/SWISSPROT":
+                    id1=r["primary_id"]
+                elif r["dbname"]=="Uniprot/SPTREMBL":
+                    id2=r["primary_id"]
+        if id1:
+            uniprot_id=id1
+        elif id2:
+            uniprot_id=id2
+        return response["Translation"]["id"],response["Translation"]["length"],uniprot_id
+    else:
+        return None,None,None
+    
+# returns list of dictionaries
+def getGeneTranscripts(ID,build="38"):
+    response=query.restQuery(query.makeOverlapGeneQueryURL(ID,build=build))
+    if response is None:
+        return None
+    LOGGER.debug("%s" % json.dumps(response,indent=4,sort_keys=True))
+    res=list(filter(lambda x:x["feature_type"]=="transcript" and x["Parent"]==ID,response))
+    return res
+
 def getGeneInfo(ID,build="38"):
     '''
     Retrieve general gene information
@@ -47,7 +83,7 @@ def getGeneInfo(ID,build="38"):
 
 # ==============================================================================================================================
 
-def getGeneXrefs (ID,build="38"):
+def getGeneXrefs(ID,build="38"):
     '''
     Retrieve cross-references
 
@@ -81,6 +117,22 @@ def getGeneXrefs (ID,build="38"):
                 xrefs[db].append(x)
     
     return xrefs
+
+# ==============================================================================================================================
+
+def getGeneXrefsDB(ID,dbname,build="38"):
+    '''
+    Retrieve cross-references from a specific external DB
+    
+    '''
+
+    r=query.restQuery(query.makeGeneXQueryURL(ID,build=build,all_levels=False,external_dbname=dbname))
+    if not r:
+        return  None
+
+    LOGGER.debug("\n%s\n" % json.dumps(r,indent=4,sort_keys=True))
+    res=list(filter(lambda x:x["dbname"]==dbname,r))
+    return res
 
 # ======================================================================================================================
 
