@@ -59,10 +59,6 @@ def main():
     df.rename(columns={"Parent":"Gene ID","seq_region_name":"chr"},inplace=True)
     df["translation"],df["aa"],df["uniprot"]=zip(*df["id"].map(partial(gene.getTranslationInfo,build=build)))
     df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["Gene ID","id","chr","start","end","biotype","translation","aa","uniprot"])
-    # for index, row in df[["id"]].iterrows():
-    #     tID=row["id"]
-    #     p,l,u=gene.getTranslationInfo(tID,build=build)
-    #     print(tID,p,l,u)
 
 if __name__=="__main__":
     main()
