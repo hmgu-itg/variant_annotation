@@ -15,6 +15,7 @@ def main():
     verbosity=logging.INFO
     parser = argparse.ArgumentParser(description="General gene info")
     parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
+    parser.add_argument('--json','-j', action="store_true",help="Output JSON",required=False)
     parser.add_argument('--id','-i', action="store",help="Gene ID",required=False,default=None)
     parser.add_argument('--build','-b', action="store",help="Genome build: default: 38",required=False,default="38")
 
@@ -33,6 +34,7 @@ def main():
 
     build=args.build
     ID=args.id
+    out_json=args.json
 
     LOGGER=logging.getLogger("gene2info")
     LOGGER.setLevel(verbosity)
@@ -55,7 +57,11 @@ def main():
     if data is None:
         sys.exit(1)
     df=pd.json_normalize([data])
-    df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["id","name","chromosome","start","end","description","type","strand"])
+    if out_json:
+        df.fillna(value="NA",inplace=True)
+        df[["id","name","chromosome","start","end","description","type","strand"]].to_json(sys.stdout,orient="records")
+    else:
+        df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["id","name","chromosome","start","end","description","type","strand"])
 
 if __name__=="__main__":
     main()

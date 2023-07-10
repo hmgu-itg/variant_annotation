@@ -21,6 +21,7 @@ DBNAMES={"entrez":"EntrezGene","reactome":"Reactome_gene"}
 def main():
     parser=argparse.ArgumentParser(description="Cross reference information for gene ID")
     parser.add_argument("--verbose", "-v",action=DictAction,help="Optional: verbosity level",required=False,choices=("debug","info","warning","error"),default=logging.INFO)
+    parser.add_argument('--json','-j', action="store_true",help="Output JSON",required=False)
     parser.add_argument('--id','-i', action="store",help="Gene ID",required=False,default=None)
     parser.add_argument('--source','-s', action="store",help="Source",required=True,choices=["entrez","reactome"])
     parser.add_argument('--build','-b', action="store",help="Genome build: default: 38",required=False,default="38")
@@ -34,6 +35,7 @@ def main():
     ID=args.id
     verbosity=args.verbose
     source=args.source
+    out_json=args.json
 
     LOGGER=logging.getLogger("gene2xref")
     LOGGER.setLevel(verbosity)
@@ -57,7 +59,11 @@ def main():
         sys.exit(1)
     df=pd.json_normalize(data)
     df["ID"]=ID
-    df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["ID","primary_id","description"])
+    if out_json:
+        df.fillna(value="NA",inplace=True)
+        df[["ID","primary_id","description"]].to_json(sys.stdout,orient="records")
+    else:
+        df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["ID","primary_id","description"])
 
 if __name__=="__main__":
     main()
