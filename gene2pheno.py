@@ -20,6 +20,7 @@ def main():
     parser.add_argument('--source','-s',action="append",choices=list(PHENO_SOURCE.keys()),help="Optional: source",required=False,default=None)
     parser.add_argument('--id','-i',action="store",help="Gene ID",required=False,default=None)
     parser.add_argument('--build','-b',action="store",help="Genome build: default: 38",required=False,default="38")
+    parser.add_argument('--json','-j', action="store_true",help="Output JSON",required=False)
 
     try:
         args=parser.parse_args()
@@ -37,6 +38,7 @@ def main():
             verbosity=logging.ERROR
 
     build=args.build
+    out_json=args.json
     ID=args.id
     sources=args.source
     if sources is None:
@@ -69,7 +71,11 @@ def main():
         if x["source"] in sources:
             res.append(x)
     df=pd.json_normalize(res)
-    df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA")
+    if out_json:
+        df.fillna(value="NA",inplace=True)
+        df.to_json(sys.stdout,orient="records")
+    else:
+        df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA")
             
 if __name__=="__main__":
     main()
