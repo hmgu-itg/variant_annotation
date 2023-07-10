@@ -16,6 +16,7 @@ def main():
     verbosity=logging.INFO
     parser=argparse.ArgumentParser(description="List gene transcripts")
     parser.add_argument("--verbose", "-v", help="Optional: verbosity level", required=False,choices=("debug","info","warning","error"),default="info")
+    parser.add_argument('--json','-j', action="store_true",help="Output JSON",required=False)
     parser.add_argument('--id','-i', action="store",help="Gene ID",required=False,default=None)
     parser.add_argument('--build','-b', action="store",help="Genome build: default: 38",required=False,default="38")
 
@@ -33,6 +34,7 @@ def main():
             verbosity=logging.ERROR
 
     build=args.build
+    out_json=args.json
     ID=args.id
 
     LOGGER=logging.getLogger("gene2transcripts")
@@ -58,7 +60,11 @@ def main():
     df=pd.json_normalize(data)
     df.rename(columns={"Parent":"Gene ID","seq_region_name":"chr"},inplace=True)
     df["translation"],df["aa"],df["uniprot"]=zip(*df["id"].map(partial(gene.getTranslationInfo,build=build)))
-    df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["Gene ID","id","chr","start","end","biotype","translation","aa","uniprot"])
+    if out_json:
+        df.fillna(value="NA",inplace=True)
+        df[["Gene ID","id","chr","start","end","biotype","translation","aa","uniprot"]].to_json(sys.stdout)
+    else:
+        df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["Gene ID","id","chr","start","end","biotype","translation","aa","uniprot"])
 
 if __name__=="__main__":
     main()
