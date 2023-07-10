@@ -62,7 +62,7 @@ def main():
     df["translation"],df["aa"],df["uniprot"]=zip(*df["id"].map(partial(gene.getTranslationInfo,build=build)))
     if out_json:
         df.fillna(value="NA",inplace=True)
-        df[["Gene ID","id","chr","start","end","biotype","translation","aa","uniprot"]].to_json(sys.stdout)
+        df[["Gene ID","id","chr","start","end","biotype","translation","aa","uniprot"]].to_json(sys.stdout,orient="records")
     else:
         df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["Gene ID","id","chr","start","end","biotype","translation","aa","uniprot"])
 
