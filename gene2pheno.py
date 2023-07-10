@@ -71,6 +71,14 @@ def main():
         if x["source"] in sources:
             res.append(x)
     df=pd.json_normalize(res)
+    df=df.drop(["ontology_accessions","location"],axis=1)
+    df.rename(lambda x:x[len("attributes."):] if x.startswith("attributes.") else x,axis="columns",inplace=True)
+    if "external_reference" in df.columns:
+        df=df.drop(["external_reference"],axis=1)
+    if "associated_gene" in df.columns:
+        df=df.drop(["associated_gene"],axis=1)
+    df.rename(lambda x:x.replace('_',' '),axis="columns",inplace=True)
+    df.rename(lambda x:x[0].upper()+x[1:],axis="columns",inplace=True)
     if out_json:
         df.fillna(value="NA",inplace=True)
         df.to_json(sys.stdout,orient="records")
