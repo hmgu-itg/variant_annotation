@@ -10,6 +10,7 @@ def main():
     parser=argparse.ArgumentParser(description="Create JSON text from STDIN")
     parser.add_argument('--title','-t', action="store",help="Section title",required=False,default=None)
     parser.add_argument('--link','-l', action="store",help="Link",required=False,default=None)
+    parser.add_argument('--output','-o', action="store",help="Create text or list",choices=["text","list"],required=False,default="text")
 
     try:
         args=parser.parse_args()
@@ -26,7 +27,7 @@ def main():
     #---------------------------------------------------------------------------------------------------------------------------
     
     input_data=sys.stdin.read().strip()
-    d={"type":"text","data":input_data}
+    d={"type":args.output,"data":input_data}
     if title:
        d["title"]=title
     if link:

@@ -25,7 +25,8 @@ def main():
         
     #---------------------------------------------------------------------------------------------------------------------------
     
-    input_data=sys.stdin.read().strip()
+    # input_data=sys.stdin.read().strip()
+    input_data=json.load(sys.stdin)
     d={"type":"table","data":input_data}
     if caption:
        d["caption"]=caption
