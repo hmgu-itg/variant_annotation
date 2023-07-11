@@ -16,6 +16,7 @@ def main():
     parser.add_argument('--region','-r',action="store",help="Region: chr:start-end",required=False,default=None)
     parser.add_argument('--gwas','-g',action="store",help="GWAS catalog file",required=True,default=None)
     parser.add_argument('--build','-b',action="store",help="Genome build: default: 38",required=False,default="38")
+    parser.add_argument('--json','-j', action="store_true",help="Output JSON",required=False)
 
     try:
         args=parser.parse_args()
@@ -35,6 +36,7 @@ def main():
     build=args.build
     gwas=args.gwas
     region=args.region
+    out_json=args.json
 
     LOGGER=logging.getLogger("region2gwas_local")
     LOGGER.setLevel(verbosity)
@@ -64,9 +66,13 @@ def main():
     except Exception as e:
         LOGGER.error(str(e))
         sys.exit(1)
-        
+
+    T.fillna(value="NA",inplace=True)
     df=T[(T["CHR_ID"]==chrom) & (T["CHR_POS"]>start) & (T["CHR_POS"]<end)]
-    df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA")
+    if out_json:   
+        df.to_json(sys.stdout,orient="records")
+    else:
+        df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA")
             
 if __name__=="__main__":
     main()
