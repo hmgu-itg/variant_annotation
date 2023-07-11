@@ -71,7 +71,8 @@ def main():
         if x["source"] in sources:
             res.append(x)
     df=pd.json_normalize(res)
-    df=df.drop(["ontology_accessions","location"],axis=1)
+    if "ontology_accessions" in df.columns and "location" in df.columns:
+        df=df.drop(["ontology_accessions","location"],axis=1)
     df.rename(lambda x:x[len("attributes."):] if x.startswith("attributes.") else x,axis="columns",inplace=True)
     if "external_reference" in df.columns:
         df=df.drop(["external_reference"],axis=1)
