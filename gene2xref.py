@@ -61,7 +61,7 @@ def main():
     df["ID"]=ID
     if out_json:
         df.fillna(value="NA",inplace=True)
-        df[["ID","primary_id","description"]].to_json(sys.stdout,orient="records")
+        df[["primary_id","description"]].to_json(sys.stdout,orient="records")
     else:
         df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["ID","primary_id","description"])
 
