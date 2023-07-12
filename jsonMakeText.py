@@ -3,6 +3,7 @@
 import sys
 import argparse
 import json
+import ast
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -27,6 +28,8 @@ def main():
     #---------------------------------------------------------------------------------------------------------------------------
     
     input_data=sys.stdin.read().strip()
+    if args.output=="list":
+        input_data=ast.literal_eval(input_data)
     d={"type":args.output,"data":input_data}
     if title:
        d["title"]=title
