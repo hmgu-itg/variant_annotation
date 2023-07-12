@@ -56,11 +56,14 @@ def main():
     data=gene.getGeneInfo(ID,build=build)
     if data is None:
         sys.exit(1)
-    df=pd.json_normalize([data])
     if out_json:
-        df.fillna(value="NA",inplace=True)
-        df[["id","name","chromosome","start","end","description","type","strand"]].to_json(sys.stdout,orient="records")
+        rows=list()
+        for c in ["id","name","chromosome","start","end","description","type","strand"]:
+           rows.append({"Field":c,"Value":data[c]})
+        df=pd.DataFrame(rows,columns=["Field","Value"])
+        df.to_json(sys.stdout,orient="records")
     else:
+        df=pd.json_normalize([data])
         df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["id","name","chromosome","start","end","description","type","strand"])
 
 if __name__=="__main__":
