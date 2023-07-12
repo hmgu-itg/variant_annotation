@@ -72,7 +72,8 @@ def main():
     df["ID"]=ID
     if out_json:
         df.fillna(value="NA",inplace=True)
-        df[["ID","GO term ID","Namespace","Description","Definition"]].to_json(sys.stdout,orient="records")
+        # df[["ID","GO term ID","Namespace","Description","Definition"]].to_json(sys.stdout,orient="records")
+        df[["GO term ID","Namespace","Description","Definition"]].to_json(sys.stdout,orient="records")
     else:
         df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["ID","GO term ID","Namespace","Description","Definition"])
 
