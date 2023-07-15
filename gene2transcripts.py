@@ -62,6 +62,8 @@ def main():
     df["translation"],df["aa"],df["uniprot"]=zip(*df["id"].map(partial(gene.getTranslationInfo,build=build)))
     if out_json:
         df.fillna(value="NA",inplace=True)
+        df=df.astype(str,copy=True)
+        df["biotype"]=df["biotype"].apply(lambda x:x.replace("_"," "))
         # df[["Gene ID","id","chr","start","end","biotype","translation","aa","uniprot"]].to_json(sys.stdout,orient="records")
         df[["id","biotype","translation","aa","uniprot"]].to_json(sys.stdout,orient="records")
     else:

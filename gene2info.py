@@ -61,6 +61,8 @@ def main():
         for c in ["id","name","chromosome","start","end","description","type","strand"]:
            rows.append({"Field":c,"Value":data[c]})
         df=pd.DataFrame(rows,columns=["Field","Value"])
+        df=df.astype(str,copy=True)
+        df["Value"]=df["Value"].apply(lambda x:x.replace("_"," "))
         df.to_json(sys.stdout,orient="records")
     else:
         df=pd.json_normalize([data])

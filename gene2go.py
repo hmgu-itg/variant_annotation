@@ -72,6 +72,8 @@ def main():
     df["ID"]=ID
     if out_json:
         df.fillna(value="NA",inplace=True)
+        df=df.astype(str,copy=True)
+        df["Namespace"]=df["Namespace"].apply(lambda x:x.replace("_"," "))
         # df[["ID","GO term ID","Namespace","Description","Definition"]].to_json(sys.stdout,orient="records")
         df[["GO term ID","Namespace","Description","Definition"]].to_json(sys.stdout,orient="records")
     else:
