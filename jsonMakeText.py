@@ -9,9 +9,10 @@ import ast
 
 def main():
     parser=argparse.ArgumentParser(description="Create JSON text from STDIN")
-    parser.add_argument('--title','-t', action="store",help="Section title",required=False,default=None)
-    parser.add_argument('--link','-l', action="store",help="Link",required=False,default=None)
-    parser.add_argument('--output','-o', action="store",help="Create text or list",choices=["text","list"],required=False,default="text")
+    parser.add_argument('--title','-t',action="store",help="Section title",required=False,default=None)
+    parser.add_argument('--link','-l',action="store",help="Link",required=False,default=None)
+    parser.add_argument('--add','-d',action="append",help="Add key:value pair",required=False,default=[])
+    parser.add_argument('--output','-o',action="store",help="Create text or list",choices=["text","list"],required=False,default="text")
 
     try:
         args=parser.parse_args()
@@ -20,14 +21,19 @@ def main():
 
     link=args.link
     title=args.title
+    to_add=args.add
 
     if sys.stdin.isatty():
         parser.print_help()
         sys.exit(1)
         
     #---------------------------------------------------------------------------------------------------------------------------
-    
-    input_data=sys.stdin.read().strip()
+
+    try:
+        input_data=sys.stdin.read().strip()
+    except Exception as e:
+        print("Error: "+str(e),file=sys.stderr)
+        sys.exit(1)
     if args.output=="list":
         input_data=ast.literal_eval(input_data)
     d={"type":args.output,"data":input_data}
@@ -35,6 +41,9 @@ def main():
        d["title"]=title
     if link:
        d["link"]=link
+    for x in to_add:
+        key,val=x.split(":")
+        d[key]=val
     print(json.dumps(d))
     
 if __name__=="__main__":

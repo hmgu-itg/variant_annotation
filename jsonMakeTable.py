@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--long','-l', action="store_true",help="Long table",required=False,default=False)
     parser.add_argument('--landscape','-a', action="store_true",help="Landscape mode",required=False,default=False)
     parser.add_argument('--newpage','-p', action="store_true",help="Trigger new page",required=False,default=False)
+    parser.add_argument('--add','-d',action="append",help="Add key:value pair",required=False,default=[])
 
     try:
         args=parser.parse_args()
@@ -28,6 +29,7 @@ def main():
     longtable=args.long
     landscape=args.landscape
     newpage=args.newpage
+    to_add=args.add
 
     if sys.stdin.isatty():
         parser.print_help()
@@ -36,7 +38,11 @@ def main():
     #---------------------------------------------------------------------------------------------------------------------------
     
     # input_data=sys.stdin.read().strip()
-    input_data=json.load(sys.stdin)
+    try:
+        input_data=json.load(sys.stdin)
+    except Exception as e:
+        print("Error: "+str(e),file=sys.stderr)
+        sys.exit(1)
     d={"type":"table","data":input_data}
     if caption:
        d["caption"]=caption
@@ -52,6 +58,9 @@ def main():
         d["newpage"]=True
     if option:
         d["column_option"]=option
+    for x in to_add:
+        key,val=x.split(":")
+        d[key]=val
     print(json.dumps(d))
     
 if __name__=="__main__":
