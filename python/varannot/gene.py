@@ -40,7 +40,7 @@ def getTranslationInfo(ID,build="38"):
             uniprot_id=id1
         elif id2:
             uniprot_id=id2
-        return response["Translation"]["id"],response["Translation"]["length"],uniprot_id
+        return str(response["Translation"]["id"]),str(response["Translation"]["length"]),str(uniprot_id)
     else:
         return None,None,None
     
