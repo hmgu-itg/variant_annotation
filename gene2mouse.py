@@ -56,10 +56,11 @@ def main():
     data=mouse.getMousePhenotypes(ID,build=build)
     if data is None:
         sys.exit(1)
+    data["Phenotypes"]=data["Phenotypes"].replace("\s*\|\s*",", ",regex=True)
     if out_json:
-        data.to_json(sys.stdout,orient="records")
+        data[["Allele ID","Phenotypes","Human disease","mouse gene ID","MGI ID"]].to_json(sys.stdout,orient="records")
     else:
-        data.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA")
+        data.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["Allele ID","Phenotypes","Human disease","mouse gene ID","MGI ID"])
 
 if __name__=="__main__":
     main()
