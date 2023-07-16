@@ -7,6 +7,9 @@ import logging
 import json
 import pandas as pd
 
+import locale
+locale.setlocale(locale.LC_CTYPE,"en_US.UTF-8")
+
 #----------------------------------------------------------------------------------------------------------------------------------
 
 def main():
@@ -15,7 +18,6 @@ def main():
     parser.add_argument("--verbose", "-v", help="Optional: verbosity level",required=False,choices=("debug","info","warning","error"),default="info")
     parser.add_argument('--region','-r',action="store",help="Region: chr:start-end",required=False,default=None)
     parser.add_argument('--gwas','-g',action="store",help="GWAS catalog file",required=True,default=None)
-    parser.add_argument('--build','-b',action="store",help="Genome build: default: 38",required=False,default="38")
     parser.add_argument('--json','-j', action="store_true",help="Output JSON",required=False)
 
     try:
@@ -33,7 +35,6 @@ def main():
         elif args.verbose=="error":
             verbosity=logging.ERROR
 
-    build=args.build
     gwas=args.gwas
     region=args.region
     out_json=args.json
@@ -62,17 +63,19 @@ def main():
     #---------------------------------------------------------------------------------------------------------------------------
 
     try:
-        T=pd.read_table(gwas,sep="\t",dtype={"CHR_ID":str,"CHR_POS":int,"SNPS":str,"P-VALUE":str,"DISEASE/TRAIT":str,"PUBMEDID":str})
+        T=pd.read_table(gwas,sep="\t",dtype={"CHR_ID":str,"CHR_POS":int,"SNPS":str,"P-VALUE":str,"DISEASE/TRAIT":str,"PUBMEDID":str},encoding="utf-8")
     except Exception as e:
         LOGGER.error(str(e))
         sys.exit(1)
 
     T.fillna(value="NA",inplace=True)
-    df=T[(T["CHR_ID"]==chrom) & (T["CHR_POS"]>start) & (T["CHR_POS"]<end)]
+    df=pd.DataFrame(T[(T["CHR_ID"]==chrom) & (T["CHR_POS"]>start) & (T["CHR_POS"]<end)])
+    # df["P-VALUE"]=df["P-VALUE"].astype(float)
+    df.sort_values(by="P-VALUE",key=lambda x:x.astype(float),inplace=True)
     if out_json:   
-        df.to_json(sys.stdout,orient="records")
+        df[["SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID"]].to_json(sys.stdout,orient="records")
     else:
-        df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA")
+        df[["SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID"]].to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",encoding="utf-8")
             
 if __name__=="__main__":
     main()
