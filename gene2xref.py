@@ -8,6 +8,7 @@ import json
 import pandas as pd
 
 from varannot import gene
+from varannot import utils
 
 class DictAction(argparse.Action):
     def __call__(self,parser,namespace,values,option_string=None):
@@ -25,6 +26,7 @@ def main():
     parser.add_argument('--id','-i', action="store",help="Gene ID",required=False,default=None)
     parser.add_argument('--source','-s', action="store",help="Source",required=True,choices=["entrez","reactome"])
     parser.add_argument('--build','-b', action="store",help="Genome build: default: 38",required=False,default="38")
+    parser.add_argument('--link','-l', action="store_true",help="Output links",required=False)
 
     try:
         args=parser.parse_args()
@@ -36,6 +38,7 @@ def main():
     verbosity=args.verbose
     source=args.source
     out_json=args.json
+    link=args.link
 
     LOGGER=logging.getLogger("gene2xref")
     LOGGER.setLevel(verbosity)
@@ -47,6 +50,8 @@ def main():
 
     logging.getLogger("varannot.gene").addHandler(ch)
     logging.getLogger("varannot.gene").setLevel(verbosity)
+    logging.getLogger("varannot.utils").addHandler(ch)
+    logging.getLogger("varannot.utils").setLevel(verbosity)
 
     if sys.stdin.isatty() and ID is None:
         parser.print_help()
@@ -61,7 +66,11 @@ def main():
     df["ID"]=ID
     if out_json:
         df.fillna(value="NA",inplace=True)
-        df[["primary_id","description"]].to_json(sys.stdout,orient="records")
+        df.rename(columns={"primary_id":"Primary ID"},inplace=True)
+        if source=="reactome":
+            if link:
+                df["Primary ID"]=df["Primary ID"].apply(lambda x:utils.makeLink("https://reactome.org/content/detail/"+x,x))
+        df[["Primary ID","description"]].to_json(sys.stdout,orient="records")
     else:
         df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["ID","primary_id","description"])
 

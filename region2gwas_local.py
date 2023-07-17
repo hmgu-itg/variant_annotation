@@ -6,9 +6,10 @@ import argparse
 import logging
 import json
 import pandas as pd
+from varannot import utils
 
-import locale
-locale.setlocale(locale.LC_CTYPE,"en_US.UTF-8")
+# import locale
+# locale.setlocale(locale.LC_CTYPE,"en_US.UTF-8")
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -19,6 +20,8 @@ def main():
     parser.add_argument('--region','-r',action="store",help="Region: chr:start-end",required=False,default=None)
     parser.add_argument('--gwas','-g',action="store",help="GWAS catalog file",required=True,default=None)
     parser.add_argument('--json','-j', action="store_true",help="Output JSON",required=False)
+    parser.add_argument('--pmlink','-p', action="store_true",help="Output link to PUBMED",required=False)
+    parser.add_argument('--snplink','-s', action="store_true",help="Output link to NCBI SNP",required=False)
 
     try:
         args=parser.parse_args()
@@ -38,6 +41,8 @@ def main():
     gwas=args.gwas
     region=args.region
     out_json=args.json
+    pmlink=args.pmlink
+    snplink=args.snplink
 
     LOGGER=logging.getLogger("region2gwas_local")
     LOGGER.setLevel(verbosity)
@@ -47,6 +52,9 @@ def main():
     ch.setFormatter(formatter)
     LOGGER.addHandler(ch)
 
+    logging.getLogger("varannot.utils").addHandler(ch)
+    logging.getLogger("varannot.utils").setLevel(verbosity)
+    
     if sys.stdin.isatty() and region is None:
         parser.print_help()
         sys.exit(1)
@@ -72,10 +80,15 @@ def main():
     df=pd.DataFrame(T[(T["CHR_ID"]==chrom) & (T["CHR_POS"]>start) & (T["CHR_POS"]<end)])
     # df["P-VALUE"]=df["P-VALUE"].astype(float)
     df.sort_values(by="P-VALUE",key=lambda x:x.astype(float),inplace=True)
-    if out_json:   
-        df[["SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID"]].to_json(sys.stdout,orient="records")
+    df.rename(columns={"PUBMEDID":"Pubmed"},inplace=True)
+    if out_json:
+        if pmlink:
+            df["Pubmed"]=df["Pubmed"].apply(lambda x:utils.makeLink("https://pubmed.ncbi.nlm.nih.gov/"+x,"PubMed"))
+        if snplink:
+            df["SNPS"]=df["SNPS"].apply(lambda x:utils.makeLink("https://www.ncbi.nlm.nih.gov/snp/?term="+x,x))
+        df[["SNPS","P-VALUE","DISEASE/TRAIT","Pubmed"]].to_json(sys.stdout,orient="records")
     else:
-        df[["SNPS","P-VALUE","DISEASE/TRAIT","PUBMEDID"]].to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",encoding="utf-8")
-            
+        df[["SNPS","P-VALUE","DISEASE/TRAIT","Pubmed"]].to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",encoding="utf-8")
+        
 if __name__=="__main__":
     main()
