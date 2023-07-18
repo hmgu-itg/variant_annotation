@@ -3,6 +3,7 @@
 import sys
 import argparse
 import json
+import os.path
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -11,6 +12,7 @@ def main():
     parser.add_argument('--caption','-c', action="store",help="Caption",required=False,default=None)
     parser.add_argument('--title','-t', action="store",help="Section title",required=False,default=None)
     parser.add_argument('--add','-d',action="append",help="Add key:value pair",required=False,default=[])
+    parser.add_argument('--strip','-s', action="store_true",help="Only leave the last dirname in the image filename",required=False,default=False)
 
     try:
         args=parser.parse_args()
@@ -20,6 +22,7 @@ def main():
     caption=args.caption
     title=args.title
     to_add=args.add
+    strip=args.strip
 
     if sys.stdin.isatty():
         parser.print_help()
@@ -40,6 +43,8 @@ def main():
     for x in to_add:
         key,val=x.split(":")
         input_data[key]=val
+    if strip:
+        input_data["data"]=os.path.join(os.path.basename(os.path.dirname(input_data["data"])),os.path.basename(input_data["data"]))
     print(json.dumps(input_data))
     
 if __name__=="__main__":
