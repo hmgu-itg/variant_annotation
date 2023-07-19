@@ -9,6 +9,7 @@ import pandas as pd
 from functools import partial
 
 from varannot import gene
+from varannot import utils
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -47,6 +48,8 @@ def main():
 
     logging.getLogger("varannot.gene").addHandler(ch)
     logging.getLogger("varannot.gene").setLevel(verbosity)
+    logging.getLogger("varannot.utils").addHandler(ch)
+    logging.getLogger("varannot.utils").setLevel(verbosity)
 
     if sys.stdin.isatty() and ID is None:
         parser.print_help()
@@ -65,6 +68,7 @@ def main():
         df=df.astype(str,copy=True)
         df["biotype"]=df["biotype"].apply(lambda x:x.replace("_"," "))
         # df[["Gene ID","id","chr","start","end","biotype","translation","aa","uniprot"]].to_json(sys.stdout,orient="records")
+        df["uniprot"]=df["uniprot"].apply(lambda x:utils.makeLink("https://www.uniprot.org/uniprotkb/"+x+"/entry",x) if x!="NA" else x)
         df[["id","biotype","translation","aa","uniprot"]].to_json(sys.stdout,orient="records")
     else:
         df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["Gene ID","id","chr","start","end","biotype","translation","aa","uniprot"])

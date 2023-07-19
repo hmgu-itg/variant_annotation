@@ -9,6 +9,7 @@ import pandas as pd
 from functools import partial
 
 from varannot import gene
+from varannot import utils
 from varannot import query
 
 def getGOdetails(goterm,build):
@@ -56,6 +57,8 @@ def main():
     logging.getLogger("varannot.gene").setLevel(verbosity)
     logging.getLogger("varannot.query").addHandler(ch)
     logging.getLogger("varannot.query").setLevel(verbosity)
+    logging.getLogger("varannot.utils").addHandler(ch)
+    logging.getLogger("varannot.utils").setLevel(verbosity)
 
     if sys.stdin.isatty() and ID is None:
         parser.print_help()
@@ -75,7 +78,8 @@ def main():
         df=df.astype(str,copy=True)
         df["Namespace"]=df["Namespace"].apply(lambda x:x.replace("_"," "))
         # df[["ID","GO term ID","Namespace","Description","Definition"]].to_json(sys.stdout,orient="records")
-        df[["GO term ID","Namespace","Description","Definition"]].to_json(sys.stdout,orient="records")
+        df["GO term ID"]=df["GO term ID"].apply(lambda x:utils.makeLink("https://www.ebi.ac.uk/QuickGO/term/"+x,x))
+        df[["GO term ID","Namespace","Description"]].to_json(sys.stdout,orient="records")
     else:
         df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["ID","GO term ID","Namespace","Description","Definition"])
 
