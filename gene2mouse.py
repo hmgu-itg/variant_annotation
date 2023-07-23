@@ -6,11 +6,18 @@ import argparse
 import logging
 import json
 import pandas as pd
+import re
 
 from varannot import mouse
 from varannot import utils
 
 #----------------------------------------------------------------------------------------------------------------------------------
+
+def find_convert_links(string):
+    if pd.isna(string):
+        return string
+    regex=re.compile('(DOID:\d+)')
+    return regex.sub(lambda m: utils.makeLink("https://www.informatics.jax.org/disease/"+m.group(),m.group()),string)
 
 def main():
     verbosity=logging.INFO
@@ -67,6 +74,7 @@ def main():
             data["Allele ID"]=data["Allele ID"].apply(lambda x:utils.makeLink("https://www.informatics.jax.org/allele/"+x,x))            
             data["mouse gene ID"]=data["mouse gene ID"].apply(lambda x:utils.makeLink("https://www.ensembl.org/Mus_musculus/Gene/Summary?g="+x,x))            
             data["MGI ID"]=data["MGI ID"].apply(lambda x:utils.makeLink("https://www.informatics.jax.org/marker/"+x,x))            
+            data["Human disease"]=data["Human disease"].apply(lambda x:find_convert_links(x))
         data[["Allele ID","Phenotypes","Human disease","mouse gene ID","MGI ID"]].to_json(sys.stdout,orient="records")
     else:
         data.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["Allele ID","Phenotypes","Human disease","mouse gene ID","MGI ID"])
