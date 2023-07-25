@@ -72,7 +72,8 @@ VEP_CONSEQUENCES={
     "feature_elongation": 4,
     "regulatory_region_variant": 3,
     "feature_truncation": 2,
-    "intergenic_variant": 1
+    "intergenic_variant": 1,
+    "NA": 0
     # "transcript_ablation"      : 36,
     # "splice_acceptor_variant"  : 35,
     # "splice_donor_variant"     : 34,
