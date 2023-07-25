@@ -621,7 +621,7 @@ def id2rs_list(varIDs,build="38",skip_non_rs=False,keep_all=True):
         while r is None:
             r=query.restQuery(query.makeRSListQueryURL(build=build),data=utils.list2string(L1),qtype="post")
             if r is None:
-                LOGGER.info("Retrying")
+                LOGGER.debug("Retrying")
         for x1 in r:
             for x2 in x1:
                 if "id" in x1[x2]:
@@ -632,7 +632,7 @@ def id2rs_list(varIDs,build="38",skip_non_rs=False,keep_all=True):
                     else:
                         R[v].update(x1[x2]["id"])
         c+=1
-        LOGGER.info("Chunk %d (%d) done" % (c,t))
+        LOGGER.debug("Chunk %d (%d) done" % (c,t))
     LOGGER.debug("Found rs IDs for %d variants using fast method" % len(R.keys()))
     # slow method for unmapped
     unmapped=list(set(varIDs)-set(R.keys()))
