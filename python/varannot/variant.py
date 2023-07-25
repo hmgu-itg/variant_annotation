@@ -605,7 +605,7 @@ def id2rs_list(varIDs,build="38",skip_non_rs=False,keep_all=True):
     LOGGER.debug("Input variant list: %d elements" % len(varIDs))
     c=0
     t=2*len(varIDs)//config.VARIATION_POST_MAX
-    if t%2:
+    if len(varIDs)%config.VARIATION_POST_MAX:
         t=t+1
     for L in utils.chunks(varIDs,config.VARIATION_POST_MAX//2):
         L1=list()
@@ -621,7 +621,7 @@ def id2rs_list(varIDs,build="38",skip_non_rs=False,keep_all=True):
         while r is None:
             r=query.restQuery(query.makeRSListQueryURL(build=build),data=utils.list2string(L1),qtype="post")
             if r is None:
-                LOGGER.debug("Retrying")
+                LOGGER.info("Retrying")
         for x1 in r:
             for x2 in x1:
                 if "id" in x1[x2]:
@@ -632,8 +632,8 @@ def id2rs_list(varIDs,build="38",skip_non_rs=False,keep_all=True):
                     else:
                         R[v].update(x1[x2]["id"])
         c+=1
-        LOGGER.debug("Chunk %d (%d) done" % (c,t))
-    LOGGER.debug("Found rsIDs for %d variants using fast method" % len(R.keys()))
+        LOGGER.info("Chunk %d (%d) done" % (c,t))
+    LOGGER.debug("Found rs IDs for %d variants using fast method" % len(R.keys()))
     # slow method for unmapped
     unmapped=list(set(varIDs)-set(R.keys()))
     LOGGER.debug("Using slow method for %d variants" % len(unmapped))
@@ -701,6 +701,8 @@ def id2rs_mod2(varid,build="38"):
         L=[]
         for v in r:
             if "alleles" in v and "id" in v:
+                # if not v["id"].startswith("rs"):
+                #     continue
                 for a in v["alleles"]:
                     if a =="-" or len(a)>1:
                         L.append(v["id"])
@@ -716,6 +718,8 @@ def id2rs_mod2(varid,build="38"):
 
         LOGGER.debug("---------- CHECK START ----------------\n")
         for v in z1:
+            if not v:
+                continue
             for x1 in v:
                 if "spdi" in v[x1] and "id" in v[x1]:
                     var=v[x1]["id"][0]
