@@ -539,6 +539,8 @@ def addConsequencesToIDList(varIDs,build="38",most_severe_only=False,gene_key="g
                         H.setdefault(g[gene_key],[]).extend(g["consequence_terms"])
                     for g in H:
                         H[g]=utils.getMostSevereConsequence(H[g])
+                elif "most_severe_consequence" in x:
+                    H["NA"]=x["most_severe_consequence"]
                 else:
                     H["NA"]="NA"
                 if most_severe_only:
