@@ -84,10 +84,10 @@ def main():
             if ID in c:
                 found=True
                 for g in c[ID]:
-                    print("%s\t%s\t%s" %(ID,g,c[ID][g]))
+                    print("%s\t%s\t%s\t%d" %(ID,g,c[ID][g],config.VEP_CONSEQUENCES[c[ID][g]]))
                 break
         if not found:
-            print("%s\tNA\tNA" %(ID))
+            print("%s\tNA\tNA\t0" %(ID))
 
 if __name__=="__main__":
     main()
