@@ -64,6 +64,7 @@ def main():
         IDs=f.read().splitlines()
 
     R=variant.id2rs_list(IDs,build)
+    print(R)
     if rs_only:
         S1=set()
         for v in R:
@@ -74,6 +75,8 @@ def main():
                     S2.add(x)
             if len(S2)==0:
                 S1.add(v)
+            else:
+                R[v]=S2
         for v in S1:
             del R[v]
     else:
