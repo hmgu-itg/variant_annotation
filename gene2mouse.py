@@ -75,7 +75,8 @@ def main():
             data["mouse gene ID"]=data["mouse gene ID"].apply(lambda x:utils.makeLink("https://www.ensembl.org/Mus_musculus/Gene/Summary?g="+x,x))            
             data["MGI ID"]=data["MGI ID"].apply(lambda x:utils.makeLink("https://www.informatics.jax.org/marker/"+x,x))            
             data["Human disease"]=data["Human disease"].apply(lambda x:find_convert_links(x))
-        data[["Allele ID","Phenotypes","Human disease","mouse gene ID","MGI ID"]].to_json(sys.stdout,orient="records")
+        data.rename(columns={"mouse gene ID":"Mouse gene ID"},inplace=True)
+        data[["Allele ID","Phenotypes","Human disease","Mouse gene ID","MGI ID"]].to_json(sys.stdout,orient="records")
     else:
         data.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["Allele ID","Phenotypes","Human disease","mouse gene ID","MGI ID"])
 

@@ -68,9 +68,10 @@ def main():
         df.fillna(value="NA",inplace=True)
         df.rename(columns={"primary_id":"Primary ID"},inplace=True)
         if source=="reactome":
+            df.rename(columns={"description":"Description"},inplace=True)
             if link:
                 df["Primary ID"]=df["Primary ID"].apply(lambda x:utils.makeLink("https://reactome.org/content/detail/"+x,x))
-        df[["Primary ID","description"]].to_json(sys.stdout,orient="records")
+        df[["Primary ID","Description"]].to_json(sys.stdout,orient="records")
     else:
         df.to_csv(sys.stdout,index=False,sep="\t",na_rep="NA",columns=["ID","primary_id","description"])
 

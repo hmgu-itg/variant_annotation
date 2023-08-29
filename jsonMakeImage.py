@@ -39,7 +39,10 @@ def main():
     if caption:
        input_data["caption"]=caption
     if title:
-       input_data["title"]=title
+        if "link" in input_data:
+            input_data["title"]="<a href="+input_data["link"]+">"+title+"</a>"
+        else:
+            input_data["title"]=title
     for x in to_add:
         key,val=x.split(":")
         input_data[key]=val
