@@ -27,11 +27,11 @@ def makeRSQueryURL(rsID,build="38"):
     return getServerName(build)+ext+rsID+"?"
 
 def makeHomologyURL(ID,species="mouse",build="38",homology_type="orthologues"):
-    ext="/homology/id/%s?&target_species=%s&aligned=0&sequence=none&type=%s" %(ID,species,homology_type)
+    ext="/homology/id/human/%s?&target_species=%s&cigar_line=0&aligned=0&sequence=none&type=%s&content-type=application/json" %(ID,species,homology_type)
     return getServerName(build)+ext
 
 def makeHomologySymbolURL(name,source_species="human",target_species="mouse",build="38",homology_type="orthologues"):
-    ext="/homology/symbol/%s/%s?&target_species=%s&aligned=0&sequence=none&type=%s" %(source_species,name,target_species,homology_type)
+    ext="/homology/symbol/%s/%s?&target_species=%s&aligned=0&sequence=none&type=%s&content-type=application/json" %(source_species,name,target_species,homology_type)
     return getServerName(build)+ext
 
 def makeGeneQueryURL(ID,build="38",expand=False):
